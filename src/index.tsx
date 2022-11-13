@@ -1,15 +1,54 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+
+//React Router
+import { BrowserRouter } from 'react-router-dom';
+
+//React-Redux
+import { Provider } from 'react-redux'
+import { store } from './global-state/store';
+
+//FontAwesomeIcons
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { 
+  faS, 
+  faBars, 
+  faUser, 
+  faUsers, 
+  faClipboardList, 
+  faMoon, 
+  faSun, 
+  faSitemap, 
+  faHandHoldingHeart, 
+  faHandsHelping,
+  faArrowLeft,
+  faAngleRight
+ } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faS, faBars);
+library.add(faS, faUsers);
+library.add(faS, faClipboardList);
+library.add(faS, faMoon);
+library.add(faS, faSun);
+library.add(faS, faSitemap);
+library.add(faS, faHandHoldingHeart);
+library.add(faS, faHandsHelping);
+library.add(faS, faArrowLeft);
+library.add(faS, faAngleRight);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </BrowserRouter>
   </React.StrictMode>
 );
 
