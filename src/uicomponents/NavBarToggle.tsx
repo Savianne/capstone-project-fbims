@@ -5,7 +5,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 //Global State Dispatch Hook
-import { useAppDispatch } from "../global-state/hooks";
+import { useAppDispatch, useAppSelector } from "../global-state/hooks";
 
 //Global State Action
 import { closeNav, openNav } from "../global-state/action-creators/navBarToggleSlice";
@@ -24,15 +24,7 @@ const SNavbarToggle = styled(UseToggle)`
         transition: background-color 1s linear, color 0.5s linear;
         font-size: 20px;
         cursor: pointer;
-    }
-    &[state='off'] {
-        background-color: ${({theme}) => theme.staticColor.primary};
-        color: #fff;
-    }
-
-    &[state='on'] {
-        color: ${({theme}) => theme.staticColor.primary};
-        background-color: transparent;
+        color: ${({theme}) => theme.staticColor.primary}
     }
 `;
 
@@ -44,14 +36,16 @@ const SNavbarToggleWithRipple = styled(UseRipple)`
 
 const NavBarToggle: React.FC = () => {
     const dispatcher = useAppDispatch();
-
+    const navState = useAppSelector(state => state.navBarToggle.state)
     return (
         <SNavbarToggleWithRipple>
             <SNavbarToggle
             name="navbar-toggle"
             off={(name: string) => dispatcher(closeNav())} 
             on={(name: string) => dispatcher(openNav())}>
-                <FontAwesomeIcon icon={["fas", "bars"]} />
+                {
+                    navState == 'open'? <FontAwesomeIcon icon={["fas", "outdent"]} /> : <FontAwesomeIcon icon={["fas", "bars"]} />
+                }
             </SNavbarToggle>
         </SNavbarToggleWithRipple>
     );

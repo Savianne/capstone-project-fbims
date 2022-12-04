@@ -6,7 +6,8 @@ const lightTheme: DefaultTheme = {
     mainBackground: '#F9F9F9',
     background: {
         primary: '#FFFFFF',
-        light: '#d7f0ff5e',
+        // light: '#d7f0ff5e',
+        light: '#e6f2fa',
         lighter: '#F9F9F9',
         transparent: 'transparent',
     },
@@ -32,7 +33,8 @@ const darkTheme: DefaultTheme = {
     mainBackground: '#342A40',
     background: {
         primary: '#302A34',
-        light: 'rgba(21, 169, 253, 0.09)',
+        // light: 'rgba(21, 169, 253, 0.09)',
+        light: '#263d4b',
         lighter: '#F9F9F9',
         transparent: 'transparent',
     },

@@ -9,29 +9,41 @@ const AppLayout = styled.div`
 
     @font-face {
         font-family: IndieFlowerRegular;
-        src: url(http://localhost:3001/assets/fonts/IndieFlower-Regular.ttf);
+        src: url(http://localhost:3000/assets/fonts/IndieFlower-Regular.ttf);
     }
 
     @font-face {
         font-family: LexendVariableFontwght;
-        src: url(http://localhost:3001/assets/fonts/Lexend-VariableFont_wght.ttf);
+        src: url(http://localhost:3000/assets/fonts/Lexend-VariableFont_wght.ttf);
+    }
+
+    @font-face {
+        font-family: AssistantVariableFontwght;
+        src: url(http://localhost:3000/assets/fonts/Assistant-VariableFont_wght.ttf);
+    }
+
+    @font-face {
+        font-family: AssistantExtraLight;
+        src: url(http://localhost:3000/assets/fonts/static/Assistant-ExtraLight.ttf);
     }
 
     @font-face {
         font-family: Sen-Regular;
-        src: url(http://localhost:3001/assets/fonts/Sen-Regular.ttf);
+        src: url(http://localhost:3000/assets/fonts/Sen-Regular.ttf);
     }
 
     & {
         position: fixed;
         top: 0;
-        overflow: auto ;
+        overflow-y: scroll;
+        overflow-x: hidden;
         display: flex;
         flex-wrap: wrap;
         width: 100%;
         height: 100vh;
         background-color: ${({theme}) => theme.mainBackground};
-        font-family: "Roboto","Helvetica","Arial", sans-serif;
+        /* font-family: "Roboto","Helvetica","Arial", sans-serif; */
+        font-family: AssistantVariableFontwght;
         line-height: 1.5;
         letter-spacing: 0.00938em;
     }
@@ -41,6 +53,7 @@ const AppLayout = styled.div`
         top: 0;
         flex: 0 1 100%;
         height: 65px;
+        z-index: 1000;
     }
 
     & > ${AppNavBar},
@@ -57,6 +70,7 @@ const AppLayout = styled.div`
 
     & > ${ScrollingContent} {
         flex: 1;
+        min-width: 320px;
         height: fit-content;
         margin-bottom: 50px;
     }

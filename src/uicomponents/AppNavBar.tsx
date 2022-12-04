@@ -82,16 +82,18 @@ const NavBarLink: React.FC<INavLink> = ({className, title, icon, path, currentPa
             navigate(typeof path == 'string'? path : path.root);
             switchPath(typeof path == 'string'? path : path.root);
         }}>
-            <span className="nav-link-container">
-                <span className="nav-link-icon-container">
-                    <i className="nav-link-icon">
-                        {
-                            icon
-                        }
-                    </i>
+            <UseRipple>
+                <span className="nav-link-container">
+                    <span className="nav-link-icon-container">
+                        <i className="nav-link-icon">
+                            {
+                                icon
+                            }
+                        </i>
+                    </span>
+                    <p className="nav-link-text">{ title }</p>
                 </span>
-                <p className="nav-link-text">{ title }</p>
-            </span>
+            </UseRipple>
         </div>
     );
 }
@@ -107,6 +109,7 @@ const SNavBarLink = styled(NavBarLink)`
 const AppNavBar = styled(NavBar)`
     background-color: ${({theme}) => theme.background.primary};
     overflow: hidden;
+    border-right: 1px solid ${({theme}) => theme.borderColor};
 
     &[navstate='open'] {
         width: 215px;
@@ -176,6 +179,12 @@ const AppNavBar = styled(NavBar)`
 
     & ${SNavBarLink}[navlinkstate='active'] .nav-link-container .nav-link-text {
         color: #fff;
+    }
+
+    @media screen and (max-width: 500px) {
+        & {
+            display: none;
+        }
     }
 `;
 

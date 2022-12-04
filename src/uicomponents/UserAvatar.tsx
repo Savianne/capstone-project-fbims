@@ -2,7 +2,7 @@ import styled from "styled-components";
 import React from "react";
 
 //Reusable Components
-import Avatar from "./avatar";
+import Avatar from "./reusables/Avatar";
 import UseRipple from "./reusables/Ripple/UseRipple";
 
 const UserAvatarContainer = styled(UseRipple)`
@@ -18,7 +18,7 @@ const UserAvatarContainer = styled(UseRipple)`
 const UserAvatar: React.FC = () => {
     return (
         <UserAvatarContainer>
-            <Avatar size='40px' url="/assets/images/avatar/apple.png" />
+            <Avatar size='40px' alt="Bpple" />
         </UserAvatarContainer>
     )
 };

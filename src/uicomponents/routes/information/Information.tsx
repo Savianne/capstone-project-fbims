@@ -50,6 +50,7 @@ const FolderContainer = styled.div`
     justify-content: center;
     flex-wrap: wrap;
     height: fit-content;
+    padding-bottom: 40px;
 `;
 
 const FolderBase = styled.div`
@@ -110,7 +111,7 @@ const FCFolder: React.FC<IFolder> = ({icon, name, records, className, path}) => 
                     <strong>{ records }</strong>
                     <p>Records</p>
                 </span>
-                <ManageBtn onClick={() => navigate(path)}>
+                <ManageBtn onClick={() => setTimeout(() => navigate(path), 400) }>
                     <FontAwesomeIcon icon={["fas", "angle-right"]} />
                 </ManageBtn>
             </div>
@@ -213,6 +214,9 @@ const Information: React.FC = () => {
                     </FolderBase>
                     <FolderBase>
                         <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "hands-helping"]} />} records={564} path="./organizations" />
+                    </FolderBase>
+                    <FolderBase>
+                        <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={564} path="./families" />
                     </FolderBase>
                 </FolderContainer>
             </RouteContentBaseBody>

@@ -24,7 +24,11 @@ import {
   faHandHoldingHeart, 
   faHandsHelping,
   faArrowLeft,
-  faAngleRight
+  faAngleRight,
+  faAngleLeft,
+  faOutdent,
+  faPeopleRoof,
+  faCircleExclamation,
  } from '@fortawesome/free-solid-svg-icons';
 
 library.add(faS, faBars);
@@ -37,6 +41,10 @@ library.add(faS, faHandHoldingHeart);
 library.add(faS, faHandsHelping);
 library.add(faS, faArrowLeft);
 library.add(faS, faAngleRight);
+library.add(faS, faAngleLeft);
+library.add(faS, faOutdent);
+library.add(faS, faPeopleRoof);
+library.add(faS, faCircleExclamation);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
