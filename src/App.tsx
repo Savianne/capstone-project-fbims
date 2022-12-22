@@ -33,8 +33,10 @@ import ThemeModeToggle from './uicomponents/ThemeModeToggle';
 import Layout from './uicomponents/routes/layout';
 import Information from './uicomponents/routes/information/Information';
 import Members from './uicomponents/routes/information/members/Members';
+import MembershipForm from './uicomponents/routes/information/members/MembershipForm';
 import Ministry from './uicomponents/routes/information/ministry/ministry';
 import Organizations from './uicomponents/routes/information/organizations/organizations';
+
 
 function App() {
   const counterState = useAppSelector(state => state.counter.value);
@@ -61,7 +63,10 @@ function App() {
               <Route path='/' element={<Layout />}>
                 <Route path='information'>
                   <Route index element={<Information />} />
-                  <Route path='members' element={<Members />} />
+                  <Route path='members'>
+                    <Route index element={<Members />} />
+                    <Route path='new-member' element={<MembershipForm />} />
+                  </Route>
                   <Route path='ministry' element={<Ministry />} />
                   <Route path='organizations' element={<Organizations />} />
                 </Route>

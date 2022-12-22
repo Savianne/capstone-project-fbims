@@ -18,7 +18,7 @@ const UserAvatarContainer = styled(UseRipple)`
 const UserAvatar: React.FC = () => {
     return (
         <UserAvatarContainer>
-            <Avatar size='40px' alt="Bpple" />
+            <Avatar size='40px' alt="Bpple" src="/assets/images/avatar/apple.png"/>
         </UserAvatarContainer>
     )
 };

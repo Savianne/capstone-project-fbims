@@ -1,63 +1,90 @@
 import styled from "styled-components";
-import React from "react";
+import React, { useEffect } from "react";
 import { IStyledFC } from "../../IStyledFC";
 import UseRipple from "../Ripple/UseRipple";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+// Interfaces
+import { IInputError } from "../../../utils/hooks/useFormControl";
+
 //Utils
-import { limitTextLen } from '../../../utils/limitTextLen';
 import { validateEmail } from '../../../utils/emailFormatValidator';
 
-interface IFCInput extends IStyledFC {
-    type?: 'text' | 'password' | 'email' | 'number',  
-    required?: boolean,
+export interface IFCInput extends IStyledFC {
+    name: string,
     placeholder: string,
+    control?: { errors: IInputError[], dispatchValue: <TDispatch>(payload: TDispatch) => void },
+    type?: 'text' | 'password' | 'email' | 'number',  
     error?: string,
-    onChange: React.ChangeEventHandler<HTMLInputElement>,
-    minCharLen?: number,
-    maxCharLen?: number,
+    disabled?: boolean,
+    onValChange?: (param: {inputState: 'init' | 'onfocus' | 'onblur', value: string | number, type: 'text' | 'password' | 'email' | 'number' | 'date' | 'select'}) => void,
 }
 
-const FCInput: React.FC<IFCInput> = ({className, onChange, type = 'text', required, placeholder, minCharLen, maxCharLen}) => {
+const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = 'text', placeholder, error}) => {
     const inputRef = React.useRef<null | HTMLInputElement>(null);
     const [inputVal, updateInputVal] = React.useState<string | null>(null);
-    const [isPending, startTransition] = React.useTransition();
-    const [validationState, updateValidationState] = React.useState<{ isValid?: boolean | 'init', errorText?: string}>({ isValid: 'init'});
+    const [inputState, updateInputState] = React.useState<'init' | 'onfocus' | 'onblur'>('init');
+    // const [isPending, startTransition] = React.useTransition();
+    // const [validationState, updateValidationState] = React.useState<{ isValid?: boolean | 'init', errorText?: string}>({ isValid: 'init'});
 
-    function validateInput(e: React.FocusEvent<HTMLInputElement, Element>) {
-        if(typeof inputVal == 'string') {
-            if(!(required) && inputVal == '') {
-                    updateValidationState(
-                        {
-                            isValid: 'init',
-                        }
-                    );
+    // function validateInput(e: React.FocusEvent<HTMLInputElement, Element>) {
+    //     if(typeof inputVal == 'string') {
+    //         if(!(required) && inputVal == '') {
+    //                 updateValidationState(
+    //                     {
+    //                         isValid: 'init',
+    //                     }
+    //                 );
     
-                    return;
-            };
+    //                 return;
+    //         };
 
-            if(required && inputVal == '') {
-                updateValidationState(
-                    {
-                        errorText: 'Input field can\'t be empty',
-                        isValid: false,
-                    }
-                );
+    //         if(required && inputVal == '') {
+    //             updateValidationState(
+    //                 {
+    //                     errorText: 'Input field can\'t be empty',
+    //                     isValid: false,
+    //                 }
+    //             );
 
-                return;
-            } 
+    //             return;
+    //         } 
 
-            if(type == 'email') { 
-                const validateInput = validateEmail(inputVal);
-                updateValidationState(
-                    {
-                        errorText: validateInput.isValidEmail? 'valid email address' : 'invalid email address',
-                        isValid: validateInput.isValidEmail,
-                    }
-                );
-            }            
-        } 
-    }
+    //         if(type == 'email') { 
+    //             const validateInput = validateEmail(inputVal);
+    //             if(!(validateInput.isValidEmail)) updateValidationState(
+    //                 {
+    //                     errorText: 'invalid email address',
+    //                     isValid: false,
+    //                 }
+    //             );
+    //         }        
+            
+    //         if(type == 'text') {
+    //             if(minCharLen && inputVal.length < minCharLen) {
+    //                 updateValidationState(
+    //                     {
+    //                         errorText: `Value must be atleast ${minCharLen} characters`,
+    //                         isValid: false,
+    //                     }
+    //                 );
+    //             }
+
+    //             if(maxCharLen && inputVal.length > maxCharLen) {
+    //                 updateValidationState(
+    //                     {
+    //                         errorText: `Value must be less than ${minCharLen} characters only`,
+    //                         isValid: false,
+    //                     }
+    //                 );
+    //             }
+    //         }
+    //     } 
+    // }
+
+    React.useEffect(() => {
+        if(inputVal && onValChange) onValChange({inputState: inputState, value: inputVal, type: type});
+    },[inputVal, inputState]);
 
     return (
         <div className={className}>
@@ -65,24 +92,25 @@ const FCInput: React.FC<IFCInput> = ({className, onChange, type = 'text', requir
             ref={inputRef}
             type={type}
             onChange={(e) => updateInputVal(e.target.value)} 
+            onBlur={(e) => updateInputState('onblur')}
+            onFocus={(e) => updateInputState('onfocus')}
             value={typeof inputVal == 'string'? inputVal : ''}
-            onBlur={validateInput}
             placeholder={placeholder}
-            className={validationState.isValid == 'init' || validationState.isValid? 'valid-field' : 'error-field'}
+            className={error? 'error-field input-field' : 'input-field'}
             />
             <label onClick={(e) => inputRef.current?.focus()}>{ placeholder }</label>
             {
-                (!isPending) && !validationState.isValid? <>
+                error? <>
                     <p className="error-text">
                         {
-                            validationState.errorText
+                           error
                         }
                     </p>
                 </> : ''
             }
 
             {
-                validationState.isValid == 'init' || validationState.isValid? '' : <i className='error-icon'><FontAwesomeIcon icon={["fas", "circle-exclamation"]} /></i> 
+                error? <i className='error-icon'><FontAwesomeIcon icon={["fas", "circle-exclamation"]} /></i>  : ''
             }
         </div>
     )
@@ -94,8 +122,6 @@ const Input = styled(FCInput)`
     flex: 1;
     align-items: center;
     height: fit-content;
-    margin-top: 10px;
-    margin-right: 20px;
     
     & input {
         font-family: inherit;
@@ -108,7 +134,7 @@ const Input = styled(FCInput)`
         padding: 7px 3px;
         background: transparent;
         transition: border-color 0.2s;
-        background-color: ${({theme}) => theme.mode == 'dark'? '#f9f9f90a' : '#f9f9f9'};
+        /* background-color: ${({theme}) => theme.mode == 'dark'? '#f9f9f90a' : '#f9f9f9'}; */
     }
 
     & input::placeholder {
@@ -145,13 +171,17 @@ const Input = styled(FCInput)`
 
     & .error-text {
         position: absolute;
-        bottom: -17px;
+        top: calc(100% + 1px);
         font-size: 11px;
         color: ${({theme}) => theme.staticColor.delete}
     }
 
     & .error-field, & .error-field:focus {
         border-color: ${({theme}) => theme.staticColor.delete};
+    }
+
+    & .error-field ~ label, & .error-field:focus ~ label {
+        color: ${({theme}) => theme.staticColor.delete};
     }
 
     & .error-icon {

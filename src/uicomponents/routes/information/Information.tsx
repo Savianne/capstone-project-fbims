@@ -213,7 +213,7 @@ const Information: React.FC = () => {
                         <Folder name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={564} path="./ministry" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "hands-helping"]} />} records={564} path="./organizations" />
+                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={564} path="./organizations" />
                     </FolderBase>
                     <FolderBase>
                         <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={564} path="./families" />

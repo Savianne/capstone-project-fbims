@@ -29,10 +29,17 @@ import {
   faOutdent,
   faPeopleRoof,
   faCircleExclamation,
+  faCakeCandles,
+  faMapLocationDot,
+  faVenusMars,
+  faPeopleGroup,
+  faHeart,
+  faCaretDown
  } from '@fortawesome/free-solid-svg-icons';
 
 library.add(faS, faBars);
 library.add(faS, faUsers);
+library.add(faS, faUser);
 library.add(faS, faClipboardList);
 library.add(faS, faMoon);
 library.add(faS, faSun);
@@ -45,6 +52,13 @@ library.add(faS, faAngleLeft);
 library.add(faS, faOutdent);
 library.add(faS, faPeopleRoof);
 library.add(faS, faCircleExclamation);
+library.add(faS, faCakeCandles);
+library.add(faS, faMapLocationDot);
+library.add(faS, faVenusMars);
+library.add(faS, faPeopleGroup);
+library.add(faS, faHeart);
+library.add(faS, faCaretDown);
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

@@ -1,18 +1,16 @@
 
-export function limitTextLen(text: string, min: number, max: number): {
+export function limitTextLen(text: string, min?: number, max?: number): {
     result: {
-        validMin: boolean,
-        validMax: boolean,
-        valid: boolean
+        validMin: boolean | null,
+        validMax: boolean | null, 
     }
 } {
-    const isMinValid: boolean = text.length >= min;
-    const isMaxValid: boolean = text.length <= min;
+    const isMinValid: boolean | null = min? text.length >= min : null;
+    const isMaxValid: boolean | null = max? text.length <= max : null;
     return {
         result: {
             validMin: isMinValid,
             validMax: isMaxValid,
-            valid: isMinValid && isMaxValid
         }
     }
 }

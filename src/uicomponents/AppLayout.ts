@@ -41,7 +41,7 @@ const AppLayout = styled.div`
         flex-wrap: wrap;
         width: 100%;
         height: 100vh;
-        background-color: ${({theme}) => theme.mainBackground};
+        background-color: ${({theme}) => theme.background.primary};
         /* font-family: "Roboto","Helvetica","Arial", sans-serif; */
         font-family: AssistantVariableFontwght;
         line-height: 1.5;

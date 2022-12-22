@@ -49,7 +49,7 @@ const Members: React.FC = () => {
             </RouteContentBaseHeader>
             <RouteContentBaseBody>
                 <ContentWraper>
-                    {/* <InformationRouteMainBoard 
+                    <InformationRouteMainBoard 
                     bgImage="dvsv"
                     verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
                     dataFolderIcon='dvd'
@@ -65,10 +65,7 @@ const Members: React.FC = () => {
                     } />
                     <div className="table-control">
                         <Pagenation totalPage={18} onChange={(value) => alert(value)} />
-                    </div> */}
-                    <Input type="email" onChange={(e) => alert(e.target.value)} placeholder="Email Address" required/>
-                    <Input type="email" onChange={(e) => alert(e.target.value)} placeholder="Email Address" required/>
-                    <Input type="email" onChange={(e) => alert(e.target.value)} placeholder="Email Address" required/>
+                    </div>
                 </ContentWraper>                
             </RouteContentBaseBody>
         </RouteContentBase>

@@ -8,6 +8,7 @@ const RouteContentBase = styled.div`
     flex-wrap: wrap;
     height: fit-content;
     border-radius: 2px;
+    border: 0.5px solid ${({theme}) => theme.borderColor};
     background-color: ${({theme}) => theme.background.primary};
 `;
 
@@ -16,7 +17,7 @@ const RouteContentBaseHeader = styled.div`
     flex: 0 1 100%;
     padding: 0 10px;
     align-items:  center;
-    height: 35px;
+    height: 45px;
     border-bottom: 0.5px solid ${({theme}) => theme.borderColor};
 
     & strong {
