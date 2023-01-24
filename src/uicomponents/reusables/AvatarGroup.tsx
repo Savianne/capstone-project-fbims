@@ -51,29 +51,31 @@ const AvatarGroup = styled(FCAvatarGroup)`
     width: fit-content;
     height: fit-content;
     align-items: center;
-    background-color: inherit;
 
-    & .avatar-wraper {
+    & .avatar-wraper,
+    & p  {
         display: flex;
         width: fit-content;
         height: fit-content;
-        padding: 3px;
-        margin-left: -6px;
-        background-color: inherit;
+        padding: 1px;
         border-radius: 50%;
     }
 
     & .avatar-wraper ${Avatar} {
         border: none;
     }
-    
-    & .avatar-wraper:first-child {
-        margin-left: 0;
-    }
+
 
     & p {
-        margin-left: 5px;
+        padding: 0;
+        background-color: #80808063;
+        height: ${({size}) => size};
+        width: ${({size}) => size};
+        align-items: center;
+        justify-content: center;
+        border: 1px solid ${({theme}) => theme.borderColor};
         color: ${({theme}) => theme.textColor.strong};
+        font-size: 11px;
     }
 
 `;

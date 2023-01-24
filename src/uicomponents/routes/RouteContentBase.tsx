@@ -10,6 +10,7 @@ const RouteContentBase = styled.div`
     border-radius: 2px;
     border: 0.5px solid ${({theme}) => theme.borderColor};
     background-color: ${({theme}) => theme.background.primary};
+    min-width: 0;
 `;
 
 const RouteContentBaseHeader = styled.div`
@@ -35,6 +36,7 @@ const RouteContentBaseBody = styled.div`
     flex: 1;
     padding: 0 10px;
     height: fit-content;
+    min-width: 0;
 `;
 
 export { RouteContentBaseHeader, RouteContentBaseBody }

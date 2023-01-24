@@ -8,8 +8,16 @@ import UseRipple from "../../../reusables/Ripple/UseRipple";
 import Devider from "../../../reusables/devider";
 import { SiteMap } from "../Information";
 
-
+import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";
+
+const ContentWraper = styled.div`
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    height: fit-content;
+    padding: 15px 5px;
+`;
 
 const Organizations: React.FC = () => {
 
@@ -24,7 +32,15 @@ const Organizations: React.FC = () => {
                 <GoBackBtn />
             </RouteContentBaseHeader>
             <RouteContentBaseBody>
-               Organizations
+                <ContentWraper>
+                    <InformationRouteMainBoard 
+                    bgImage="/assets/images/organizations.jpg"
+                    verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
+                    dataFolderIcon={<FontAwesomeIcon icon={["fas", "people-group"]} />}
+                    dataFolderTitle="Members"
+                    dataFolderTotal={556}
+                    addRecordFormUrl="./add-organization" />
+                </ContentWraper>
             </RouteContentBaseBody>
         </RouteContentBase>
     )

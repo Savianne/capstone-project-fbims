@@ -34,7 +34,21 @@ import {
   faVenusMars,
   faPeopleGroup,
   faHeart,
-  faCaretDown
+  faCaretDown,
+  faFolderOpen,
+  faCheck,
+  faAt,
+  faPhoneAlt,
+  faEllipsisH,
+  faCheckCircle,
+  faPlaceOfWorship,
+  faPlus,
+  faMobileAlt,
+  faArrowCircleRight,
+  faUserPen,
+  faTrash,
+  faCircleNotch,
+  faSpinner
  } from '@fortawesome/free-solid-svg-icons';
 
 library.add(faS, faBars);
@@ -58,6 +72,20 @@ library.add(faS, faVenusMars);
 library.add(faS, faPeopleGroup);
 library.add(faS, faHeart);
 library.add(faS, faCaretDown);
+library.add(faS, faFolderOpen);
+library.add(faS, faCheck);
+library.add(faS, faAt);
+library.add(faS, faPhoneAlt);
+library.add(faS, faEllipsisH);
+library.add(faS, faCheckCircle);
+library.add(faS, faPlaceOfWorship);
+library.add(faS, faPlus);
+library.add(faS, faMobileAlt);
+library.add(faS, faArrowCircleRight);
+library.add(faS, faUserPen);
+library.add(faS, faTrash);
+library.add(faS, faCircleNotch);
+library.add(faS, faSpinner);
 
 
 const root = ReactDOM.createRoot(

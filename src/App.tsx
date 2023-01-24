@@ -36,7 +36,7 @@ import Members from './uicomponents/routes/information/members/Members';
 import MembershipForm from './uicomponents/routes/information/members/MembershipForm';
 import Ministry from './uicomponents/routes/information/ministry/ministry';
 import Organizations from './uicomponents/routes/information/organizations/organizations';
-
+import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-new-ministry-form';
 
 function App() {
   const counterState = useAppSelector(state => state.counter.value);
@@ -67,7 +67,10 @@ function App() {
                     <Route index element={<Members />} />
                     <Route path='new-member' element={<MembershipForm />} />
                   </Route>
-                  <Route path='ministry' element={<Ministry />} />
+                  <Route path='ministry'>
+                    <Route index element={<Ministry />} />
+                    <Route path='add-ministry' element={<AddNewMinistryForm />} />
+                  </Route>
                   <Route path='organizations' element={<Organizations />} />
                 </Route>
                 <Route path='attendance'>

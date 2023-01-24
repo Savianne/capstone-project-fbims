@@ -5,9 +5,10 @@ import { IStyledFC } from "../IStyledFC";
 interface IFCAvatar extends IStyledFC {
     src?: string,
     alt: string,
+    size: string,
 } 
 
-const FCAvatar: React.FC<IFCAvatar> = ({src, alt, className}) => {
+const FCAvatar: React.FC<IFCAvatar> = ({src, alt, className, size}) => {
 
     return (
         <i className={className}>
@@ -16,12 +17,8 @@ const FCAvatar: React.FC<IFCAvatar> = ({src, alt, className}) => {
     )
 }
 
-interface IAvatar {
-    size: string,
-    src?: string,
-}
 
-const Avatar = styled(FCAvatar)<IAvatar>`
+const Avatar = styled(FCAvatar)`
     display: flex;
     align-items: center;
     justify-content: center;

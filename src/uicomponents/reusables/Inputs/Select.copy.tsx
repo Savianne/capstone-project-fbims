@@ -8,12 +8,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 //Types 
 import { TInputVal } from "../../../utils/hooks/useFormControl";
-import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl";
 
 //Reusables
 import UseRipple from "../Ripple/UseRipple";
 import Scrollbar from "../ScrollBar";
-import InputErrorToltip from "./InputErrorToltip";
 
 export const SelectContext = React.createContext<{selected: string | null, select?: (option: string) => void}>({
     selected: null,
@@ -23,7 +21,7 @@ export interface IFCSelect extends IStyledFC {
     // children: ReactElement[],
     children: any,
     placeholder: string,
-    error?: IFormErrorFieldValues | null,
+    error?: string | null,
     disabled?: boolean,
     onValChange: (val: string) => void
 }
@@ -32,26 +30,20 @@ export interface IFCSelect extends IStyledFC {
 const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error, disabled, onValChange}) => {
     const selectRef = React.useRef<HTMLDivElement | null>(null);
     const [options, updateOptions] = React.useState<string[]>([]);
+    const [selectedOptionIndex, updateSelectedOptionIndex] = React.useState<number | null>(null);
     const [onClickArea, setOnClickArea] = React.useState(false);
     const [compState, updateCompState] = React.useState('onBlur');
     const [selectedValue, updateSelectedValue] = React.useState<null | string>(null);
+    const [childrenArray, setChildrenArray] = React.useState(React.Children.toArray(children));
+
+    // const childrenArray = React.Children.toArray(children); // Support autofill.
 
     React.useEffect(() => {
-        disabled?  selectRef.current?.setAttribute('disabled', 'true') : selectRef.current?.setAttribute('disabled', 'false');
-    }, [disabled]);
-
-    React.useEffect(() => {
-        const childrenArray = React.Children.toArray(children);
-        const optionList = childrenArray.map(item => {
-            const i = item as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
-            return i.props.value
-        });
-        updateOptions(optionList);
+        setChildrenArray(React.Children.toArray(children))
     }, [children]);
 
     React.useEffect(() => {
         if(!(selectedValue == null)) onValChange(selectedValue);
-        (selectedValue == null || selectedValue == '')? selectRef.current?.setAttribute('placeholder-state', 'vissible') : selectRef.current?.setAttribute('placeholder-state', 'hidden');
     }, [selectedValue]);
 
     React.useEffect(() => {
@@ -59,17 +51,34 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
     }, [compState]);
 
     React.useEffect(() => {
+        // alert('option changed')
+        if(options.length) {
+            const selectedItems = childrenArray.filter(item => {
+                const i = item as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
+                return i.props.selected
+            });
+
+            const si = selectedItems[selectedItems.length - 1] as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
+            if(selectedItems.length) updateSelectedOptionIndex(options.indexOf(si.props.value));
+        }
+    }, [options]);
+
+    React.useEffect(() => {
+        if(typeof selectedOptionIndex == 'number' && options.length) updateSelectedValue(options[selectedOptionIndex]);
+        !(typeof selectedOptionIndex == 'number')? selectRef.current?.setAttribute('placeholder-state', 'vissible') : options[selectedOptionIndex] == ""? selectRef.current?.setAttribute('placeholder-state', 'vissible') : selectRef.current?.setAttribute('placeholder-state', 'hidden');
+    }, [selectedOptionIndex, childrenArray]);
+
+    React.useEffect(() => {
         function handleArrorKeyEvents(event: KeyboardEvent) {
-            const selectedOptionIndex = selectedValue !== null? options.indexOf(selectedValue) : null;
             if(compState == 'onFocus') {
                 event.preventDefault();
                 switch (event.keyCode) {
                     case 38:
-                        if(typeof selectedOptionIndex == 'number' && selectedOptionIndex > 0) updateSelectedValue(options[selectedOptionIndex - 1]);
+                        if(typeof selectedOptionIndex == 'number' && selectedOptionIndex > 0) updateSelectedOptionIndex(selectedOptionIndex - 1);
                         break;
                     case 40:
-                        if(!(typeof selectedOptionIndex == 'number')) updateSelectedValue(options[0]);
-                        if(typeof selectedOptionIndex == 'number' && selectedOptionIndex < options.length - 1) updateSelectedValue(options[selectedOptionIndex + 1]);
+                        if(!(typeof selectedOptionIndex == 'number')) updateSelectedOptionIndex(0);
+                        if(typeof selectedOptionIndex == 'number' && selectedOptionIndex < options.length - 1) updateSelectedOptionIndex(selectedOptionIndex + 1);
                         break;
                     case 13:
                         updateCompState('onBlur');
@@ -82,12 +91,15 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
         return function cleanup() {
             document.removeEventListener('keydown', handleArrorKeyEvents);
         }
-    }, [compState, selectedValue]);
-
+    }, [selectedOptionIndex, compState]);
 
     React.useEffect(() => {
-        if(!(selectedValue !== null && selectedValue == options[options.indexOf(selectedValue)])) updateSelectedValue(null);
-    }, [options , selectedValue]);
+        const optionList = childrenArray.map(item => {
+            const i = item as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
+            return i.props.value
+        });
+        updateOptions(optionList);
+    }, [childrenArray]);
 
     React.useEffect(() => {
         function clickAway() {
@@ -105,18 +117,16 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
     });
 
     return (
-        <SelectContext.Provider value={{selected: selectedValue, select: (option) => {
+        <SelectContext.Provider value={{selected: typeof selectedOptionIndex == 'number'? options[selectedOptionIndex] : null, select: (option) => {
             setTimeout(() => {
-                updateSelectedValue(option);
+                updateSelectedOptionIndex(options.indexOf(option));
                 updateCompState('onBlur');
                 setOnClickArea(false);
             }, 400);
         }}}>
             <div className={className} 
             ref={selectRef} 
-            onClick={() => {
-                if(!disabled) updateCompState('onFocus');
-            }}
+            onClick={() => updateCompState('onFocus')}
             onMouseEnter={() => {
                 setOnClickArea(true);
             }}
@@ -135,18 +145,14 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
                         <Scrollbar>
                             { children }
                         </Scrollbar>
-                        {/* { children } */}
                     </div> 
                 {
                     error? <>
                         <p className="error-text">
                             {
-                                error.errorText
+                                error
                             }
                         </p>
-                        {/* <span className="error-toltip">
-                            <InputErrorToltip error={error} />
-                        </span> */}
                     </> : ''
                 }
             </div>
@@ -170,9 +176,6 @@ const FCOption: React.FC<IFCOption> = ({value, className, children, selected, ca
         optionRef.current?.setAttribute('selected', selectedVal == value? 'true' : 'false');
     }, [parentSelectContext]);
 
-    React.useEffect(() => {
-        if(selected && parentSelectContext.select) parentSelectContext.select(value);
-    }, []);
     return (
         <span className={className} ref={optionRef} onClick={(e) => {
             if(parentSelectContext.select) parentSelectContext.select(value);
@@ -181,28 +184,21 @@ const FCOption: React.FC<IFCOption> = ({value, className, children, selected, ca
             })
 
         }}>
-            <OptionLabel><p>{children}</p></OptionLabel>
+            <OptionLabel>{children}</OptionLabel>
         </span>
     )
 }
 
 const OptionLabel = styled(UseRipple)`
     display: flex;
-    flex: 0 1 100%;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     /* font-size: 10px; */
     height: 100%;
     padding: 0 10px;
     align-items: center;
-    cursor: pointer;
-    min-width: 0;
-
-    & p {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
 `;
 
 export const Option = styled(FCOption)`
@@ -213,7 +209,6 @@ const Select = styled(FCSelect)`
     position: relative;
     display: flex;
     flex: 1;
-    min-width: 0;
     height: 20px;
     align-items: center;
     border: 0;
@@ -225,26 +220,20 @@ const Select = styled(FCSelect)`
     transition: border-color 0.2s;
     /* background-color: ${({theme}) => theme.mode == 'dark'? '#f9f9f90a' : '#f9f9f9'}; */
     
-    & .value {
-        width: 100%;
-        overflow: hidden;
-        text-overflow: '...';
-    }
-
     & .options-container {
        display: flex;
-       flex: 1;
        flex-wrap: wrap;
        width: calc(100% - 2px);
        position: absolute;
        top: 105%;
        left: 0;
-       min-width: 0;
-       overflow-x: hidden;
+       overflow-x: auto;
        overflow-y: ${(props) => React.Children.toArray(props.children).length > 10? 'auto' : 'hidden' };
        background-color: ${({theme}) => theme.background.primary};
        color: ${({theme}) => theme.textColor.strong};
        z-index: 1000;
+       height: calc(30px * ${(props) => React.Children.toArray(props.children).length});
+       max-height: calc(30px * 10);
        transition: height 0.1s linear, opacity 0.3s linear, top 0.3s linear, box-shadow 0.1s linear;
        border: 1px solid ${({theme}) => theme.borderColor};
        box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px;
@@ -253,16 +242,6 @@ const Select = styled(FCSelect)`
     & .arrow-icon {
         position: absolute;
         right: 10px;
-    }
-
-    &[disabled='true'] {
-        border-color: ${({theme}) => theme.textColor.disabled};
-        color: ${({theme}) => theme.textColor.disabled};
-        cursor: not-allowed;
-    }
-
-    &[disabled='true'] .placeholder {
-        color: ${({theme}) => theme.textColor.disabled};
     }
 
     &[state='onFocus'] .arrow-icon {
@@ -278,23 +257,17 @@ const Select = styled(FCSelect)`
         padding: 0;
     }
 
-    &[state='onFocus'] .options-container {
-        height: calc(30px * ${(props) => React.Children.toArray(props.children).length});
-        max-height: calc(30px * 10);
-    }
 
-    & .placeholder,
     &[placeholder-state='vissible'] .placeholder {
         font-size: 15px;
         cursor: text;
         top: 5px;
         left: 5px;
         z-index: 0;
-        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` :'#9b9b9b'}
     }
 
-    &[state='onFocus'] .placeholder,
-    &[placeholder-state='hidden'] .placeholder {
+    & .placeholder,
+    &[state='onFocus'] .placeholder {
         position: absolute;
         top: -18px;
         left: 0;
@@ -319,7 +292,6 @@ const Select = styled(FCSelect)`
         display: flex;
         flex: 0 1 100%;
         height: 30px;
-        min-width: 0;
         transition: background-color 0.2s linear;
         background-color: transparent;
     }
@@ -339,15 +311,6 @@ const Select = styled(FCSelect)`
         font-size: 11px;
         color: ${({theme}) => theme.staticColor.delete}
     }
-
-    /* & .error-toltip {
-        position: absolute;
-        top: calc(100% + 1px);
-        width: 100%;
-        font-size: 11px;
-        color: ${({theme}) => theme.staticColor.delete};
-        z-index: 100;
-    } */
 `;
 
 export default Select;

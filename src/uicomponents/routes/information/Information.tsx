@@ -73,7 +73,8 @@ const ManageBtn = styled(UseRipple)`
     height: 80px;
     width: 80px;
     background-color: ${({theme}) => theme.mode == 'dark'? '#0e5269' : theme.background.lighter};
-    font-size: 50px;
+    /* font-size: 50px; */
+    font-size: 30px;
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
     color: ${({theme}) => theme.textColor.strong};
     transition: background-color 300ms linear, height 300ms, width 300ms, right 300ms, box-shadow 300ms;
@@ -112,7 +113,8 @@ const FCFolder: React.FC<IFolder> = ({icon, name, records, className, path}) => 
                     <p>Records</p>
                 </span>
                 <ManageBtn onClick={() => setTimeout(() => navigate(path), 400) }>
-                    <FontAwesomeIcon icon={["fas", "angle-right"]} />
+                    {/* <FontAwesomeIcon icon={["fas", "angle-right"]} /> */}
+                    <FontAwesomeIcon icon={["fas", "folder-open"]} />
                 </ManageBtn>
             </div>
         </div>
@@ -128,7 +130,7 @@ const Folder = styled(FCFolder)`
     border-radius: 5px;
     background-color: rgba(217, 217, 217, 0.29);
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-    background-color: ${({theme}) => theme.mode == 'dark'? '#253156' : theme.background.lighter};
+    background-color: ${({theme}) => theme.mode == 'dark'? '#383e51' : theme.background.lighter};
     transition: background-color 300ms linear;
 
     & .container {
@@ -170,7 +172,7 @@ const Folder = styled(FCFolder)`
         flex-wrap: wrap;
         position: relative;
         padding-left: 10px;
-        background-color: rgba(217, 217, 217, 0.29);
+        background-color: ${({theme}) => theme.mode == 'light'? 'rgba(217, 217, 217, 0.29)' : 'rgb(37 38 45 / 29%)'} ;
     }
 
     & .bot .records {
@@ -190,7 +192,7 @@ const Folder = styled(FCFolder)`
         font-size: 95px;
         position: absolute;
         left: 15px;
-        color: rgba(217, 217, 217, 0.40);
+        color: ${({theme}) => theme.mode == 'light'? 'rgba(217, 217, 217, 0.40)' : 'rgb(64 68 86)'};
     }
 `;
 

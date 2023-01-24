@@ -7,7 +7,7 @@ import SideBar from './SideBar';
 
 const AppLayout = styled.div`
 
-    @font-face {
+    /* @font-face {
         font-family: IndieFlowerRegular;
         src: url(http://localhost:3000/assets/fonts/IndieFlower-Regular.ttf);
     }
@@ -30,7 +30,7 @@ const AppLayout = styled.div`
     @font-face {
         font-family: Sen-Regular;
         src: url(http://localhost:3000/assets/fonts/Sen-Regular.ttf);
-    }
+    } */
 
     & {
         position: fixed;

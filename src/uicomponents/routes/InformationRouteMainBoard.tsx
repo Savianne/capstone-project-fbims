@@ -1,10 +1,27 @@
 import styled, { css } from "styled-components";
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IStyledFC } from "../IStyledFC";
-import { Interface } from "readline";
+import { useNavigate } from "react-router-dom";
 
 import Devider from "../reusables/devider";
+import UseRipple from "../reusables/Ripple/UseRipple";
+
+const AddRecordBtn = styled(UseRipple)`
+    display: flex;
+    width: 23px;
+    height: 23px;
+    border: 1.5px solid white;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 13px;
+
+    & #ripple {
+        background-color: whitesmoke;
+    }
+
+`
 
 const Board = styled.div<{ bgImage?: string}>`
     position: relative;
@@ -43,6 +60,7 @@ const Board = styled.div<{ bgImage?: string}>`
     & .board-content .bible-verse .verse-text {
         font-style: italic;
         font-family: AssistantExtraLight;
+        z-index: 10;
     }
 
     & .board-content .data-total-info {
@@ -63,6 +81,12 @@ const Board = styled.div<{ bgImage?: string}>`
         font-weight: 600;
     }
 
+    & .board-content ${AddRecordBtn} {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+    }
+
     & .board-content .data-total-info .data-title {
         font-family: AssistantExtraLight;
     }
@@ -73,6 +97,14 @@ const Board = styled.div<{ bgImage?: string}>`
         opacity: 0.70;
         font-size: 120px;
     }
+
+    /* & .board-content .icon {
+        position: absolute;
+        left: 0;
+        color: ${({theme}) => theme.staticColor.primary};
+        opacity: 0.55;
+        font-size: 160px;
+    } */
 
     & .bg-image {
         ${
@@ -89,15 +121,16 @@ const Board = styled.div<{ bgImage?: string}>`
     }
 `;
 
+
 interface IInformationRouteMainBoard {
     bgImage: string,
     verseText: {
         verse: string,
         content: string
     },
-    entryFormUrl: string,
+    addRecordFormUrl: string,
     dataFolderTitle:  string,
-    dataFolderIcon: string,
+    dataFolderIcon: JSX.Element,
     dataFolderTotal: number,
 } 
 
@@ -105,19 +138,23 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
     {
         bgImage, 
         verseText, 
-        entryFormUrl, 
+        addRecordFormUrl, 
         dataFolderIcon, 
         dataFolderTitle,
         dataFolderTotal,
     }) => {
     
+    const navigate = useNavigate();
+
     return (
-        <Board bgImage="/assets/images/church.png">
+        <Board bgImage={bgImage}>
             <span className="bg-image"></span>
             <span className="cover"></span>
             <div className="board-content">
                 <span className="icon">
-                    <FontAwesomeIcon icon={["fas", "users"]} />
+                    {
+                        dataFolderIcon
+                    }
                 </span>
                 <Devider $orientation="vertical" $css="z-index: 100; height: 83px;margin: 0 10px 0 30px;& .devider { border-color: #fff }" $lineWidth="3px" />
                 <div className="bible-verse">
@@ -128,6 +165,7 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
                     <p className="total">{dataFolderTotal}</p>
                     <p className="data-title">{dataFolderTitle}</p>
                 </span>
+                <AddRecordBtn onClick={(e) => setTimeout(() => navigate(addRecordFormUrl), 400)}><FontAwesomeIcon icon={["fas", "plus"]} /></AddRecordBtn>
             </div>
         </Board>
     );

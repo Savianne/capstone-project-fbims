@@ -1,8 +1,11 @@
 import React from "react";
 import styled from "styled-components";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import Avatar from '../../../reusables/Avatar';
 import AvatarGroup from '../../../reusables/AvatarGroup';
+import Button from '../../../reusables/Buttons/Button';
+import Devider from '../../../reusables/devider';
 
 interface IMinisty {
     name: string,
@@ -64,6 +67,25 @@ const SMembersTable = styled.table`
     & tr td[cell-name=action] {
         width: 150px;
     }
+
+    & tr td[cell-name=action] .action-button-group-container {
+        display: flex;
+        flex: 0 1 100%;
+        height: 25px;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    & tr td[cell-name=action] .action-button-group-container ${Button} {
+        font-size: 11px;
+        height: 25px;
+        width: 25px;
+    }
+ 
+    & tr td[cell-name=action] .action-button-group-container ${Devider} .devider {
+        border-color: ${({theme}) => theme.mode == 'light'? '#adadad6b' : '#f7f6f642'};
+        border-width: 1px;
+    }
 `
 
 interface IMembersTable {
@@ -86,47 +108,112 @@ const MembersTable: React.FC<IMembersTable> = ({membersList}) => {
                 <td cell-name="avatar"><Avatar size='30px' src="/assets/images/avatar/apple.png" alt="apple" /></td>
                 <td cell-name="ministry">list</td>
                 <td cell-name="organization">list</td>
-                <td cell-name="action">edir, delete, view</td>
+                <td cell-name="action">
+                    <div className="action-button-group-container">
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton isLoading onClick={(e) => alert('cliked')} />
+                        <Devider $orientation="vertical" $variant="center" />
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton />
+                        <Devider $orientation="vertical" $variant="center"/>
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td cell-name="fullname">Apple Jane De Guzman</td>
                 <td cell-name="avatar"><Avatar size='30px' src="/assets/images/avatar/apple.png" alt="apple" /></td>
-                <td cell-name="ministry"><AvatarGroup size='20px' avatars={[
+                <td cell-name="ministry"><AvatarGroup size='30px' avatars={[
                     {alt: 'radio'},
                     {alt: 'radio'},
                     {alt: 'radio'},
                     {alt: 'radio'},
                     {alt: 'radio'},
-                ]}/></td>
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                ]} limit={5}/></td>
                 <td cell-name="organization">list</td>
-                <td cell-name="action">edir, delete, view</td>
+                <td cell-name="action">
+                    <div className="action-button-group-container">
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton />
+                        <Devider $orientation="vertical" $variant="center" />
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton />
+                        <Devider $orientation="vertical" $variant="center"/>
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td cell-name="fullname">Apple Jane De Guzman</td>
                 <td cell-name="avatar"><Avatar size='30px' src="/assets/images/avatar/apple.png" alt="apple" /></td>
-                <td cell-name="ministry"><AvatarGroup size='20px' avatars={[
+                <td cell-name="ministry"><AvatarGroup size='30px' avatars={[
                     {alt: 'radio'},
                     {alt: 'radio'},
-                ]}/></td>
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                    {alt: 'radio'},
+                ]} limit={5}/></td>
                 <td cell-name="organization">list</td>
-                <td cell-name="action">edir, delete, view</td>
+                <td cell-name="action">
+                    <div className="action-button-group-container">
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton />
+                        <Devider $orientation="vertical" $variant="center" />
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton />
+                        <Devider $orientation="vertical" $variant="center"/>
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td cell-name="fullname">Apple Jane De Guzman</td>
                 <td cell-name="avatar"><Avatar size='30px' alt="apple" /></td>
-                <td cell-name="ministry"><AvatarGroup size='20px' avatars={[
+                <td cell-name="ministry"><AvatarGroup size='30px' avatars={[
                     {alt: 'radio'},
                     {alt: 'radio'},
                     {alt: 'radio'},
                     {alt: 'radio'},
                 ]}/></td>
                 <td cell-name="organization">list</td>
-                <td cell-name="action">edir, delete, view</td>
+                <td cell-name="action">
+                    <div className="action-button-group-container">
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton />
+                        <Devider $orientation="vertical" $variant="center" />
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton />
+                        <Devider $orientation="vertical" $variant="center"/>
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td cell-name="fullname">Apple Jane De Guzman</td>
                 <td cell-name="avatar"><Avatar size='30px' src="/assets/images/avatar/apple.png" alt="apple" /></td>
-                <td cell-name="ministry"><AvatarGroup size='20px' avatars={[
+                <td cell-name="ministry"><AvatarGroup size='30px' avatars={[
                     {alt: 'radio', },
                     {alt: 'radio', },
                     {alt: 'radio', },
@@ -136,14 +223,30 @@ const MembersTable: React.FC<IMembersTable> = ({membersList}) => {
                     {alt: 'radio', }
                 ]} limit={5} /></td>
                 <td cell-name="organization">list</td>
-                <td cell-name="action">edir, delete, view</td>
+                <td cell-name="action">
+                    <div className="action-button-group-container">
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton />
+                        <Devider $orientation="vertical" $variant="center" />
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton />
+                        <Devider $orientation="vertical" $variant="center"/>
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td cell-name="fullname">Apple Jane De Guzman</td>
                 <td cell-name="avatar"><Avatar size='30px' src="/assets/images/avatar/apple.png" alt="apple" /></td>
                 <td cell-name="ministry">No Ministry</td>
                 <td cell-name="organization">list</td>
-                <td cell-name="action">edir, delete, view</td>
+                <td cell-name="action">
+                    <div className="action-button-group-container">
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton />
+                        <Devider $orientation="vertical" $variant="center" />
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton />
+                        <Devider $orientation="vertical" $variant="center"/>
+                        <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
+                    </div>
+                </td>
             </tr>
 
         </SMembersTable>

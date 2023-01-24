@@ -19,6 +19,7 @@ declare module 'styled-components' {
         disabled: string,
     },
     borderColor: string,
+    borderColorStrong: string,
     staticColor: {
         primary: string,
         secondary: string,

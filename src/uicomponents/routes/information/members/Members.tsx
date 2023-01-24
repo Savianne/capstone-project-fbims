@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 
-import FCRipple from "../../../reusables/Ripple/UseRipple";
 import Pagenation from "../../../reusables/Pagenation/Pagenation";
 import Devider from "../../../reusables/devider";
 import { SiteMap } from "../Information";
@@ -50,12 +49,12 @@ const Members: React.FC = () => {
             <RouteContentBaseBody>
                 <ContentWraper>
                     <InformationRouteMainBoard 
-                    bgImage="dvsv"
+                    bgImage="/assets/images/church.png"
                     verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
-                    dataFolderIcon='dvd'
+                    dataFolderIcon={<FontAwesomeIcon icon={["fas", "users"]} />}
                     dataFolderTitle="Members"
                     dataFolderTotal={556}
-                    entryFormUrl="vsvsv" />
+                    addRecordFormUrl="./new-member" />
                     <div className="table-control">
                         <Pagenation totalPage={17} onChange={(value) => alert(value)} />
                     </div>

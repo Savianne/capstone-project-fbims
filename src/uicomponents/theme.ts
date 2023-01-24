@@ -14,9 +14,10 @@ const lightTheme: DefaultTheme = {
     textColor: {
         strong: '#000000',
         light: '#817B7B',
-        disabled: '#B4AFAF'
+        disabled: '#e0dfdf'
     },
     borderColor: '#E2E1E1',
+    borderColorStrong: '#cdcdcd',
     staticColor: {
         primary: '#15A9FD',
         secondary: '#D9D9D9',
@@ -32,18 +33,22 @@ const darkTheme: DefaultTheme = {
     mode: 'dark',
     mainBackground: '#342A40',
     background: {
-        primary: '#302A34',
+        // primary: '#302A34',
+        primary: '#343541',
         // light: 'rgba(21, 169, 253, 0.09)',
-        light: '#263d4b',
-        lighter: '#F9F9F9',
+        // light: '#263d4b',
+        light: '#3e8cba2e',
+        lighter: '#34384f',
         transparent: 'transparent',
     },
     textColor: {
         strong: '#fff',
         light: '#E2E1E1',
-        disabled: '#D0CCCC'
+        disabled: '#504f4f'
     },
-    borderColor: '#373839',
+    // borderColor: '#373839',
+    borderColor: '#37414b',
+    borderColorStrong: '#8e8e8e',
     staticColor: {
         primary: '#15A9FD',
         secondary: '#D9D9D9',

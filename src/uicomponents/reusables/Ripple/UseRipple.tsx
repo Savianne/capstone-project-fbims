@@ -1,9 +1,9 @@
 import styled, { DefaultTheme, keyframes, css } from "styled-components";
 import React from "react";
 
-interface CreateRippleProps {
-    className?: string,
-    children?: JSX.Element | string | null,
+import { IStyledFC } from "../../IStyledFC";
+
+interface CreateRippleProps extends IStyledFC {
     onClick?: React.MouseEventHandler<HTMLDivElement>
 }
 
@@ -67,7 +67,7 @@ const UseRipple = styled(CreateRipple)`
         pointer-events: none;
         border-radius: 50%;
         animation: ${rippleAnimation} 0.8s ease-in infinite;
-        z-index: 1000;
+        /* z-index: 1000; */
     }
 `;
 

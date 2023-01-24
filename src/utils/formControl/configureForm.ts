@@ -11,7 +11,7 @@ export type TInputVal = string | number | boolean;
 
 export type TInputType = 'text' | 'number' | 'radio' | 'checkbox' | 'date' | 'email';
 
-export type TValidateAs = 'text' | 'email' | 'number' | 'select' | 'boolean' | 'date';
+export type TValidateAs = 'text' | 'email' | 'number' | 'select' | 'boolean';
 
 type TFormFieldsValues<K> = Record<keyof K, TInputVal | null>;
 
@@ -20,7 +20,7 @@ export interface IValidationResult {
     passed: boolean,
 }
 
-export interface IFormErrorFieldValues {
+interface IFormErrorFieldValues {
     errorText: string,
     validationResult: IValidationResult[]
 };
@@ -55,22 +55,19 @@ interface IValidateAsEmailInput extends IInputExtendable {
     validateAs: 'email'
 }
 
-interface IValidateAsDateInput extends IInputExtendable {
-    validateAs: 'date'
-}
-
 interface IValidateAsSelectInput extends IInputExtendable {
     validateAs: 'select',
-    validValues?: string[] | null
+    validValues: string[]
 }
 
 interface IValidateAsBooleanInput extends IInputExtendable {
     validateAs: 'boolean',
 }
 
-type TParamValues = IValidateAsTextInput | IValidateAsEmailInput | IValidateAsSelectInput | IValidateAsBooleanInput | IValidateAsNumberInput | IValidateAsDateInput;
+type TParamValues = IValidateAsTextInput | IValidateAsEmailInput | IValidateAsSelectInput | IValidateAsBooleanInput | IValidateAsNumberInput;
 
 type TParam<K> = Record<keyof K, TParamValues>;
+
 
 function createFormInitialValues<K extends unknown>(fields: TParam<K>) {
     const initialValues = Object.keys(fields).reduce((P, C) => {
@@ -96,7 +93,8 @@ function formHasError(fields: IFormErrorFieldValues[]) {
     }).length > 0? true : false;
 }
 
-function useFormControl<T extends unknown>(fields: TParam<T>) {
+
+function configureForm<T extends unknown>(fields: TParam<T>) {
     // const [formState, updateFormState] = React.useState<'init' | 'ready' | 'incomplete' | 'onsubmit' | 'onerror' | 'validating'>('init');
     const [formValues, updateFormValues] = React.useState<TFormFieldsValues<T>>(createFormInitialValues(fields));
     const [activeFromField, updateActiveFromField] = React.useState<null | TFormFieldsValues<T>>(null);
@@ -191,7 +189,7 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
                         break;
                         case 'select':
                             const currentSelectField = fields[key] as IValidateAsSelectInput;
-                            if(currentSelectField.validValues) validationResultContainer.push(validateSelectField(newValue as string, currentSelectField.validValues));
+                            validationResultContainer.push(validateSelectField(newValue as string, currentSelectField.validValues));
                     }
 
     
@@ -236,7 +234,19 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
 
     const retVal: [IForm, typeof formDispatchers] = [{isReady, isValidating, values: formValues, errors: formErrors}, formDispatchers];
     
+    interface IUseFormControlParam {
+        endpoint: string,
+        method: 'POST' | 'GET',
+    }
+    
+    type TUseFormControl = (param: IUseFormControlParam) => typeof retVal
+    
+    const useFormControl: TUseFormControl = (param) => {
+        
+        return retVal;
+    }
+
     return retVal;
 }
 
-export default useFormControl;
+export default configureForm;
