@@ -6,43 +6,7 @@ import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "
 
 import UseRipple from "../../reusables/Ripple/UseRipple";
 import Devider from "../../reusables/devider";
-
-interface ISiteMap {
-    className?: string,
-    children?: React.ReactChild | React.ReactChild[],
-}
-
-const FCSiteMap: React.FC<ISiteMap> = ({className, children}) => {
-    return (
-        <div className={className}>
-            <span className='icon'>
-                <FontAwesomeIcon icon={["fas", "sitemap"]} />
-            </span>
-            { children }
-        </div>
-    );
-}
-
-export const SiteMap = styled(FCSiteMap)`
-    display: flex;
-    width: fit-content;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: ${({theme}) => theme.staticColor.primary};
-
-    & .icon {
-        font-size: 11px;
-        margin-right: 5px;
-        color: ${({theme}) => theme.textColor.light}
-    }
-
-    & a {
-        text-decoration: none;
-        color: inherit;
-    }
-
-`
+import SiteMap from "../SiteMap";
 
 const FolderContainer = styled.div`
     display: flex;
@@ -209,16 +173,16 @@ const Information: React.FC = () => {
             <RouteContentBaseBody>
                 <FolderContainer>
                     <FolderBase>
-                        <Folder name='Members' icon={<FontAwesomeIcon icon={["fas", "users"]} />} records={564} path="./members" />
+                        <Folder name='Members' icon={<FontAwesomeIcon icon={["fas", "users"]} />} records={0} path="./members" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={564} path="./ministry" />
+                        <Folder name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={0} path="./ministry" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={564} path="./organizations" />
+                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={0} path="./organizations" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={564} path="./families" />
+                        <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={0} path="./families" />
                     </FolderBase>
                 </FolderContainer>
             </RouteContentBaseBody>

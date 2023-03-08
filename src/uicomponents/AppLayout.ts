@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 import AppHeader from './AppHeader';
 import AppNavBar from './AppNavBar';
@@ -54,6 +54,20 @@ const AppLayout = styled.div`
         flex: 0 1 100%;
         height: 65px;
         z-index: 1000;
+
+        ${({theme}) => theme.mode == 'light'? css`
+            /* From https://css.glass */
+            background: rgba(255, 255, 255, 0.43);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10.2px);
+            -webkit-backdrop-filter: blur(10.2px);
+        ` : css`
+            /* From https://css.glass */
+            background: rgba(52, 53, 65, 0.43);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10.2px);
+            -webkit-backdrop-filter: blur(10.2px);
+        `}
     }
 
     & > ${AppNavBar},
@@ -64,7 +78,7 @@ const AppLayout = styled.div`
     }
 
     & > ${SideBar} {
-        flex: 0 1 350px;
+        /* flex: 0 1 350px; */
         /* flex: 0 1 65px; */
     }
 

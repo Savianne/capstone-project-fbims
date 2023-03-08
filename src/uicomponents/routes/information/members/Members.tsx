@@ -6,7 +6,7 @@ import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "
 
 import Pagenation from "../../../reusables/Pagenation/Pagenation";
 import Devider from "../../../reusables/devider";
-import { SiteMap } from "../Information";
+import SiteMap from "../../SiteMap";
 
 
 import GoBackBtn from "../../../GoBackBtn";

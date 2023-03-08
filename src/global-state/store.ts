@@ -2,13 +2,15 @@ import { configureStore } from '@reduxjs/toolkit'
 //Reducers
 import counterReducer from './action-creators/counterSlice';
 import navBarToggleReducer from './action-creators/navBarToggleSlice';
+import sideBarToggleReducer from './action-creators/sideBarToggleSlice';
 import switchThemeModeReducer from './action-creators/themeModeSwitcherSlice';
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
     navBarToggle: navBarToggleReducer,
-    switchThemeModeReducer
+    switchThemeModeReducer,
+    sideBarToggleReducer
   },
 })
 

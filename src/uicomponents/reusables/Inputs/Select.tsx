@@ -7,8 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { Scrollbars } from 'react-custom-scrollbars-2';
 
 //Types 
-import { TInputVal } from "../../../utils/hooks/useFormControl";
-import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl";
+import { TInputVal } from "../../../utils/hooks/useFormControl(old)";
+import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)";
 
 //Reusables
 import UseRipple from "../Ripple/UseRipple";
@@ -32,6 +32,7 @@ export interface IFCSelect extends IStyledFC {
 const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error, disabled, onValChange}) => {
     const selectRef = React.useRef<HTMLDivElement | null>(null);
     const [options, updateOptions] = React.useState<string[]>([]);
+    const [optionsText, updateOptionsText] = React.useState<{[key: string]: string}>({});
     const [onClickArea, setOnClickArea] = React.useState(false);
     const [compState, updateCompState] = React.useState('onBlur');
     const [selectedValue, updateSelectedValue] = React.useState<null | string>(null);
@@ -42,11 +43,17 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
 
     React.useEffect(() => {
         const childrenArray = React.Children.toArray(children);
-        const optionList = childrenArray.map(item => {
-            const i = item as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
-            return i.props.value
-        });
-        updateOptions(optionList);
+        // const optionList = childrenArray.map(item => {
+        //     const i = item as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
+        //     return {[i.props.value as string]: i.props.children as string}
+        // });
+        const optionList: {[key: string]: string} = childrenArray.reduce((P, C) => {
+            const i = C as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
+            return {...P, ...{[i.props.value as string]: i.props.children as string}}
+        }, {});
+
+        updateOptions(Object.keys(optionList));
+        updateOptionsText(optionList);
     }, [children]);
 
     React.useEffect(() => {
@@ -129,7 +136,7 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
                     typeof selectedOptionIndex == 'number' && options.length? <span className="value">{ options[selectedOptionIndex] }</span> : ''
                 } */}
                  {
-                    selectedValue? <span className="value">{ selectedValue }</span> : ''
+                    selectedValue? <span className="value">{ optionsText[selectedValue] }</span> : ''
                 }
                     <div className="options-container">
                         <Scrollbar>
@@ -157,13 +164,12 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
 interface IFCOption extends IStyledFC {
     value: string,
     selected?: boolean,
-    callBackFC?: () => void
+    // callBackFC?: () => void
 }
 
-const FCOption: React.FC<IFCOption> = ({value, className, children, selected, callBackFC}) => {
+const FCOption: React.FC<IFCOption> = ({value, className, children, selected}) => {
     const optionRef = React.useRef<HTMLSpanElement | null>(null)
     const parentSelectContext = useContext(SelectContext);
-    const [isPending, startTransition] = React.useTransition();
 
     React.useEffect(() => {
         const selectedVal = parentSelectContext.selected;
@@ -175,11 +181,7 @@ const FCOption: React.FC<IFCOption> = ({value, className, children, selected, ca
     }, []);
     return (
         <span className={className} ref={optionRef} onClick={(e) => {
-            if(parentSelectContext.select) parentSelectContext.select(value);
-            startTransition(() => {
-                if(callBackFC) callBackFC();
-            })
-
+            if(parentSelectContext.select) parentSelectContext.select(value)
         }}>
             <OptionLabel><p>{children}</p></OptionLabel>
         </span>

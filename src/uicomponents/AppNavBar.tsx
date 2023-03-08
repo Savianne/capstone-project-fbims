@@ -48,6 +48,13 @@ const NavBar: React.FC<INavBar> = ({className}) => {
             switchPath={(path) => updateCurrentPath(path)}
             currentPath={currentPath}
             />
+            <SNavBarLink 
+            title="Calendar" 
+            icon={<FontAwesomeIcon icon={["fas", "calendar-alt"]} />} 
+            path="/calendar" 
+            switchPath={(path) => updateCurrentPath(path)}
+            currentPath={currentPath}
+            />
     </nav>
     );
 }

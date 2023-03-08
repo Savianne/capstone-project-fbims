@@ -6,7 +6,7 @@ import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "
 
 import UseRipple from "../../../reusables/Ripple/UseRipple";
 import Devider from "../../../reusables/devider";
-import { SiteMap } from "../Information";
+import SiteMap from "../../SiteMap";
 
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";

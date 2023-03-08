@@ -7,9 +7,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputErrorToltip from "./InputErrorToltip";
 
 //Types 
-import { TInputType } from "../../../utils/hooks/useFormControl";
-import { TInputVal } from "../../../utils/hooks/useFormControl";
-import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl";
+import { TInputType } from "../../../utils/hooks/useFormControl(old)";
+import { TInputVal } from "../../../utils/hooks/useFormControl(old)";
+import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)";
 
 export interface IFCInput extends IStyledFC {
     name?: string,
@@ -18,7 +18,8 @@ export interface IFCInput extends IStyledFC {
     error?: IFormErrorFieldValues | null,
     disabled?: boolean,
     onValChange: (val: TInputVal) => void,
-    label?: string
+    label?: string,
+    checked?: boolean
 }
 
 const CheckboxBase = styled(UseRipple)`
@@ -86,7 +87,7 @@ const CheckboxBase = styled(UseRipple)`
     } */
 `;
 
-const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = 'text', placeholder, error, label}) => {
+const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = 'text', placeholder, error, label, checked}) => {
     const inputRef = React.useRef<null | HTMLInputElement>(null);
     const [inputVal, updateInputVal] = React.useState<string | boolean | null>(null);
     const [inputState, updateInputState] = React.useState<'init' | 'onfocus' | 'onblur'>('init');
@@ -96,14 +97,18 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = '
     },[inputVal]);
 
     
-    const inputType = 'checkbox' as typeof type;
+    const checkboxInput = 'checkbox' as typeof type;
 
+    React.useEffect(() => {
+        updateInputVal(checked as boolean);
+    }, [checked]);
     return (
         <div className={className}>
             {
-                type == inputType? <>
+                type == checkboxInput? <>
                     <CheckboxBase>
                         <input 
+                        checked={inputVal as boolean}
                         ref={inputRef}
                         type={type}
                         onChange={(e) => updateInputVal(e.currentTarget.checked)} 
@@ -112,7 +117,7 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = '
                             updateInputState('onblur')
                         }}
                         onFocus={(e) => updateInputState('onfocus')}
-                        value={typeof inputVal == 'string'? inputVal : ''}
+                        // value={typeof inputVal == 'string'? inputVal : ''}
                         placeholder={placeholder}
                         className={error? 'error-field input-field' : 'input-field'} />
                         <span className="checkboxChecked"><i><FontAwesomeIcon icon={["fas", "check"]} /></i></span>
@@ -137,11 +142,6 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = '
                     <label onClick={(e) => inputRef.current?.focus()}>{ placeholder }</label>
                     {
                         error? <>
-                            {/* <p className="error-text">
-                                {
-                                error
-                                }
-                            </p> */}
                             <span className="error-toltip">
                                 <InputErrorToltip error={error} />
                             </span>

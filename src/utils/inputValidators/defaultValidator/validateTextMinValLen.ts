@@ -1,4 +1,4 @@
-import { TInputVal } from "../../hooks/useFormControl";
+import { TInputVal } from "../../hooks/useFormControl(old)";
 import { IValidationResult } from "../../hooks/useFormControl";
 
 function validateTextMinValLen(minLen: number, val: string) {

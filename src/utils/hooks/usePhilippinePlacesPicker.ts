@@ -17,22 +17,22 @@ function usePhilippinePlacesPicker() {
 
     useEffect(() => {
         setBarangayCode(null);
-    }, [barangayCode]);
+    }, [cityMunCode]);
 
-    interface retVal {
-        regionCode: typeof regionCode,
-        provinceCode: typeof provinceCode,
-        cityMunCode: typeof cityMunCode,
-        barangayCode: typeof barangayCode,
-        setRegionCode: React.Dispatch<React.SetStateAction<string | null>>,
-        setProvinceCode: React.Dispatch<React.SetStateAction<string | null>>,
-        setCityMunCode: React.Dispatch<React.SetStateAction<string | null>>,
-        setBarangayCode: React.Dispatch<React.SetStateAction<string | null>>,
-        regions: typeof philippinePlaces.regions | null,
-        provinces: typeof philippinePlaces.provinces | null,
-        cityMun: typeof philippinePlaces.city_mun | null,
-        barangay: typeof philippinePlaces.barangays | null,
-    }
+    // interface retVal {
+    //     regionCode: typeof regionCode,
+    //     provinceCode: typeof provinceCode,
+    //     cityMunCode: typeof cityMunCode,
+    //     barangayCode: typeof barangayCode,
+    //     setRegionCode: React.Dispatch<React.SetStateAction<string | null>>,
+    //     setProvinceCode: React.Dispatch<React.SetStateAction<string | null>>,
+    //     setCityMunCode: React.Dispatch<React.SetStateAction<string | null>>,
+    //     setBarangayCode: React.Dispatch<React.SetStateAction<string | null>>,
+    //     regions: typeof philippinePlaces.regions | null,
+    //     provinces: typeof philippinePlaces.provinces | null,
+    //     cityMun: typeof philippinePlaces.city_mun | null,
+    //     barangay: typeof philippinePlaces.barangays | null,
+    // }
 
     return {
         regionCode,

@@ -29,7 +29,7 @@ export interface IFormErrorFieldValues {
 
 type TFormErrorFieldsValues<K> = Record<keyof K, IFormErrorFieldValues | null>;
 
-type TValDispatcher = (newVal: TInputVal | null) => void;
+type TValDispatcher = (newVal: TInputVal) => void;
 
 type TFormDispatchers<K> = Record<keyof K, TValDispatcher>;
 
@@ -107,6 +107,7 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
     const [formErrors, updateFormErrors] = React.useState<TFormErrorFieldsValues<T>>(createFormInitialErrorValues(fields));
     const [formDispatchers, updateFormDispatchers] = React.useState<null | TFormDispatchers<T>>(null);
     const [isReady, updateIsReadyState] = React.useState(false);
+    const [isOnSubmit, updateIsOnSubmitState] = React.useState(false);
     const [isValidating, startValidating] = React.useTransition();
 
 
@@ -154,18 +155,11 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
             
             updateFormValues(newFormValues);
             
-           // startValidating(() => {
+            startValidating(() => {
                 const key = Object.keys(activeFromField)[0] as keyof typeof fields;
                 const newValue = Object.values(activeFromField)[0] as TInputVal;
                 
-                if(newValue == null) {
-                    const obj = {
-                        [key]: null
-                    } as TFormErrorFieldsValues<T>;
-    
-                    updateFormErrors({...formErrors, ...obj});
-                }
-                else if(fields[key].required && newValue == '') 
+                if(fields[key].required && newValue == '') 
                 {
                     const mutableObj: IFormErrorFieldValues = {
                         errorText: 'Required Input!',
@@ -234,7 +228,7 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
                     }
                 }
     
-            //})
+            })
 
         }
     }, [activeFromField]);

@@ -24,7 +24,8 @@ const Avatar = styled(FCAvatar)`
     justify-content: center;
     color: #fff;
     height: ${({size}) => size};
-    width: ${({size}) => size};
+    width:  ${({size}) => size};
+    flex: 0 0 ${({size}) => size};
     border: 2px solid ${({theme}) => theme.borderColor};
     border-radius: 50%;
     background-position: center;

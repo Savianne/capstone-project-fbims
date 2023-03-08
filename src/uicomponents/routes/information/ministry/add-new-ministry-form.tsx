@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 
 import Devider from "../../../reusables/devider";
-import { SiteMap } from "../Information";
+import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
 import Button from "../../../reusables/Buttons/Button";
 

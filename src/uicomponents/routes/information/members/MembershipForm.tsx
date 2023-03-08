@@ -5,10 +5,11 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 
-import usePhilippinePlacesPicker from "../../../../utils/hooks/usePhilippinePlacesPicker";
+// import usePhilippinePlacesPicker from "../../../../utils/hooks/usePhilippinePlacesPicker";
+import usePhilippinePlacesPickerSelect, { optionValue } from "../../../../utils/hooks/usePhilippinePlacePickerSelect";
 
 import Devider from "../../../reusables/devider";
-import { SiteMap } from "../Information";
+import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
 import Input from "../../../reusables/Inputs/Input";
 import Select, { Option } from "../../../reusables/Inputs/Select";
@@ -22,6 +23,7 @@ import Button from "../../../reusables/Buttons/Button";
 //Custom Hooks
 import useFormControl from "../../../../utils/hooks/useFormControl";
 import { IStyledFC } from "../../../IStyledFC";
+import { idText } from "typescript";
 
 const FCAddressBox: React.FC<IStyledFC> = ({className, children}) => {
     return (
@@ -218,10 +220,11 @@ const ContentWraper = styled.div`
 `;
 
 const MembershipForm: React.FC = ({}) => {
-    const philippinePlaces = usePhilippinePlacesPicker();
-    const philippinePlacesForPermanentAddress = usePhilippinePlacesPicker();
+    // const philippinePlaces = usePhilippinePlacesPicker();
+    // const philippinePlacesForPermanentAddress = usePhilippinePlacesPicker();
     const [sameAsCurrentAddress, updateSameAsCurrentAddress] = React.useState(false);
-    const [isBaptised, updateIsBaptised] = React.useState(false);
+    const [isBaptised, updateIsBaptised] = React.useState(true);
+    const [formIsReadyState, updateFormIsReadyState] = React.useState(false);
     const [form, formDispatcher] = useFormControl({
         firstName: {
             required: true,
@@ -245,7 +248,7 @@ const MembershipForm: React.FC = ({}) => {
             maxValLen: 6,
         },
         extName: {
-            required: true,
+            required: false,
             errorText: 'Invalid Entry',
             validateAs: 'select',
             validValues: ['jr', 'sr']
@@ -253,6 +256,8 @@ const MembershipForm: React.FC = ({}) => {
         dateOfBirth: {
             required: true,
             errorText: 'Invalid Date',
+            min: '1998-08-03',
+            max: '1999-08-03',
             validateAs: 'date',
         },
         gender: {
@@ -277,7 +282,7 @@ const MembershipForm: React.FC = ({}) => {
             errorText: 'Invalid Entry',
             validateAs: 'select'
         },
-        cityOrMunincipality: {
+        cityOrMunicipality: {
             required: true,
             errorText: 'Invalid Entry',
             validateAs: 'select'
@@ -291,10 +296,20 @@ const MembershipForm: React.FC = ({}) => {
             required: true,
             errorText: 'Invalid Entry',
             validateAs: 'email'
+        },
+        cpNumber: {
+            required: true,
+            errorText: 'Invalid Entry',
+            validateAs: "number",
+        },
+        telephoneNumber: {
+            required: false,
+            errorText: 'Invalid Entry',
+            validateAs: "number"
         }
     });
 
-    const [permanentAddressForm, permanentAddressFormDispatchers] = useFormControl({
+    const [permanentAddressForm, permanentAddressFormValueDispatchers] = useFormControl({
         region: {
             required: true,
             errorText: 'Invalid Entry',
@@ -305,7 +320,7 @@ const MembershipForm: React.FC = ({}) => {
             errorText: 'Invalid Entry',
             validateAs: 'select'
         },
-        cityOrMunincipality: {
+        cityOrMunicipality: {
             required: true,
             errorText: 'Invalid Entry',
             validateAs: 'select'
@@ -317,9 +332,51 @@ const MembershipForm: React.FC = ({}) => {
         }
     });
     
+    const [dateOfBaptismForm, dateOfBaptismFormDispatcher] = useFormControl({
+        dateOfBaptism: {
+            required: true,
+            errorText: 'Invalid Date',
+            validateAs: 'date',
+            min: '1998-08-03',
+            max: '1999-08-03',
+        },
+    });
+
+    const currentAddress = usePhilippinePlacesPickerSelect(
+        (region) => formDispatcher?.region(region),
+        (province) => formDispatcher?.province(province),
+        (cityMun) => formDispatcher?.cityOrMunicipality(cityMun),
+        (barangay) => formDispatcher?.barangay(barangay)
+    );
+
+    const permanentAddress = usePhilippinePlacesPickerSelect(
+        (region) => permanentAddressFormValueDispatchers?.region(region),
+        (province) => permanentAddressFormValueDispatchers?.province(province),
+        (cityMun) => permanentAddressFormValueDispatchers?.cityOrMunicipality(cityMun),
+        (barangay) => permanentAddressFormValueDispatchers?.barangay(barangay)
+    );
+
+
     React.useEffect(() => {
-       console.log(philippinePlaces.regions)
-    }, [])
+        if(
+            //Form must be field up w/o errors same to other forms
+            //when same as current address is not checked? permanent address form must be fieldup. 
+            //also, when is baptised is checked? date of baptism must be fieldup
+            //but when is baptised is not checked? date of baptism is not required to be fieldup.
+            //when same as current address is checked? permanent address form is not required to be fieldup.
+            form.isReady && (!(sameAsCurrentAddress) && permanentAddressForm.isReady) && (isBaptised && dateOfBaptismForm.isReady)
+            || form.isReady && (!(sameAsCurrentAddress) && permanentAddressForm.isReady) && !isBaptised
+            || form.isReady && sameAsCurrentAddress && (isBaptised && dateOfBaptismForm.isReady)
+            || form.isReady && sameAsCurrentAddress && !isBaptised
+        )
+        {
+           updateFormIsReadyState(true);
+        } else updateFormIsReadyState(false)
+    }, [form.isReady, permanentAddressForm.isReady, dateOfBaptismForm.isReady, isBaptised, sameAsCurrentAddress]);
+
+    React.useEffect(() => {
+        console.log(form.values)
+    }, [form.values])
     return (
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -402,53 +459,53 @@ const MembershipForm: React.FC = ({}) => {
                                 <Select placeholder="Region" 
                                 error={form.errors.region}
                                 onValChange={(val) => {
-                                    formDispatcher?.region(val);
+                                    currentAddress?.setRegion(val);
                                 }}>
-                                    <Option callBackFC={() => philippinePlaces.setRegionCode(null)} value="">Please Select a Region</Option>
+                                    <Option value="">Please Select a Region</Option>
                                     {
-                                        philippinePlaces.regions.map((regions, index) => {
+                                        currentAddress.regions.map((region, index) => {
                                             return (
-                                                <Option callBackFC={() => philippinePlaces.setRegionCode(regions.reg_code)} value={regions.name} key={index}>{regions.name}</Option>
+                                                <Option value={optionValue(region.reg_code, region.name)} key={index}>{region.name}</Option>
                                             )
                                         }) 
                                     }
                                 </Select>
-                                <Select disabled={philippinePlaces.regionCode? false : true} placeholder="Province" 
+                                <Select disabled={!currentAddress.values.region} placeholder="Province" 
                                 error={form.errors.province}
                                 onValChange={(val) => {
-                                    formDispatcher?.province(val)
+                                    currentAddress?.setProvince(val)
                                 }}>
-                                    <Option callBackFC={() => philippinePlaces.setProvinceCode(null)} value="">Please Select a Province</Option>
+                                    <Option value="">Please Select a Province</Option>
                                     {
-                                        philippinePlaces.provinces?.map((province, index) => {
+                                        currentAddress.provinces?.map((province, index) => {
                                             return (
-                                                <Option callBackFC={() => philippinePlaces.setProvinceCode(province.prov_code)} value={province.name} key={index}>{province.name}</Option>
+                                                <Option value={optionValue(province.prov_code, province.name)} key={index}>{province.name}</Option>
                                             )
                                         }) 
                                     }
                                 </Select>
-                                <Select disabled={philippinePlaces.provinceCode? false : true} placeholder="City / Municipality" 
-                                error={form.errors.cityOrMunincipality}
+                                <Select disabled={!currentAddress.values.province} placeholder="City / Municipality" 
+                                error={form.errors.cityOrMunicipality}
                                 onValChange={(val) => {
-                                    formDispatcher?.cityOrMunincipality(val)
+                                    currentAddress.setCityMun(val)
                                 }}>
-                                    <Option callBackFC={() => philippinePlaces.setCityMunCode(null)} value="">Please Select a Region</Option>
+                                    <Option value="">Please Select a Region</Option>
                                     {
-                                        philippinePlaces.cityMun?.map((cityMun, index) => {
+                                        currentAddress.cityMun?.map((cityMun, index) => {
                                             return (
-                                                <Option callBackFC={() => philippinePlaces.setCityMunCode(cityMun.mun_code)} value={cityMun.name} key={index}>{cityMun.name}</Option>
+                                                <Option value={optionValue(cityMun.mun_code, cityMun.name)} key={index}>{cityMun.name}</Option>
                                             )
                                         }) 
                                     }
                                 </Select>
-                                <Select disabled={philippinePlaces.cityMunCode? false : true} placeholder="Barangay" 
+                                <Select disabled={!currentAddress.values.cityMun} placeholder="Barangay" 
                                 error={form.errors.barangay}
                                 onValChange={(val) => {
-                                    formDispatcher?.barangay(val)
+                                   currentAddress.setBarangay(val)
                                 }}>
                                     <Option value="">Please Select a Barangay</Option>
                                     {
-                                        philippinePlaces.barangay?.map((barangay, index) => {
+                                        currentAddress.barangay?.map((barangay, index) => {
                                             return (
                                                 <Option value={barangay.name} key={index}>{barangay.name}</Option>
                                             )
@@ -472,53 +529,53 @@ const MembershipForm: React.FC = ({}) => {
                                     <Select placeholder="Region" 
                                     error={permanentAddressForm.errors.region}
                                     onValChange={(val) => {
-                                        permanentAddressFormDispatchers?.region(val);
+                                        permanentAddress?.setRegion(val);
                                     }}>
-                                        <Option callBackFC={() => philippinePlacesForPermanentAddress.setRegionCode(null)} value="">Please Select a Region</Option>
+                                        <Option value="">Please Select a Region</Option>
                                         {
-                                            philippinePlacesForPermanentAddress.regions.map((regions, index) => {
+                                            permanentAddress.regions.map((region, index) => {
                                                 return (
-                                                    <Option callBackFC={() => philippinePlacesForPermanentAddress.setRegionCode(regions.reg_code)} value={regions.name} key={index}>{regions.name}</Option>
+                                                    <Option value={optionValue(region.reg_code, region.name)} key={index}>{region.name}</Option>
                                                 )
                                             }) 
                                         }
                                     </Select>
-                                    <Select disabled={philippinePlacesForPermanentAddress.regionCode? false : true} placeholder="Province" 
+                                    <Select disabled={!permanentAddress.values.region} placeholder="Province" 
                                     error={permanentAddressForm.errors.province}
                                     onValChange={(val) => {
-                                        permanentAddressFormDispatchers?.province(val)
+                                        permanentAddress?.setProvince(val)
                                     }}>
-                                        <Option callBackFC={() => philippinePlacesForPermanentAddress.setProvinceCode(null)} value="">Please Select a Province</Option>
+                                        <Option value="">Please Select a Province</Option>
                                         {
-                                            philippinePlacesForPermanentAddress.provinces?.map((province, index) => {
+                                            permanentAddress.provinces?.map((province, index) => {
                                                 return (
-                                                    <Option callBackFC={() => philippinePlacesForPermanentAddress.setProvinceCode(province.prov_code)} value={province.name} key={index}>{province.name}</Option>
+                                                    <Option value={optionValue(province.prov_code, province.name)} key={index}>{province.name}</Option>
                                                 )
                                             }) 
                                         }
                                     </Select>
-                                    <Select disabled={philippinePlacesForPermanentAddress.provinceCode? false : true} placeholder="City / Municipality" 
-                                    error={permanentAddressForm.errors.cityOrMunincipality}
+                                    <Select disabled={!permanentAddress.values.province} placeholder="City / Municipality" 
+                                    error={permanentAddressForm.errors.cityOrMunicipality}
                                     onValChange={(val) => {
-                                        permanentAddressFormDispatchers?.cityOrMunincipality(val)
+                                        permanentAddress.setCityMun(val)
                                     }}>
-                                        <Option callBackFC={() => philippinePlacesForPermanentAddress.setCityMunCode(null)} value="">Please Select a Region</Option>
+                                        <Option value="">Please Select a Region</Option>
                                         {
-                                            philippinePlacesForPermanentAddress.cityMun?.map((cityMun, index) => {
+                                            permanentAddress.cityMun?.map((cityMun, index) => {
                                                 return (
-                                                    <Option callBackFC={() => philippinePlacesForPermanentAddress.setCityMunCode(cityMun.mun_code)} value={cityMun.name} key={index}>{cityMun.name}</Option>
+                                                    <Option value={optionValue(cityMun.mun_code, cityMun.name)} key={index}>{cityMun.name}</Option>
                                                 )
                                             }) 
                                         }
                                     </Select>
-                                    <Select disabled={philippinePlacesForPermanentAddress.cityMunCode? false : true} placeholder="Barangay" 
+                                    <Select disabled={!permanentAddress.values.cityMun} placeholder="Barangay" 
                                     error={permanentAddressForm.errors.barangay}
                                     onValChange={(val) => {
-                                        permanentAddressFormDispatchers?.barangay(val)
+                                        permanentAddress.setBarangay(val)
                                     }}>
                                         <Option value="">Please Select a Barangay</Option>
                                         {
-                                            philippinePlacesForPermanentAddress.barangay?.map((barangay, index) => {
+                                            permanentAddress.barangay?.map((barangay, index) => {
                                                 return (
                                                     <Option value={barangay.name} key={index}>{barangay.name}</Option>
                                                 )
@@ -527,7 +584,7 @@ const MembershipForm: React.FC = ({}) => {
                                     </Select>
                                 </Revealer>
                                 {
-                                    sameAsCurrentAddress? <AddressBox>Sandiat West, San Manuel Isabela, Region II (CAGAYAN VALLEY) dvsdvsdvsvd</AddressBox> : ''
+                                    sameAsCurrentAddress && (form.values.region && form.values.province && form.values.cityOrMunicipality && form.values.barangay)? <AddressBox>{`${form.values.barangay}, ${form.values.cityOrMunicipality}, ${form.values.province}, ${form.values.region}`}</AddressBox> : ''
                                 }
                             </div>
                         </div>
@@ -539,8 +596,9 @@ const MembershipForm: React.FC = ({}) => {
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
                                 <IconInput type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
-                                <IconInput type="number" placeholder="Mobile Number" onValChange={(e) => console.log(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
-                                <IconInput type="number" placeholder="Phone" onValChange={(e) => console.log(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                                <IconInput type="number" placeholder="Mobile Number" error={form.errors.cpNumber} onValChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                                {/* <input type="number" inputmode="number" onChange={(e) => console.log(e.target.value)} /> */}
+                                <IconInput type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
                             </div>
                         </div>
                         <strong className="information-category-title">Baptism Information</strong>
@@ -551,12 +609,12 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input type="checkbox" placeholder="" label="Not Yet Baptised?" onValChange={(val) => {
+                                <Input checked={isBaptised} type="checkbox" placeholder="" label="Is Baptised" onValChange={(val) => {
                                     const v = val as boolean;
                                     updateIsBaptised(v)}
                                 }/>
-                                <Revealer reveal={!isBaptised}>
-                                    <Input name="date-of-baptism" type="date" placeholder="Date of Baptism" error={form.errors.dateOfBirth} onValChange={(val) => formDispatcher?.dateOfBirth(val)} />
+                                <Revealer reveal={isBaptised}>
+                                    <Input name="date-of-baptism" type="date" placeholder="Date of Baptism" error={dateOfBaptismForm.errors.dateOfBaptism} onValChange={(val) => dateOfBaptismFormDispatcher?.dateOfBaptism(val)} />
                                 </Revealer>
                             </div>
                         </div>
@@ -569,7 +627,7 @@ const MembershipForm: React.FC = ({}) => {
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
                                 <div className="ministry-avatar-container">
-                                    <AvatarGroup size='30px' avatars={[
+                                    {/* <AvatarGroup size='30px' avatars={[
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
@@ -590,7 +648,8 @@ const MembershipForm: React.FC = ({}) => {
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
-                                    ]} limit={5}/>
+                                    ]} limit={5}/> */}
+                                    0 Selected
                                     <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                                     <AddMembershipBtn><FontAwesomeIcon icon={["fas", "plus"]} /></AddMembershipBtn>
                                 </div>
@@ -604,7 +663,7 @@ const MembershipForm: React.FC = ({}) => {
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
                                 <div className="organization-avatar-container">
-                                    <AvatarGroup size='30px' avatars={[
+                                    {/* <AvatarGroup size='30px' avatars={[
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
@@ -625,7 +684,8 @@ const MembershipForm: React.FC = ({}) => {
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
-                                    ]} limit={5}/>
+                                    ]} limit={5}/> */}
+                                    0 Selected
                                     <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                                     <AddMembershipBtn><FontAwesomeIcon icon={["fas", "plus"]} /></AddMembershipBtn>
                                 </div>
@@ -633,7 +693,7 @@ const MembershipForm: React.FC = ({}) => {
                         </div>
                         <Devider $orientation="horizontal"  $css="margin: 0 5px" />
                         <div className="submit-button-container">
-                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary" isLoading />
+                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary" disabled={!formIsReadyState} />
                         </div>
                     </div>
                 </ContentWraper>

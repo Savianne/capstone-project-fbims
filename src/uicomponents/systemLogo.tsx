@@ -13,7 +13,7 @@ const SystemLogo = styled.span`
     }
 
     & img {
-        height: 70%;
+        height: 60%;
     }
 
     & .cover {
@@ -24,7 +24,19 @@ const SystemLogo = styled.span`
         background-color: transparent;
     }
 
+    .mobile-logo {
+        display: none;
+    }
 
+    @media screen and (max-width: 470px) {
+        .mobile-logo {
+            display: flex;
+        }
+
+        .desktop-logo {
+            display: none;
+        }
+    }
 
 `;
 

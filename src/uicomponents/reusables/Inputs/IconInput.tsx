@@ -3,8 +3,8 @@ import styled from "styled-components";
 
 import InputErrorToltip from "./InputErrorToltip";
 
-import { TInputType } from "../../../utils/hooks/useFormControl";
-import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl";
+import { TInputType } from "../../../utils/hooks/useFormControl(old)";
+import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)";
 import { IStyledFC } from "../../IStyledFC";
 
 interface IFCIconInput extends IStyledFC {

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { IStyledFC } from "../../IStyledFC";
-import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl";
+import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)";
 
 import Revealer from "../Revealer";
 

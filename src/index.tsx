@@ -23,7 +23,6 @@ import {
   faSitemap, 
   faHandHoldingHeart, 
   faHandsHelping,
-  faArrowLeft,
   faAngleRight,
   faAngleLeft,
   faOutdent,
@@ -48,7 +47,19 @@ import {
   faUserPen,
   faTrash,
   faCircleNotch,
-  faSpinner
+  faSpinner,
+  faArrowRight,
+  faArrowLeft,
+  faArrowAltCircleRight,
+  faArrowAltCircleLeft,
+  faExpand,
+  faTimes,
+  faCalendarAlt,
+  faQuoteLeft,
+  faCalendarDay,
+  faCalendarTimes,
+  faList,
+  faCalendarPlus
  } from '@fortawesome/free-solid-svg-icons';
 
 library.add(faS, faBars);
@@ -60,7 +71,6 @@ library.add(faS, faSun);
 library.add(faS, faSitemap);
 library.add(faS, faHandHoldingHeart);
 library.add(faS, faHandsHelping);
-library.add(faS, faArrowLeft);
 library.add(faS, faAngleRight);
 library.add(faS, faAngleLeft);
 library.add(faS, faOutdent);
@@ -86,7 +96,18 @@ library.add(faS, faUserPen);
 library.add(faS, faTrash);
 library.add(faS, faCircleNotch);
 library.add(faS, faSpinner);
-
+library.add(faS, faArrowLeft);
+library.add(faS, faArrowRight);
+library.add(faS, faArrowAltCircleRight);
+library.add(faS, faArrowAltCircleLeft);
+library.add(faS, faExpand);
+library.add(faS, faTimes);
+library.add(faS, faCalendarAlt);
+library.add(faS, faQuoteLeft);
+library.add(faS, faCalendarDay);
+library.add(faS, faCalendarTimes);
+library.add(faS, faList);
+library.add(faS, faCalendarPlus);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

@@ -28,6 +28,8 @@ import NavBarToggle from './uicomponents/NavBarToggle';
 import SystemLogo from './uicomponents/systemLogo';
 import UserAvatar from './uicomponents/UserAvatar';
 import ThemeModeToggle from './uicomponents/ThemeModeToggle';
+import AdminDropdown from './uicomponents/AdminDropdown';
+import TodaysEventsSideBar from './uicomponents/TodaysEventsSideBar';
 
 //Routes
 import Layout from './uicomponents/routes/layout';
@@ -37,6 +39,7 @@ import MembershipForm from './uicomponents/routes/information/members/Membership
 import Ministry from './uicomponents/routes/information/ministry/ministry';
 import Organizations from './uicomponents/routes/information/organizations/organizations';
 import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-new-ministry-form';
+import Calendar from './uicomponents/routes/calendar/Calendar';
 
 function App() {
   const counterState = useAppSelector(state => state.counter.value);
@@ -51,11 +54,13 @@ function App() {
           <AppHeader>
             <NavBarToggle />
             <SystemLogo>
-              <img src='/fbims-logo.png' />
+              <img className="desktop-logo" src='/fbims-logo.png' />
+              <img className='mobile-logo' src='/fbims-logo-mobile.png' />
               <span className="cover"></span>
             </SystemLogo>
             <ThemeModeToggle />
-            <UserAvatar />
+            <AdminDropdown />
+            {/* <UserAvatar /> */}
           </AppHeader>
           <AppNavBar />
           <ScrollingContent>
@@ -74,13 +79,14 @@ function App() {
                   <Route path='organizations' element={<Organizations />} />
                 </Route>
                 <Route path='attendance'>
-                  
+                  Attendance
                 </Route>
+                <Route path='calendar' element={<Calendar />} />
               </Route>
             </Routes>
           </ScrollingContent>
           <SideBar>
-            
+            <TodaysEventsSideBar />
           </SideBar>
         </AppLayout>
       </ThemeProvider>

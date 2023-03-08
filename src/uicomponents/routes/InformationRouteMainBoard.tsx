@@ -158,7 +158,7 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
                 </span>
                 <Devider $orientation="vertical" $css="z-index: 100; height: 83px;margin: 0 10px 0 30px;& .devider { border-color: #fff }" $lineWidth="3px" />
                 <div className="bible-verse">
-                    <p className="verse-text">{verseText.content}</p>
+                    <p className="verse-text"><FontAwesomeIcon icon={["fas", "quote-left"]} pull="left" size="lg" />{verseText.content}</p>
                     <p className="verse">- {verseText.verse}</p>
                 </div>
                 <span className="data-total-info">
