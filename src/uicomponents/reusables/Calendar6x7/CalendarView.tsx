@@ -3,6 +3,9 @@ import styled from "styled-components";
 
 import { IStyledFC } from "../../IStyledFC";
 import { IDateCell } from "../../../utils/calendar6x7/useCalendar42";
+import { IEvents } from "./IEvents";
+
+import useEventHarness from "../../../utils/calendar6x7/useEventHarness";
 
 import Devider from "../devider";
 
@@ -28,7 +31,7 @@ const FCCellEventGrid: React.FC<ICellEventGrid> = ({className, eventHarness}) =>
             {
                 eventHarness.map(item => (
                     <div className="cell-event-harness ">
-                        Whole day event
+                        {item.title}
                     </div>
                 ))
             }
@@ -52,7 +55,7 @@ const CellEventGrid = styled(FCCellEventGrid)`
         height: 24%;
         margin: 0 3% 3% 3%;
         margin-bottom: 1%;
-        background-color: #3788d8;
+        background-color: #42566a;
         border-radius: 4px;
         color: white;
         padding-left: 3px;
@@ -92,10 +95,18 @@ const FCCalendarCell: React.FC<ICalendarCell> = ({className, cell}) => {
                     row: 4,
                     title: "Whole Day Event"
                 },
-                {
-                    row: 4,
-                    title: "Whole Day Event"
-                },
+                // {
+                //     row: 4,
+                //     title: "Whole Day Event"
+                // },
+                // {
+                //     row: 4,
+                //     title: "Whole Day Event"
+                // },
+                // {
+                //     row: 4,
+                //     title: "Whole Day Event"
+                // },
                 // {
                 //     row: 4,
                 //     title: "Whole Day Event"
@@ -237,12 +248,15 @@ const CalendarHead = styled(FCCalendarHead)`
     }
 `
 
+
 interface ICalendarView extends IStyledFC {
     cellSize: number,
-    dates: IDateCell[]
+    dates: IDateCell[],
+    events: IEvents[]
 }
 
-const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates}) => {
+const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates, events}) => {
+
     const [rows, updateRows] = React.useState<[
         typeof dates, 
         typeof dates, 
@@ -274,7 +288,9 @@ const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates}) =
     
             updateRows(newRows);
         }
+
     }, [dates]);
+
     return (
         <div className={className}>
             <CalendarHead cellSize={cellSize}/>

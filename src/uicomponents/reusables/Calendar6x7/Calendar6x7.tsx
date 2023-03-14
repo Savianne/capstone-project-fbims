@@ -16,40 +16,40 @@ import useCalendar42 from "../../../utils/calendar6x7/useCalendar42";
 import useDateToggle from "../../../utils/calendar6x7/useDateToggle";
 
 //Helpers
-import calendarDateText from "./calendar-date-text-utilts"
-import { on } from "process";
+import calendarDateText from "./calendar-date-text-utilts";
 import Devider from "../devider";
 
 const sampleEvents: IEvents[] = [
     {
         title: "Whole Day Event",
+        isWholeDay: true,
         date: new Date(),
-        isWholeDay: true, 
+    },
+    {
+        title: "Meeting",
+        isWholeDay: false,
+        date: { eventStart: new Date(2023, 3, 9, 8, 30), eventEnd: new Date(2023, 3, 11, 9)},
     },
     {
         title: "Daily Event",
-        date: new Date(),
-        isWholeDay: true, 
+        isWholeDay: true,
+        date: new Date(), 
         reapeat: {
             pattern: "daily",
         }
     },
     {
-        title: "Daily Event",
-        date: new Date(),
-        isWholeDay: false, 
-        startTime: new Date(2023, 2, 7, 8, 30),
-        endTime: new Date(2023, 2, 7, 9, 30),
+        title: "Long Whole day Event ",
+        isWholeDay: true,
+        date: { eventStart: new Date(2023, 3, 9), eventEnd: new Date(2023, 3, 11)},
         reapeat: {
             pattern: "weekly",
         }
     },
     {
         title: "Long Event",
-        date: new Date(),
         isWholeDay: true, 
-        startTime: new Date(2023, 2, 7),
-        endTime: new Date(2023, 2, 10),
+        date: { eventStart: new Date(2023, 3, 9, 13, 30), eventEnd: new Date(2023, 3, 11, 14)},
     },
     
 ]
@@ -153,7 +153,7 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
             }
             
             {
-                cellSize && view == "calendar"  && calendarDates && <CalendarView cellSize={cellSize} dates={calendarDates}  />
+                cellSize && view == "calendar"  && calendarDates && <CalendarView cellSize={cellSize} dates={calendarDates} events={sampleEvents} />
                     
             }
             {

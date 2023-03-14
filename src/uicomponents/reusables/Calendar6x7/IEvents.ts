@@ -4,11 +4,21 @@ interface IRepeatingEvents {
     removedAccurances?: Date[];
 }
 
+type TEventDateDuration = {
+    eventStart: Date;
+    eventEnd: Date;
+}
+
+
+
 export interface IEvents {
     title: string;
-    date: Date;
     isWholeDay: boolean;
-    startTime?: Date;
-    endTime?: Date;
+    date: Date | TEventDateDuration;
     reapeat?: IRepeatingEvents
+}
+
+export interface IHolidays {
+    title: string;
+    date: Date;
 }
