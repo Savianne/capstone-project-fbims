@@ -82,7 +82,7 @@ const ContentWraper = styled.div`
     & #membershipForm {
         display: flex;
         flex-wrap: wrap;
-        flex: 0 1 800px;
+        flex: 0 1 100%;
         padding: 15px;
         height: fit-content;
         background-color:  ${({theme}) => theme.background.primary};
@@ -238,14 +238,14 @@ const MembershipForm: React.FC = ({}) => {
             errorText: 'Invalid Entry',
             validateAs: 'text',
             minValLen: 5,
-            maxValLen: 6,
+            maxValLen: 25,
         },
         surName: {
             required: true,
             errorText: 'Invalid Entry',
             validateAs: 'text',
             minValLen: 5,
-            maxValLen: 6,
+            maxValLen: 25,
         },
         extName: {
             required: false,

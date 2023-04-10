@@ -4,7 +4,8 @@ import styled from "styled-components";
 import { IStyledFC } from "../IStyledFC";
 
 interface IFCRevealer extends IStyledFC {
-    reveal: boolean
+    reveal: boolean;
+    maxHeight?: string;
 }
 
 const FCRevealer: React.FC<IFCRevealer> = ({className, children, reveal}) => {
@@ -25,7 +26,7 @@ const Revealer = styled(FCRevealer)`
     flex: 0 1 100%;
     align-items: center;
     justify-content: center;
-    max-height: ${(props) => props.reveal? '300px' : 0};
+    max-height: ${(props) => props.reveal? props.maxHeight? props.maxHeight : '300px' : 0};
     /* height: ${(props) => props.reveal? '100%' : 0}; */
     transition: max-height 500ms ease-in-out;
     overflow: ${(props) => props.reveal? 'vissible' : 'hidden'};

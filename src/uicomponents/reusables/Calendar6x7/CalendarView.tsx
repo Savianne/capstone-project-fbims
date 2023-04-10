@@ -3,22 +3,133 @@ import styled from "styled-components";
 
 import { IStyledFC } from "../../IStyledFC";
 import { IDateCell } from "../../../utils/calendar6x7/useCalendar42";
-import { IEvents } from "./IEvents";
+import { IHoliday } from "./interfaces";
+import { IEventOfTheDate, IOccuringEventOfTheDate } from "../../../utils/calendar6x7/getEventsOfTheDate";
+import { TCalendar6x7Events } from "../Calendar6x7/Calendar6x7";
+import useEventGrid from "../../../utils/calendar6x7/useEventChip";
 
-import useEventHarness from "../../../utils/calendar6x7/useEventHarness";
-
-import Devider from "../devider";
-
-interface ICellEventHarness {
+export interface ICellEventHarness {
+    type: 'solid' | 'transparent' | 'spacer' | 'more-btn';
     row: number;
-    title: string;
-    isWholeDay?: boolean;
-    isLongEvent?: boolean; 
-    start?: Date;
-    end?: Date;
+    col: number;
+    event?: IEventOfTheDate | IOccuringEventOfTheDate | IHoliday;
+    moreBtnText?: string;
     isContinuation?: boolean;
     forContinuation?: boolean
 }
+
+interface ICellEventHarnessAction extends ICellEventHarness {
+    action: () => void
+}
+
+interface IEventHarness extends IStyledFC {
+    harness: ICellEventHarnessAction;
+}
+
+const FCEventHarness: React.FC<IEventHarness> = ({className, harness}) => {
+
+    return (
+        <div className={className}>
+            <div className="harness">
+                {
+                    harness.isContinuation && <span className="continuation-indicator">
+                        <img src="assets/images/square.png" />
+                        <span className="arrow"></span>
+                    </span>
+                }
+                <span className="event-text">
+                    {
+                        harness.event?.title
+                    }
+                    {
+                        harness.moreBtnText
+                    }
+                </span>
+                {
+                    harness.forContinuation && <span className="for-continuation-indicator">
+                        <img src="assets/images/square.png" />
+                        <span className="arrow"></span>
+                    </span>
+                }
+            </div>
+        </div>
+    )
+}
+
+const EventHarness = styled(FCEventHarness)`
+    position: absolute;
+    display: flex;
+    width: calc((${(props) => 100 * props.harness.col}%) + ${(props) => 1.5 * (props.harness.col)}px);
+    align-items: center;
+    height: 25%;
+    top: ${(props) => 25 * (props.harness.row - 1)}%;
+    
+    .harness {
+        display: ${(props) => props.harness.type === "spacer"? 'none' : 'flex'};
+        flex: 0 1 100%;
+        height: 90%;
+        margin: 0 2px;
+        background-color: ${(props) => props.harness.type === "more-btn" || props.harness.type === "transparent"? 'transparent' : 'rgb(3, 155, 229)'};
+        border-radius: ${(props) => {
+            return props.harness.isContinuation === false && props.harness.forContinuation === false? "4px" : 
+            props.harness.isContinuation && props.harness.forContinuation === false? "0 4px 4px 0" : 
+            props.harness.isContinuation === false && props.harness.forContinuation? "4px 0 0 4px" : 0
+        }};
+        color: ${(props) => props.harness.type === "more-btn" || props.harness.type === "transparent"? props.theme.textColor.strong : "white"};
+        font-size: 10px;
+        align-items: center;
+        overflow: hidden;
+        cursor: pointer;
+        z-index: 200;
+    }
+    
+    .harness:hover {
+        transition: box-shadow 300ms, background-color 300ms;
+        box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px;
+        background-color: ${(props) => props.harness.type === "more-btn" || props.harness.type === "transparent"? '#0b719f33' : 'rgb(8 132 193)'}; 
+    }
+
+    .harness .event-text {
+        margin-left: 10px;
+    }
+
+    .harness .continuation-indicator,
+    .harness .for-continuation-indicator {
+        position: relative;
+        display: flex;
+        height: 100%;
+        width: fit-content;
+        background-color: rgb(3, 155, 229);
+        overflow: hidden;
+    }
+
+    .harness .continuation-indicator .arrow,
+    .harness .for-continuation-indicator .arrow {
+        position: absolute;
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+        background-color: ${({theme}) => theme.background.primary};
+        transform: rotate(45deg);
+        right: 70%;
+    }
+    
+    .harness .for-continuation-indicator {
+        margin-left: auto;
+        background-color: ${({theme}) => theme.background.primary};
+    }
+
+    .harness .for-continuation-indicator .arrow {
+        background-color: rgb(3, 155, 229);
+        right: 30%;
+    }
+
+    .harness .for-continuation-indicator img,
+    .harness .continuation-indicator img {
+        height: 100%;
+    }
+
+`
 
 interface ICellEventGrid extends IStyledFC {
     eventHarness: ICellEventHarness[];
@@ -30,9 +141,10 @@ const FCCellEventGrid: React.FC<ICellEventGrid> = ({className, eventHarness}) =>
         <div className={className}>
             {
                 eventHarness.map(item => (
-                    <div className="cell-event-harness ">
-                        {item.title}
-                    </div>
+                    item &&
+                    <EventHarness harness={{...item, action() {
+                        console.log(item.event?.title)
+                    },}} />
                 ))
             }
         </div>
@@ -47,20 +159,8 @@ const CellEventGrid = styled(FCCellEventGrid)`
     height: 60%;
     /* background-color: gray; */
     bottom: 0;
-
-    .cell-event-harness {
-        display: flex;
-        flex: 0 1 100%;
-        align-items: center;
-        height: 24%;
-        margin: 0 3% 3% 3%;
-        margin-bottom: 1%;
-        background-color: #42566a;
-        border-radius: 4px;
-        color: white;
-        padding-left: 3px;
-        font-size: 10px;
-    }
+    overflow: visible;
+    /* z-index: 100; */
 
     .cell-is-continuation {
         margin-left: 0;
@@ -75,10 +175,11 @@ const CellEventGrid = styled(FCCellEventGrid)`
 
 interface ICalendarCell extends IStyledFC {
     cellSize: number;
-    cell: IDateCell
+    cell: IDateCell,
+    eventHarness: ICellEventHarness[]
 }
 
-const FCCalendarCell: React.FC<ICalendarCell> = ({className, cell}) => {
+const FCCalendarCell: React.FC<ICalendarCell> = ({className, cell, eventHarness}) => {
     const elemRef = React.useRef<HTMLSpanElement | null>(null);
 
     React.useEffect(() => {
@@ -88,34 +189,11 @@ const FCCalendarCell: React.FC<ICalendarCell> = ({className, cell}) => {
     return (
         <span className={className} ref={elemRef}>
             <span className={cell.isPadding? "date-ispadding" : "date"}>{cell.date.getDate()}</span>
-            <div className="bottom-right-corner" />
-            <CellEventGrid 
-            eventHarness={[
-                {
-                    row: 4,
-                    title: "Whole Day Event"
-                },
-                // {
-                //     row: 4,
-                //     title: "Whole Day Event"
-                // },
-                // {
-                //     row: 4,
-                //     title: "Whole Day Event"
-                // },
-                // {
-                //     row: 4,
-                //     title: "Whole Day Event"
-                // },
-                // {
-                //     row: 4,
-                //     title: "Whole Day Event"
-                // },
-                // {
-                //     row: 4,
-                //     title: "Whole Day Event"
-                // }
-            ]} />
+            {/* <div className="bottom-right-corner" /> */}
+            {
+                <CellEventGrid 
+                eventHarness={eventHarness} />
+            }
         </span>
     )
 }
@@ -127,9 +205,11 @@ const CalendarCell = styled(FCCalendarCell)`
     flex: 1;
     height: ${(props) => `${(0.8 * props.cellSize)}px`};
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
+    /* overflow-x: visible; */
     border-bottom-color: ${({theme}) => theme.borderColor};
     border-left-color: ${({theme}) => theme.borderColor};
+    
 
     :last-child {
         border-right-color: ${({theme}) => theme.borderColor};
@@ -189,6 +269,7 @@ const CalendarCell = styled(FCCalendarCell)`
     .date, .date-ispadding  {
         color: ${({theme}) => theme.textColor.strong};
         margin-top: 10%;
+        font-weight: 600;
         font-size: ${(props) => props.cellSize > 50? "15px" : '11px'};
     }
 
@@ -242,7 +323,7 @@ const CalendarHead = styled(FCCalendarHead)`
         height: 100%;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
+        /* font-weight: bold; */
         color: ${({theme}) => theme.textColor.strong};
         font-size: 13px;
     }
@@ -250,12 +331,24 @@ const CalendarHead = styled(FCCalendarHead)`
 
 
 interface ICalendarView extends IStyledFC {
-    cellSize: number,
-    dates: IDateCell[],
-    events: IEvents[]
+    cellSize: number;
+    dates: IDateCell[];
+    events: TCalendar6x7Events;
 }
 
 const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates, events}) => {
+
+    type TH = Record<string, ICellEventHarness[]>;
+
+    const eventGrid = useEventGrid(React.useMemo(() => {
+        return Object.keys(events).reduce((P, C) => {
+            const obj = {[C]: {
+                events: [...events[C].wholedays, ...events[C].others],
+                holidays: [...events[C].holidays, ...events[C].birthdays],
+            }}
+            return {...P, ...obj }
+        }, {});
+    }, [events]));
 
     const [rows, updateRows] = React.useState<[
         typeof dates, 
@@ -291,6 +384,17 @@ const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates, ev
 
     }, [dates]);
 
+    // React.useEffect(() => {
+    //     const gridEvents = Object.keys(events).reduce((P, C) => {
+    //         const obj = {[C]: {
+    //             events: [...events[C].wholedays, ...events[C].others],
+    //             holidays: [...events[C].holidays, ...events[C].birthdays],
+    //         }}
+    //         return {...P, ...obj }
+    //     }, {});
+
+
+    // }, [events])
     return (
         <div className={className}>
             <CalendarHead cellSize={cellSize}/>
@@ -300,8 +404,12 @@ const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates, ev
                         <div className="calendar-row">
                             {
                                 item.map(item => {
+                                    // const h = harness[`${item.date.getFullYear()}-${item.date.getMonth()}-${item.date.getDate()}`]
                                     return (
-                                        <CalendarCell cellSize={cellSize} cell={item} />
+                                        <CalendarCell cellSize={cellSize} cell={item} 
+                                        eventHarness={
+                                            Object.values(eventGrid[`${item.date.getFullYear()}-${item.date.getMonth() + 1}-${item.date.getDate()}` as keyof typeof eventGrid])
+                                        } />
                                     )
                                 })
                             }

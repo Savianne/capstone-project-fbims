@@ -41,7 +41,7 @@ const Board = styled.div<{ bgImage?: string}>`
     }
     
     & .cover {
-        ${({theme}) => theme.mode == 'dark'? css`background: linear-gradient(90deg, rgba(34,19,74,1) 23%, rgba(44,14,130,1) 78%, rgba(59,26,155,1) 80%, rgba(255, 255, 255, 0) 94%); opacity: 0.5;` : css`background-color: rgba(34, 19, 74, 0.5);`}
+        ${({theme}) => theme.mode == 'dark'? css`background: linear-gradient(90deg, rgba(34,19,74,1) 23%, rgba(44,14,130,1) 78%, rgba(59,26,155,1) 80%, rgba(255, 255, 255, 0) 94%); opacity: 0.5;` : css`background-color: rgb(0 0 0 / 50%);`}
     }
 
     & .board-content .bible-verse {

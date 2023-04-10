@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { Scrollbars } from 'react-custom-scrollbars-2';
 
 //Types 
-import { TInputVal } from "../../../utils/hooks/useFormControl";
+import { TInputVal } from "../../../utils/hooks/useFormControl(old)";
 
 //Reusables
 import UseRipple from "../Ripple/UseRipple";

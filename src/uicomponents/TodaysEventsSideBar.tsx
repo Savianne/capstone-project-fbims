@@ -59,7 +59,7 @@ const TodaysBibleVerse = styled(FCTodaysBibleVerse)`
     display: flex;
     width: 300px;
     height: 200px;
-    background-image: url(/assets/images/ministry.jpeg);
+    background-image: url(/assets/images/abstract-background-landscape-mountains-illustration_574033-2.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -126,6 +126,7 @@ const TodaysBibleVerse = styled(FCTodaysBibleVerse)`
         font-size: 10px;
         font-style: italic;
         font-family: AssistantExtraLight;
+        text-align: justify;
     }
 
     .bible-verse-area .verse {

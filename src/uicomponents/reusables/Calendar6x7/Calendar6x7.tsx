@@ -3,10 +3,12 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { IStyledFC } from "../../IStyledFC";
-import { IEvents } from "./IEvents";
+import { IEvent } from "./interfaces";
 
 //Reusables
 import Button from "../Buttons/Button"
+import Devider from "../devider";
+import Revealer from "../Revealer";
 
 //Calendar Views COmponent
 import CalendarView from "./CalendarView";
@@ -17,42 +19,94 @@ import useDateToggle from "../../../utils/calendar6x7/useDateToggle";
 
 //Helpers
 import calendarDateText from "./calendar-date-text-utilts";
-import Devider from "../devider";
+import getEventsOfTheDate, { TGetEventsFNRetVal } from "../../../utils/calendar6x7/getEventsOfTheDate";
 
-const sampleEvents: IEvents[] = [
+const NEweventForm = styled.div`
+    display: flex;
+    flex: 0 1 100%;
+    height: 380px;
+    background-color: pink;
+`
+const sampleEvents: IEvent[] = [
     {
+        eventUID: new Date().getTime(),
+        title: "Sunday Worship Service",
+        isWholeDay: true,
+        date: { eventStart: new Date(2023, 2, 26, 5, 30), eventEnd: new Date(2023, 2, 26, 7)},
+        reapeat: {
+            pattern: 'weekly'
+        }
+    },
+    {
+        eventUID: new Date().getTime(),
         title: "Whole Day Event",
         isWholeDay: true,
-        date: new Date(),
+        date: new Date(2023, 2, 24),
     },
     {
+        eventUID: new Date().getTime(),
+        title: "Whole Day Event",
+        isWholeDay: true,
+        date: { eventStart: new Date(2023, 2, 24), eventEnd: new Date(2023, 2, 26)},
+    },
+    {
+        eventUID: new Date().getTime(),
         title: "Meeting",
         isWholeDay: false,
-        date: { eventStart: new Date(2023, 3, 9, 8, 30), eventEnd: new Date(2023, 3, 11, 9)},
+        date: new Date(2023, 2, 22),
     },
     {
-        title: "Daily Event",
+        eventUID: new Date().getTime(),
+        title: "Wholeday Daily Event",
         isWholeDay: true,
-        date: new Date(), 
+        date: new Date(2023, 1, 20), 
+        reapeat: {
+            pattern: "daily",
+            // endDate: new Date(2023, 2, 20),
+            // removedAccurances: [new Date(2023, 2, 17)]
+        }
+    },
+    {
+        eventUID: new Date().getTime(),
+        title: "Daily Event",
+        isWholeDay: false,
+        date: { eventStart: new Date(2023, 1, 20, 1), eventEnd: new Date(2023, 1, 20, 1, 30)}, 
+        // reapeat: {
+        //     pattern: "daily",
+        //     endDate: new Date(2023, 2, 20),
+        //     // removedAccurances: [new Date(2023, 2, 17)]
+        // }
+    },
+    {
+        eventUID: new Date().getTime(),
+        title: "Sunday Worship Service",
+        isWholeDay: false,
+        date: { eventStart: new Date(2023, 2, 5, 18), eventEnd: new Date(2023, 2, 5, 19)}, 
+        reapeat: {
+            pattern: "weekly",
+            // endDate: new Date(2023, 2, 20),
+            // removedAccurances: [new Date(2023, 2, 17)]
+        }
+    },
+    {
+        eventUID: new Date().getTime(),
+        title: "Daily Event 2",
+        isWholeDay: true,
+        date: { eventStart: new Date(2023, 2, 9), eventEnd: new Date(2023, 2, 11)},
         reapeat: {
             pattern: "daily",
         }
     },
     {
-        title: "Long Whole day Event ",
-        isWholeDay: true,
-        date: { eventStart: new Date(2023, 3, 9), eventEnd: new Date(2023, 3, 11)},
-        reapeat: {
-            pattern: "weekly",
-        }
-    },
-    {
+        eventUID: new Date().getTime(),
         title: "Long Event",
         isWholeDay: true, 
         date: { eventStart: new Date(2023, 3, 9, 13, 30), eventEnd: new Date(2023, 3, 11, 14)},
     },
     
 ]
+
+export type TCalendar6x7Events = Record<string, TGetEventsFNRetVal>;
 
 const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
     const elementRef = React.useRef<HTMLDivElement | null>(null);
@@ -61,6 +115,10 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
     const [onViewDate, dateToggles] = useDateToggle();
     const [toggleType, updateToggleType] = React.useState<'month' | "day">('month')
     const [calendarDates, updateCalendarDate] = useCalendar42(onViewDate);
+    const [eventList, updateEventList] = React.useState<null | IEvent[]>(sampleEvents);
+    const [calendar6x7Events, updateCalendar6x7Events] = React.useState<null | TCalendar6x7Events>(null)
+
+    const [newEventFormState, updateNewEventFormState] = React.useState(false);
 
     React.useEffect(() => {
         // Create a new ResizeObserver
@@ -81,16 +139,33 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
         return () => {
           observer.disconnect();
         };
+
       }, []);
 
     React.useEffect(() => {
-        calendarDates && console.log(calendarDates);
-    }, [calendarDates]);
+        // calendarDates && console.log(calendarDates);
+        eventList && calendarDates && 
+        (function() {
+            let events_container: TCalendar6x7Events = {};
+            calendarDates?.forEach(item => {
+                const key = `${item.date.getFullYear()}-${item.date.getMonth() + 1}-${item.date.getDate()}`;
+                const eventOfTheDate = getEventsOfTheDate(item.date, {repeating:[...eventList.filter(item => item.reapeat !== undefined)], nonRepeating: [...eventList.filter(item => item.reapeat === undefined)], holidays: [], birthdays: []})
+                events_container = {...events_container, [key]: eventOfTheDate}
+            });
+    
+            updateCalendar6x7Events(events_container);
+        })()
+       
+    }, [calendarDates, eventList]);
 
     React.useEffect(() => {
         updateCalendarDate(onViewDate);
     }, [onViewDate]);
 
+    React.useEffect(() => {
+        console.log(calendar6x7Events)
+    }, [calendar6x7Events])
+    
     return (
         <div className={className} ref={elementRef}>
             <div className="calendar-toolbar">
@@ -100,7 +175,7 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
                     variant="standard" 
                     color="primary" 
                     icon={<FontAwesomeIcon icon={["fas", "calendar-plus"]} />}
-                    onClick={(e) => alert("create event")} 
+                    onClick={(e) => updateNewEventFormState(!newEventFormState)} 
                     iconButton={!(cellSize && cellSize > 130)} />
                     <Button 
                     icon={<FontAwesomeIcon icon={["fas", "angle-left"]} />} 
@@ -151,9 +226,13 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
                     <h1 className="date-text">{calendarDateText(onViewDate, toggleType)}</h1>
                 </span>
             }
-            
             {
-                cellSize && view == "calendar"  && calendarDates && <CalendarView cellSize={cellSize} dates={calendarDates} events={sampleEvents} />
+                <Revealer reveal={newEventFormState} maxHeight="380px">
+                    <NEweventForm />
+                </Revealer>
+            }
+            {
+                cellSize && view == "calendar"  && calendarDates && calendar6x7Events && <CalendarView cellSize={cellSize} dates={calendarDates} events={calendar6x7Events}  />
                     
             }
             {
@@ -165,7 +244,7 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
 
 const Calendar6x7 = styled(FC6x7Calendar)`
     display: flex;
-    flex: 0 1 1000px;
+    flex: 0 1 100%;
     flex-wrap: wrap;
 
     .calendar-toolbar {
