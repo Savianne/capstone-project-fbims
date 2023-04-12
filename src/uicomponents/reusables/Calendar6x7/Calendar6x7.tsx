@@ -10,6 +10,8 @@ import Button from "../Buttons/Button"
 import Devider from "../devider";
 import Revealer from "../Revealer";
 
+import DateRangePicker from "../DateRangePicker/DateRangePicker";
+
 //Calendar Views COmponent
 import CalendarView from "./CalendarView";
 
@@ -25,7 +27,7 @@ const NEweventForm = styled.div`
     display: flex;
     flex: 0 1 100%;
     height: 380px;
-    background-color: pink;
+    /* background-color: pink; */
 `
 const sampleEvents: IEvent[] = [
     {
@@ -227,8 +229,10 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
                 </span>
             }
             {
-                <Revealer reveal={newEventFormState} maxHeight="380px">
-                    <NEweventForm />
+                calendarDates && <Revealer reveal={newEventFormState} maxHeight="380px">
+                    <NEweventForm>
+                        <DateRangePicker dates={calendarDates} />
+                    </NEweventForm>
                 </Revealer>
             }
             {
