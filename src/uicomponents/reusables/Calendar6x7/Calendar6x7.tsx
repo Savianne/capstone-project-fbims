@@ -23,10 +23,16 @@ import useDateToggle from "../../../utils/calendar6x7/useDateToggle";
 import calendarDateText from "./calendar-date-text-utilts";
 import getEventsOfTheDate, { TGetEventsFNRetVal } from "../../../utils/calendar6x7/getEventsOfTheDate";
 
+import AddEventForm from "../../routes/calendar/AddEventForm";
+
+//Global state imports
+import { useAppDispatch, useAppSelector } from "../../../global-state/hooks";
+import { displayForm, closeForm } from "../../../global-state/action-creators/createEventFormSlice";
+
 const NEweventForm = styled.div`
     display: flex;
     flex: 0 1 100%;
-    height: 380px;
+    height: 450px;
     /* background-color: pink; */
 `
 const sampleEvents: IEvent[] = [
@@ -120,7 +126,8 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
     const [eventList, updateEventList] = React.useState<null | IEvent[]>(sampleEvents);
     const [calendar6x7Events, updateCalendar6x7Events] = React.useState<null | TCalendar6x7Events>(null)
 
-    const [newEventFormState, updateNewEventFormState] = React.useState(false);
+    const addEventFormState = useAppSelector(state => state.addEventFormReducer.state);
+    const dispatch = useAppDispatch();
 
     React.useEffect(() => {
         // Create a new ResizeObserver
@@ -177,7 +184,7 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
                     variant="standard" 
                     color="primary" 
                     icon={<FontAwesomeIcon icon={["fas", "calendar-plus"]} />}
-                    onClick={(e) => updateNewEventFormState(!newEventFormState)} 
+                    onClick={(e) => dispatch(displayForm())} 
                     iconButton={!(cellSize && cellSize > 130)} />
                     <Button 
                     icon={<FontAwesomeIcon icon={["fas", "angle-left"]} />} 
@@ -228,13 +235,13 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
                     <h1 className="date-text">{calendarDateText(onViewDate, toggleType)}</h1>
                 </span>
             }
-            {
-                calendarDates && <Revealer reveal={newEventFormState} maxHeight="380px">
+            {/* {
+                calendarDates && <Revealer reveal={newEventFormState} maxHeight="450px">
                     <NEweventForm>
-                        <DateRangePicker dates={calendarDates} />
+                        <DateRangePicker initDate={onViewDate}/>
                     </NEweventForm>
                 </Revealer>
-            }
+            } */}
             {
                 cellSize && view == "calendar"  && calendarDates && calendar6x7Events && <CalendarView cellSize={cellSize} dates={calendarDates} events={calendar6x7Events}  />
                     
@@ -242,6 +249,8 @@ const FC6x7Calendar: React.FC<IStyledFC> = ({className}) => {
             {
                 cellSize && view == "list" && <h1>List of Events</h1>
             }
+            { (addEventFormState == "open" || addEventFormState == "ondisplay" || addEventFormState == "close") && <AddEventForm /> }
+            {/* <AddEventForm /> */}
         </div>
     )
 }

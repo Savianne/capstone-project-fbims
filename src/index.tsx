@@ -13,7 +13,8 @@ import { store } from './global-state/store';
 //FontAwesomeIcons
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { 
-  faS, 
+  faS,
+  faR,
   faBars, 
   faUser, 
   faUsers, 
@@ -59,8 +60,11 @@ import {
   faCalendarDay,
   faCalendarTimes,
   faList,
-  faCalendarPlus
+  faCalendarPlus,
+  faBell
  } from '@fortawesome/free-solid-svg-icons';
+
+import { faClock } from '@fortawesome/free-regular-svg-icons';
 
 library.add(faS, faBars);
 library.add(faS, faUsers);
@@ -108,6 +112,8 @@ library.add(faS, faCalendarDay);
 library.add(faS, faCalendarTimes);
 library.add(faS, faList);
 library.add(faS, faCalendarPlus);
+library.add(faR, faClock);
+library.add(faR, faBell);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

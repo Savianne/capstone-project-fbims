@@ -19,11 +19,16 @@ import DynamicAvatarList from "../../../reusables/DynamicAvatarList";
 import AvatarGroup from "../../../reusables/AvatarGroup";
 import UseRipple from "../../../reusables/Ripple/UseRipple";
 import Button from "../../../reusables/Buttons/Button";
+import PHCPNumberInput from "../../../reusables/Inputs/PHCPNumberInput";
+import PHTelNumberInput from "../../../reusables/Inputs/PHTelNumberInput";
 
 //Custom Hooks
 import useFormControl from "../../../../utils/hooks/useFormControl";
 import { IStyledFC } from "../../../IStyledFC";
-import { idText } from "typescript";
+
+//Input Validators
+import validatePHNumber from "../../../../utils/inputValidators/validators/validatePHNumber";
+import validatePHTelephone from "../../../../utils/inputValidators/validators/validatePHTelNumber";
 
 const FCAddressBox: React.FC<IStyledFC> = ({className, children}) => {
     return (
@@ -187,7 +192,9 @@ const ContentWraper = styled.div`
         margin-left: 10px;
     }
 
-    & #membershipForm .data-category .input-category-group ${IconInput} {
+    & #membershipForm .data-category .input-category-group ${IconInput},
+    & #membershipForm .data-category .input-category-group ${PHCPNumberInput},
+    & #membershipForm .data-category .input-category-group ${PHTelNumberInput} {
         margin: 10px 0 10px 10px;
     }
     
@@ -212,16 +219,17 @@ const ContentWraper = styled.div`
     & #membershipForm .submit-button-container {
         display: flex;
         flex: 0 1 100%;
+        gap: 5px;
     }
 
-    & #membershipForm .submit-button-container ${Button} {
+    & #membershipForm .submit-button-container ${Button}:first-child {
         margin-left: auto;
     }
 `;
 
 const MembershipForm: React.FC = ({}) => {
-    // const philippinePlaces = usePhilippinePlacesPicker();
-    // const philippinePlacesForPermanentAddress = usePhilippinePlacesPicker();
+    const [dob, setDob] = React.useState<null | string>(null);
+    const [doBap, setDoBap] = React.useState<null | string>(null);
     const [sameAsCurrentAddress, updateSameAsCurrentAddress] = React.useState(false);
     const [isBaptised, updateIsBaptised] = React.useState(true);
     const [formIsReadyState, updateFormIsReadyState] = React.useState(false);
@@ -256,8 +264,7 @@ const MembershipForm: React.FC = ({}) => {
         dateOfBirth: {
             required: true,
             errorText: 'Invalid Date',
-            min: '1998-08-03',
-            max: '1999-08-03',
+            max: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`,
             validateAs: 'date',
         },
         gender: {
@@ -301,11 +308,13 @@ const MembershipForm: React.FC = ({}) => {
             required: true,
             errorText: 'Invalid Entry',
             validateAs: "number",
+            validators: [validatePHNumber]
         },
         telephoneNumber: {
             required: false,
             errorText: 'Invalid Entry',
-            validateAs: "number"
+            validateAs: "number",
+            validators: [validatePHTelephone]
         }
     });
 
@@ -337,8 +346,6 @@ const MembershipForm: React.FC = ({}) => {
             required: true,
             errorText: 'Invalid Date',
             validateAs: 'date',
-            min: '1998-08-03',
-            max: '1999-08-03',
         },
     });
 
@@ -376,7 +383,15 @@ const MembershipForm: React.FC = ({}) => {
 
     React.useEffect(() => {
         console.log(form.values)
-    }, [form.values])
+    }, [form.values]);
+
+    React.useEffect(() => {
+        formDispatcher?.dateOfBirth(dob)
+    }, [dob]);
+    
+    React.useEffect(() => {
+        dateOfBaptismFormDispatcher?.dateOfBaptism(doBap)
+    }, [doBap])
     return (
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -398,9 +413,9 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
-                                <Input name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
-                                <Input name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
+                                <Input value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
+                                <Input value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
+                                <Input value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
                                 <Select placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
                                     <Option value="">Please select</Option>
                                     <Option value="jr">JR</Option>
@@ -415,7 +430,8 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input name="date-of-birth" type="date" placeholder="Date of Birth" error={form.errors.dateOfBirth} onValChange={(val) => formDispatcher?.dateOfBirth(val)} />
+                                <Input value={dob? dob : ""} name="date-of-birth" type="date" placeholder="Date of Birth" error={form.errors.dateOfBirth} onValChange={(val) => setDob(val as string)} />
+                                {/* <input type="date" value={dob} onChange={(e) => setDob(e.target.value)}/> */}
                             </div>
                         </div>
                         <div className="data-category gender-group">
@@ -425,10 +441,10 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Select placeholder="Gender" error={form.errors.gender} onValChange={(val) => formDispatcher?.gender(val)}>
+                                <Select value={form.values.gender as string} placeholder="Gender" error={form.errors.gender} onValChange={(val) => formDispatcher?.gender(val)}>
                                     <Option value="">Please select</Option>
                                     <Option value="male">Male</Option>
-                                    <Option selected value="female">Female</Option>
+                                    <Option value="female">Female</Option>
                                 </Select>
                             </div>
                         </div>
@@ -439,7 +455,7 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Select placeholder="Marital Status" error={form.errors.maritalStatus} onValChange={(val) => formDispatcher?.maritalStatus(val)}>
+                                <Select value={form.values.maritalStatus as string} placeholder="Marital Status" error={form.errors.maritalStatus} onValChange={(val) => formDispatcher?.maritalStatus(val)}>
                                     <Option value="">Please select</Option>
                                     <Option value="single">Single</Option>
                                     <Option value="married">Married</Option>
@@ -463,7 +479,7 @@ const MembershipForm: React.FC = ({}) => {
                                 }}>
                                     <Option value="">Please Select a Region</Option>
                                     {
-                                        currentAddress.regions.map((region, index) => {
+                                        currentAddress.regions?.map((region, index) => {
                                             return (
                                                 <Option value={optionValue(region.reg_code, region.name)} key={index}>{region.name}</Option>
                                             )
@@ -521,7 +537,7 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input type="checkbox" placeholder="hEY" label="Same as Current Address?" onValChange={(val) => {
+                                <Input checked={sameAsCurrentAddress} type="checkbox" placeholder="same as current address" label="Same as Current Address?" onValChange={(val) => {
                                     const v = val as boolean;
                                     updateSameAsCurrentAddress(v)}
                                 }/>
@@ -533,7 +549,7 @@ const MembershipForm: React.FC = ({}) => {
                                     }}>
                                         <Option value="">Please Select a Region</Option>
                                         {
-                                            permanentAddress.regions.map((region, index) => {
+                                            permanentAddress.regions?.map((region, index) => {
                                                 return (
                                                     <Option value={optionValue(region.reg_code, region.name)} key={index}>{region.name}</Option>
                                                 )
@@ -595,10 +611,10 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <IconInput type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
-                                <IconInput type="number" placeholder="Mobile Number" error={form.errors.cpNumber} onValChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
-                                {/* <input type="number" inputmode="number" onChange={(e) => console.log(e.target.value)} /> */}
-                                <IconInput type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                                <IconInput value={form.values.email as string} type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                                <PHCPNumberInput value={form.values.cpNumber as string} placeholder="Mobile Number" error={form.errors.cpNumber} onChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                                <PHTelNumberInput value={form.values.telephoneNumber as string} placeholder="Mobile Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                                {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
                             </div>
                         </div>
                         <strong className="information-category-title">Baptism Information</strong>
@@ -614,7 +630,7 @@ const MembershipForm: React.FC = ({}) => {
                                     updateIsBaptised(v)}
                                 }/>
                                 <Revealer reveal={isBaptised}>
-                                    <Input name="date-of-baptism" type="date" placeholder="Date of Baptism" error={dateOfBaptismForm.errors.dateOfBaptism} onValChange={(val) => dateOfBaptismFormDispatcher?.dateOfBaptism(val)} />
+                                    <Input value={doBap? doBap : ""} name="date-of-baptism" type="date" placeholder="Date of Baptism" error={dateOfBaptismForm.errors.dateOfBaptism} onValChange={(val) => setDoBap(val as string)} />
                                 </Revealer>
                             </div>
                         </div>
@@ -627,7 +643,7 @@ const MembershipForm: React.FC = ({}) => {
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
                                 <div className="ministry-avatar-container">
-                                    {/* <AvatarGroup size='30px' avatars={[
+                                    <AvatarGroup size='30px' avatars={[
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
@@ -648,8 +664,7 @@ const MembershipForm: React.FC = ({}) => {
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
-                                    ]} limit={5}/> */}
-                                    0 Selected
+                                    ]} limit={5}/>
                                     <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                                     <AddMembershipBtn><FontAwesomeIcon icon={["fas", "plus"]} /></AddMembershipBtn>
                                 </div>
@@ -693,6 +708,14 @@ const MembershipForm: React.FC = ({}) => {
                         </div>
                         <Devider $orientation="horizontal"  $css="margin: 0 5px" />
                         <div className="submit-button-container">
+                            <Button label="Clear Form" variant="standard" color="theme" onClick={(e) => {
+                                form.clear();
+                                setDob(null);
+                                setDoBap(null);
+                                permanentAddressForm.clear();
+                                permanentAddress.setRegion(null);
+                                currentAddress.setRegion(null);
+                            }}/>
                             <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary" disabled={!formIsReadyState} />
                         </div>
                     </div>

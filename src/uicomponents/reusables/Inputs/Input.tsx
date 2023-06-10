@@ -7,19 +7,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputErrorToltip from "./InputErrorToltip";
 
 //Types 
-import { TInputType } from "../../../utils/hooks/useFormControl(old)";
-import { TInputVal } from "../../../utils/hooks/useFormControl(old)";
-import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)";
+import { TInputType } from "../../../utils/hooks/useFormControl";
+import { TInputVal } from "../../../utils/hooks/useFormControl";
+import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl";
+
 
 export interface IFCInput extends IStyledFC {
     name?: string,
+    value?: string | boolean | number | readonly string[],
     placeholder: string,
     type: TInputType,  
     error?: IFormErrorFieldValues | null,
     disabled?: boolean,
     onValChange: (val: TInputVal) => void,
     label?: string,
-    checked?: boolean
+    checked?: boolean;
+    autoFocus?: boolean
 }
 
 const CheckboxBase = styled(UseRipple)`
@@ -27,6 +30,7 @@ const CheckboxBase = styled(UseRipple)`
     display: flex;
     height: 40px;
     width: 40px;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
@@ -87,55 +91,65 @@ const CheckboxBase = styled(UseRipple)`
     } */
 `;
 
-const FCInput: React.FC<IFCInput> = ({className, onValChange, disabled, type = 'text', placeholder, error, label, checked}) => {
+const FCInput: React.FC<IFCInput> = ({className, onValChange, name, value, disabled, type = 'text', placeholder, error, label, checked, autoFocus}) => {
     const inputRef = React.useRef<null | HTMLInputElement>(null);
-    const [inputVal, updateInputVal] = React.useState<string | boolean | null>(null);
+    const [inputVal, updateInputVal] = React.useState<string | boolean | number | readonly string[]>("");
     const [inputState, updateInputState] = React.useState<'init' | 'onfocus' | 'onblur'>('init');
 
-    React.useEffect(() => {
-        if(!(inputVal == null)) onValChange(inputVal);
-    },[inputVal]);
-
+    // React.useEffect(() => {
+    //    updateInputVal(value as string | boolean | number | readonly string[]);
+    // },[value]);
     
     const checkboxInput = 'checkbox' as typeof type;
 
-    React.useEffect(() => {
-        updateInputVal(checked as boolean);
-    }, [checked]);
+    // React.useEffect(() => {
+    //     updateInputVal(checked as boolean);
+    // }, [checked]);
     return (
         <div className={className}>
             {
                 type == checkboxInput? <>
                     <CheckboxBase>
                         <input 
-                        checked={inputVal as boolean}
+                        autoFocus={autoFocus}
+                        // checked={inputVal? inputVal as boolean : false}
+                        checked={checked}
                         ref={inputRef}
                         type={type}
-                        onChange={(e) => updateInputVal(e.currentTarget.checked)} 
+                        onChange={(e) => {
+                            onValChange(e.target.checked)
+                        }} 
                         onBlur={(e) => {
                             if(type == 'date') e.preventDefault();
                             updateInputState('onblur')
                         }}
                         onFocus={(e) => updateInputState('onfocus')}
                         // value={typeof inputVal == 'string'? inputVal : ''}
+                        // value={inputVal? inputVal as string | number | readonly string[] : ""}
                         placeholder={placeholder}
                         className={error? 'error-field input-field' : 'input-field'} />
                         <span className="checkboxChecked"><i><FontAwesomeIcon icon={["fas", "check"]} /></i></span>
                     </CheckboxBase>
                     <p className="label">{label}</p>
                 </> 
-                : 
+                :
                 <>
                     <input 
+                    autoFocus={autoFocus}
                     ref={inputRef}
                     type={type}
-                    onChange={(e) => updateInputVal(e.target.value)} 
+                    onChange={(e) => {
+                        onValChange(e.target.value);
+                        // if(value !== null && value == undefined) updateInputVal(e.target.value)
+                    }} 
+                    // onChange={(e) => updateInputVal(e.target.value)} 
                     onBlur={(e) => {
                         if(type == 'date') e.preventDefault();
                         updateInputState('onblur')
                     }}
                     onFocus={(e) => updateInputState('onfocus')}
-                    value={typeof inputVal == 'string'? inputVal : ''}
+                    // value={inputVal? inputVal as string | number | readonly string[] : ""}
+                    value={value? value as string | number | readonly string[] : ""}
                     placeholder={placeholder}
                     className={error? 'error-field input-field' : 'input-field'}
                     />

@@ -5,7 +5,6 @@ import { IEventOfTheDate, IOccuringEventOfTheDate } from "./getEventsOfTheDate";
 import { ICellEventHarness } from "../../uicomponents/reusables/Calendar6x7/CalendarView";
 
 import YMDtoMS from "./YMD-to-ms";
-import compareYDMS from "./compareYMD";
 import compareYMD from './compareYMD';
 interface IEventWithDuration extends IEventOfTheDate {
     date: TEventDateDuration
@@ -234,7 +233,7 @@ function findLowestGridAvailabeRow(grid: TGrid) {
     return Math.min(...rows) as keyof typeof grid
 }
 
-function getFollowingDatesOfEventAsString(eventStart: Date, eventEnd: Date, lastDateOfCalendar42: Date) {
+export function getFollowingDatesOfEventAsString(eventStart: Date, eventEnd: Date, lastDateOfCalendar42: Date) {
     const dateContainer: (string | false)[] = [];
     let rowContainer: (string | false)[][] = [];
     const firstSunday = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate() - eventStart.getDay());
@@ -245,7 +244,7 @@ function getFollowingDatesOfEventAsString(eventStart: Date, eventEnd: Date, last
     while(i != null) {
         const d = new Date(firstSunday.getFullYear(), firstSunday.getMonth(), firstSunday.getDate() + i);
         dateContainer.push( YMDtoMS(d) >= YMDtoMS(eventStart) && YMDtoMS(d) <= YMDtoMS(eventEnd)? `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}` : false);
-        compareYDMS(d, lastSaturday).isSame || compareYDMS(d, lastDateOfCalendar42).isSame? i = null : i++;
+        compareYMD(d, lastSaturday).isSame || compareYMD(d, lastDateOfCalendar42).isSame? i = null : i++;
     }
 
     const totalRow = dateContainer.length / 7;

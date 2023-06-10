@@ -9,7 +9,7 @@ import validateSelectField from "../inputValidators/defaultValidator/validateSel
 import validateMinDateInput from "../inputValidators/defaultValidator/validateMinDateInput";
 import validateMaxDateInput from "../inputValidators/defaultValidator/validateMaxDateInput";
 
-export type TInputVal = string | number | boolean;
+export type TInputVal = string | number | boolean | readonly string[]
 
 export type TInputType = 'text' | 'number' | 'radio' | 'checkbox' | 'date' | 'email';
 
@@ -210,7 +210,13 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
                     }
 
                     //Write a Logic to run validator functions if there is any
-    
+                    if(fields[key].validators && fields[key].validators?.length) {
+                        fields[key].validators?.every(validator => {
+                            const validationResult = validator(newValue);
+                            validationResultContainer.push(validationResult);
+                        })
+                    }   
+
                     if(hasError(validationResultContainer)) 
                     {
                         const mutableObj: IFormErrorFieldValues = {
@@ -247,10 +253,17 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
         isReady: typeof isReady,
         isValidating: typeof isValidating,
         values: typeof formValues,
-        errors: typeof formErrors
+        errors: typeof formErrors,
+        clear: () => void
     }
 
-    const retVal: [IForm, typeof formDispatchers] = [{isReady, isValidating, values: formValues, errors: formErrors}, formDispatchers];
+    const retVal: [IForm, typeof formDispatchers] = [{isReady, isValidating, values: formValues, errors: formErrors, clear() {
+        const clearedForm = Object.keys(fields).reduce((P, C) => {
+            const obj = {[C]: null} as TFormFieldsValues<T>;
+            return {...P, ...obj }
+        }, {});
+        updateFormValues(clearedForm as TFormFieldsValues<T>)
+    },}, formDispatchers];
     
     return retVal;
 }

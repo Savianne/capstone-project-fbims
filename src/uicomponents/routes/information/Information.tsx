@@ -167,22 +167,22 @@ const Information: React.FC = () => {
                 <strong>Information</strong>
                 <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                 <SiteMap>
-                    / <Link to='/information'> information</Link>
+                    / <Link to='/app/information'> information</Link>
                 </SiteMap>
             </RouteContentBaseHeader>
             <RouteContentBaseBody>
                 <FolderContainer>
                     <FolderBase>
-                        <Folder name='Members' icon={<FontAwesomeIcon icon={["fas", "users"]} />} records={0} path="./members" />
+                        <Folder name='Members' icon={<FontAwesomeIcon icon={["fas", "users"]} />} records={0} path="members" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={0} path="./ministry" />
+                        <Folder name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={0} path="ministry" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={0} path="./organizations" />
+                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={0} path="organizations" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={0} path="./families" />
+                        <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={0} path="families" />
                     </FolderBase>
                 </FolderContainer>
             </RouteContentBaseBody>

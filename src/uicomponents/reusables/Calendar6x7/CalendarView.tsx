@@ -395,6 +395,9 @@ const FCCalendarView: React.FC<ICalendarView> = ({className, cellSize, dates, ev
 
 
     // }, [events])
+    React.useEffect(() => {
+        console.log(eventGrid)
+    },[eventGrid])
     return (
         <div className={className}>
             <CalendarHead cellSize={cellSize}/>

@@ -204,7 +204,7 @@ const FCTodaysEventsSideBar: React.FC<IStyledFC> = ({className}) => {
                     }} />
                 </span>
             </div>
-            <div className="toggle-container">
+            {/* <div className="toggle-container">
                 <ToggleBoxContainer>
                     <SideBarToggle label="Toggle Sidebar" 
                     icon={<FontAwesomeIcon icon={["fas", "calendar-day"]} />} 
@@ -215,16 +215,16 @@ const FCTodaysEventsSideBar: React.FC<IStyledFC> = ({className}) => {
                         sideBarState == 'open'? dispatcher(closeSideBar()) : dispatcher(openSideBar());
                     }} />
                 </ToggleBoxContainer>
-            </div>
+            </div> */}
             <Devider $variant="center"/>
             <Scrollbars
             autoHide>
-            <div className="sidebar-content-area">
-                <TodaysBibleVerse />
-                <div className="event-list-container">
-                    <NoEventMessage />
+                <div className="sidebar-content-area">
+                    <TodaysBibleVerse />
+                    <div className="event-list-container">
+                        <NoEventMessage />
+                    </div>
                 </div>
-            </div>
             </Scrollbars>
         </div>
     )
@@ -282,10 +282,10 @@ const TodaysEventsSideBar = styled(FCTodaysEventsSideBar)`
     }
 
     &[state="close"] {
-        width: 65px;
+        width: 0;
     }
 
-    .toggle-container {
+    /* .toggle-container {
         position: absolute;
         top: 0;
         display: flex;
@@ -302,7 +302,7 @@ const TodaysEventsSideBar = styled(FCTodaysEventsSideBar)`
 
     &[state='close'] .toggle-container {
         right: 0;
-    }
+    } */
 
     .sidebar-content-area {
         display: flex;
@@ -317,7 +317,7 @@ const TodaysEventsSideBar = styled(FCTodaysEventsSideBar)`
         display: flex;
         flex-wrap: wrap;
         flex: 0 1 300px;
-        height: fit-content;
+        height: 1000px;
         margin: 15px 0;
     }
 

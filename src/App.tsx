@@ -12,11 +12,14 @@ import { useAppSelector } from './global-state/hooks';
 import { useAppDispatch } from './global-state/hooks';
 
 //Global State Actions
-import { increment, decrement, incrementByAmount } from './global-state/action-creators/counterSlice';
+import { setAdmin } from './global-state/action-creators/setAdminSlice';
 
 //Utility Components
 import UseRipple from './uicomponents/reusables/Ripple/UseRipple';
 import UseToggle from './uicomponents/reusables/Toggle/UseToggle';
+
+//API
+import { useGetAdminInfoQuery } from './global-state/api/api';
 
 //Conponents
 import AppLayout from './uicomponents/AppLayout';
@@ -30,9 +33,11 @@ import UserAvatar from './uicomponents/UserAvatar';
 import ThemeModeToggle from './uicomponents/ThemeModeToggle';
 import AdminDropdown from './uicomponents/AdminDropdown';
 import TodaysEventsSideBar from './uicomponents/TodaysEventsSideBar';
+import 'react-loading-skeleton/dist/skeleton.css'
 
 //Routes
 import Layout from './uicomponents/routes/layout';
+import SkeletonRouteLayout from './uicomponents/routes/SkeletonRouteLayout';
 import Information from './uicomponents/routes/information/Information';
 import Members from './uicomponents/routes/information/members/Members';
 import MembershipForm from './uicomponents/routes/information/members/MembershipForm';
@@ -40,12 +45,21 @@ import Ministry from './uicomponents/routes/information/ministry/ministry';
 import Organizations from './uicomponents/routes/information/organizations/organizations';
 import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-new-ministry-form';
 import Calendar from './uicomponents/routes/calendar/Calendar';
+import { reactHooksModule } from '@reduxjs/toolkit/dist/query/react';
 
 function App() {
-  const counterState = useAppSelector(state => state.counter.value);
-  const dispatch = useAppDispatch();
+  const admin = useAppSelector(state => state.setAdmin.admin);
+  const theme = useAppSelector(state => state.switchThemeModeReducer.theme);
+  const {data: adminInfo, isLoading, isError} = useGetAdminInfoQuery({});
 
-  const theme = useAppSelector(state => state.switchThemeModeReducer.theme)
+  const dispatcher = useAppDispatch()
+  React.useEffect(() => {
+    if(!isError) dispatcher(setAdmin(adminInfo));
+  }, [adminInfo, isError]);
+
+  React.useEffect(() => {
+    console.log(admin)
+  }, [admin])
   return (
     <React.Fragment>
       <Reset />
@@ -64,26 +78,36 @@ function App() {
           </AppHeader>
           <AppNavBar />
           <ScrollingContent>
-            <Routes>
-              <Route path='/' element={<Layout />}>
-                <Route path='information'>
-                  <Route index element={<Information />} />
-                  <Route path='members'>
-                    <Route index element={<Members />} />
-                    <Route path='new-member' element={<MembershipForm />} />
+            {
+              admin? <>
+              <Routes>
+                <Route path='/app' element={<Layout />}>
+                  <Route path='information'>
+                    <Route index element={<Information />} />
+                    <Route path='members'>
+                      <Route index element={<Members />} />
+                      <Route path='new-member' element={<MembershipForm />} />
+                    </Route>
+                    <Route path='ministry'>
+                      <Route index element={<Ministry />} />
+                      <Route path='add-ministry' element={<AddNewMinistryForm />} />
+                    </Route>
+                    <Route path='organizations' element={<Organizations />} />
                   </Route>
-                  <Route path='ministry'>
-                    <Route index element={<Ministry />} />
-                    <Route path='add-ministry' element={<AddNewMinistryForm />} />
+                  <Route path='attendance'>
+                    {/* <Route index element={<QRScanner />} /> */}
                   </Route>
-                  <Route path='organizations' element={<Organizations />} />
+                  <Route path='calendar' element={<Calendar />} />
                 </Route>
-                <Route path='attendance'>
-                  Attendance
+              </Routes>
+              </> : <>
+              <Routes>
+                <Route path='/app' element={<Layout />}>
+                  <Route index path='*' element={<SkeletonRouteLayout />} />
                 </Route>
-                <Route path='calendar' element={<Calendar />} />
-              </Route>
-            </Routes>
+              </Routes>
+              </>
+            }
           </ScrollingContent>
           <SideBar>
             <TodaysEventsSideBar />

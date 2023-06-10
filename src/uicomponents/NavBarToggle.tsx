@@ -40,6 +40,7 @@ const NavBarToggle: React.FC = () => {
     return (
         <SNavbarToggleWithRipple>
             <SNavbarToggle
+            initialState="on"
             name="navbar-toggle"
             off={(name: string) => dispatcher(closeNav())} 
             on={(name: string) => dispatcher(openNav())}>

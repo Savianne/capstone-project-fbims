@@ -7,12 +7,12 @@ function validateMaxDateInput(max: string, val: string) {
 
     const maxDateStr = `${maxDate.getFullYear()}-${maxDate.getMonth() + 1}-${maxDate.getDate()}`;
 
-    const caption =  `Date value Must not exceed on ${maxDateStr}`;
+    const caption =  `Date value Must be earlier than ${maxDateStr}`;
 
     const maxDateMs = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, maxDate.getDate()).getTime();
     const valDateMs = new Date(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate()).getTime();
 
-    return valDateMs > maxDateMs? {caption: caption, passed: false} as IValidationResult : {caption: caption, passed: true} as IValidationResult;
+    return valDateMs >= maxDateMs? {caption: caption, passed: false} as IValidationResult : {caption: caption, passed: true} as IValidationResult;
 }
 
 export default validateMaxDateInput;

@@ -4,14 +4,23 @@ import counterReducer from './action-creators/counterSlice';
 import navBarToggleReducer from './action-creators/navBarToggleSlice';
 import sideBarToggleReducer from './action-creators/sideBarToggleSlice';
 import switchThemeModeReducer from './action-creators/themeModeSwitcherSlice';
+import addEventFormReducer from './action-creators/createEventFormSlice';
+import setAdminReducer from "./action-creators/setAdminSlice";
+
+//API
+import { api } from './api/api';
 
 export const store = configureStore({
   reducer: {
+    api: api.reducer,
+    setAdmin: setAdminReducer,
     counter: counterReducer,
     navBarToggle: navBarToggleReducer,
     switchThemeModeReducer,
-    sideBarToggleReducer
+    sideBarToggleReducer,
+    addEventFormReducer
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(api.middleware),
 })
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

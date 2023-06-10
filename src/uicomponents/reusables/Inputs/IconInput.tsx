@@ -8,6 +8,8 @@ import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)"
 import { IStyledFC } from "../../IStyledFC";
 
 interface IFCIconInput extends IStyledFC {
+    value?: string | number | readonly string[] | null,
+    disabled?: boolean,
     icon: any,
     placeholder: string,
     type: TInputType,
@@ -15,19 +17,27 @@ interface IFCIconInput extends IStyledFC {
     onValChange: (val: string | number) => void
 }
 
-const FCIconInput: React.FC<IFCIconInput> = ({icon, type, placeholder, error, onValChange, className, children}) => {
-    const [inputVal, updateInputVal] = React.useState<string | number | null>(null);
+const FCIconInput: React.FC<IFCIconInput> = ({icon, type, value, disabled, placeholder, error, onValChange, className, children}) => {
+    const [inputVal, updateInputVal] = React.useState<string | number | readonly string[]>("");
 
     React.useEffect(() => {
-        if(!(inputVal == null)) onValChange(inputVal);
-    },[inputVal]);
+        value? updateInputVal(value as string | number | readonly string[]) : updateInputVal("")
+    },[value]);
 
     return (
         <div className={className}>
             <span className="icon-container">
                 { icon }
             </span>
-            <input type={type} placeholder={placeholder} onChange={(e) => updateInputVal(e.target.value)} />
+            <input 
+            value={inputVal? inputVal : ""} 
+            type={type} 
+            placeholder={placeholder} 
+            onChange={(e) => {
+                onValChange(e.target.value);
+                if(value !== null && value == undefined ) updateInputVal(e.target.value)
+            }}  
+            disabled={disabled} />
             {
                 error? <>
                     <span className="error-toltip">

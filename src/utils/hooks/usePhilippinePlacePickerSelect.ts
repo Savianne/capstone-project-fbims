@@ -1,4 +1,3 @@
-import { NoInfer } from "@reduxjs/toolkit/dist/tsHelpers";
 import React, { useEffect } from "react";
 import philippinePlaces from "../philippinePlaces/philippinePlaces";
 
@@ -25,6 +24,7 @@ function usePhilippinePlacesPickerSelect(
     const [regionCode, setRegionCode] = React.useState<string |null>(null);
     const [provinceCode, setProvinceCode] = React.useState<string |null>(null);
     const [cityMunCode, setCityMunCode] = React.useState<string |null>(null);
+    const [regions, updateRegions] = React.useState<null | typeof philippinePlaces.regions>(null)
     const [region, setRegion] = React.useState<string | null>(null);
     const [province, setProvince] = React.useState<string | null>(null);
     const [cityMun, setCityMun] = React.useState<string | null>(null);
@@ -50,6 +50,8 @@ function usePhilippinePlacesPickerSelect(
         }
 
         if(region == null) {
+            setRegionCode(null);
+            updateRegions(null)
             regionDispatcher(null);
         }
 
@@ -96,8 +98,12 @@ function usePhilippinePlacesPickerSelect(
         barangayDispatcher(barangay)
     }, [barangay]);
 
+    React.useEffect(() => {
+        if(!region) updateRegions(philippinePlaces.regions);
+    }, [regions]);
+
     return {
-        regions: philippinePlaces.regions,
+        regions,
         provinces: regionCode? philippinePlaces.getProvincesByRegion(regionCode) : null,
         cityMun: provinceCode? philippinePlaces.getCityMunByProvince(provinceCode) : null,
         barangay: cityMunCode? philippinePlaces.getBarangayByMun(cityMunCode) : null,

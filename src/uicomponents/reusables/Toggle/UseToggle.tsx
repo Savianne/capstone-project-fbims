@@ -10,7 +10,7 @@ interface UseToggleProps {
     children: JSX.Element | string,
 }
 
-const UseToggle: React.FC<UseToggleProps> = ({className, name, children, on, off, initialState = 'off'}) => {
+const UseToggle: React.FC<UseToggleProps> = ({className, name, children, on, off, initialState = 'init'}) => {
     const ref = React.useRef<HTMLDivElement>(null);
     const [state, updateState] = React.useState(initialState);
 
@@ -29,7 +29,7 @@ const UseToggle: React.FC<UseToggleProps> = ({className, name, children, on, off
 
     React.useEffect(() => {
         ref.current?.setAttribute('state', state);
-        state == 'on'? on(name) : off(name);
+        state !== 'init' && state == 'on'? on(name) : off(name);
     }, [state]);
     return (
         <div className={className} ref={ref}>{children}</div>

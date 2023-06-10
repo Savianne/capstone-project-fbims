@@ -1,8 +1,10 @@
 import styled from "styled-components";
-import PropTypes from 'prop-types';
+import { createPortal } from "react-dom";
 import React, { ReactChildren, ReactElement, useContext } from "react";
 import { IStyledFC } from "../../IStyledFC";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { usePopper } from 'react-popper';
+import { Boundary } from '@popperjs/core';
 
 // import { Scrollbars } from 'react-custom-scrollbars-2';
 
@@ -23,13 +25,14 @@ export interface IFCSelect extends IStyledFC {
     // children: ReactElement[],
     children: any,
     placeholder: string,
+    value?: string,
     error?: IFormErrorFieldValues | null,
     disabled?: boolean,
     onValChange: (val: string) => void
 }
 
 
-const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error, disabled, onValChange}) => {
+const FCSelect: React.FC<IFCSelect> = ({className, children, value, placeholder, error, disabled, onValChange}) => {
     const selectRef = React.useRef<HTMLDivElement | null>(null);
     const [options, updateOptions] = React.useState<string[]>([]);
     const [optionsText, updateOptionsText] = React.useState<{[key: string]: string}>({});
@@ -37,9 +40,28 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
     const [compState, updateCompState] = React.useState('onBlur');
     const [selectedValue, updateSelectedValue] = React.useState<null | string>(null);
 
+    const [referenceElement, setReferenceElement] = React.useState<null | HTMLSpanElement>(null);
+    const [popperElement, setPopperElement] = React.useState<null | HTMLDivElement>(null);
+
+    const { styles, attributes } = usePopper(referenceElement, popperElement,
+        {
+            modifiers: [
+                {
+                    name: 'preventOverflow',
+                    options: {
+                        altBoundary: true,
+                    },
+                },
+            ],
+        });
+
     React.useEffect(() => {
         disabled?  selectRef.current?.setAttribute('disabled', 'true') : selectRef.current?.setAttribute('disabled', 'false');
     }, [disabled]);
+
+    React.useEffect(() => {
+        if(value !== undefined) updateSelectedValue(value);
+    }, [value])
 
     React.useEffect(() => {
         const childrenArray = React.Children.toArray(children);
@@ -116,7 +138,7 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
             setTimeout(() => {
                 updateSelectedValue(option);
                 updateCompState('onBlur');
-                setOnClickArea(false);
+                // setOnClickArea(false);
             }, 400);
         }}}>
             <div className={className} 
@@ -129,21 +151,27 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, placeholder, error,
             }}
             onMouseLeave={() => {
                 setOnClickArea(false);
-            }}>
+            }}
+            >
                 <span className="placeholder">{ placeholder }</span>
                 <span className="arrow-icon"><FontAwesomeIcon icon={["fas", "caret-down"]} /></span>
-                {/* {
-                    typeof selectedOptionIndex == 'number' && options.length? <span className="value">{ options[selectedOptionIndex] }</span> : ''
-                } */}
-                 {
+                {
+                   compState == "onFocus" && <span className="options-container-ref" ref={setReferenceElement}></span>
+                }
+
+                {
                     selectedValue? <span className="value">{ optionsText[selectedValue] }</span> : ''
                 }
-                    <div className="options-container">
+                
+                <div className="options-container" 
+                    ref={setPopperElement}
+                    style={styles.popper}
+                    {...attributes.popper}>
                         <Scrollbar>
                             { children }
                         </Scrollbar>
-                        {/* { children } */}
                     </div> 
+
                 {
                     error? <>
                         <p className="error-text">
@@ -197,7 +225,6 @@ const OptionLabel = styled(UseRipple)`
     align-items: center;
     cursor: pointer;
     min-width: 0;
-
     & p {
         flex: 1;
         min-width: 0;
@@ -225,7 +252,7 @@ const Select = styled(FCSelect)`
     padding: 7px 3px;
     background: transparent;
     transition: border-color 0.2s;
-    /* background-color: ${({theme}) => theme.mode == 'dark'? '#f9f9f90a' : '#f9f9f9'}; */
+
     
     & .value {
         width: 100%;
@@ -233,23 +260,28 @@ const Select = styled(FCSelect)`
         text-overflow: '...';
     }
 
+    .options-container-ref {
+        width: 100%;
+        height: 0;
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+    }
+
     & .options-container {
-       display: flex;
-       flex: 1;
-       flex-wrap: wrap;
-       width: calc(100% - 2px);
-       position: absolute;
-       top: 105%;
-       left: 0;
-       min-width: 0;
-       overflow-x: hidden;
-       overflow-y: ${(props) => React.Children.toArray(props.children).length > 10? 'auto' : 'hidden' };
-       background-color: ${({theme}) => theme.background.primary};
-       color: ${({theme}) => theme.textColor.strong};
-       z-index: 1000;
-       transition: height 0.1s linear, opacity 0.3s linear, top 0.3s linear, box-shadow 0.1s linear;
-       border: 1px solid ${({theme}) => theme.borderColor};
-       box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px;
+        display: flex;
+        flex: 1;
+        flex-wrap: wrap;
+        width: calc(100% - 2px);
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: ${(props) => React.Children.toArray(props.children).length > 10? 'auto' : 'hidden' };
+        background-color: ${({theme}) => theme.background.primary};
+        color: ${({theme}) => theme.textColor.strong};
+        z-index: 1000;
+        transition: height 0.1s linear, opacity 0.3s linear, top 0.3s linear, box-shadow 0.1s linear;
+        border: 1px solid ${({theme}) => theme.borderColor};
+        box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px;
     }
 
     & .arrow-icon {
@@ -262,11 +294,9 @@ const Select = styled(FCSelect)`
         color: ${({theme}) => theme.textColor.disabled};
         cursor: not-allowed;
     }
-
     &[disabled='true'] .placeholder {
         color: ${({theme}) => theme.textColor.disabled};
     }
-
     &[state='onFocus'] .arrow-icon {
         transform: rotate(180deg);
     }
@@ -306,12 +336,10 @@ const Select = styled(FCSelect)`
         /* color: #9b9b9b; */
         color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` :'#9b9b9b'}
     }
-
     &[state='onFocus'] .placeholder {
         /* color: ${({theme}) => theme.staticColor.primary}; */
         color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` : `${prop.theme.staticColor.primary}`}
     }
-
     &[state='onFocus'] {
         border-bottom: 2px solid ${({theme}) => theme.staticColor.primary};
         border-bottom: ${(prop) => prop.error? `2px solid ${prop.theme.staticColor.delete}` : `2px solid ${prop.theme.staticColor.primary}`}
@@ -330,18 +358,15 @@ const Select = styled(FCSelect)`
     & .options-container ${Option}[selected='true']:hover {
         background-color: ${({theme}) => theme.background.light};
     }
-
     & .options-container ${Option}:hover {
         background-color: #e4eff742;
     }
-
     & .error-text {
         position: absolute;
         top: calc(100% + 1px);
         font-size: 11px;
         color: ${({theme}) => theme.staticColor.delete}
     }
-
     /* & .error-toltip {
         position: absolute;
         top: calc(100% + 1px);

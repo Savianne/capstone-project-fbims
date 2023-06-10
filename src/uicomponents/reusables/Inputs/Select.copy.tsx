@@ -313,4 +313,144 @@ const Select = styled(FCSelect)`
     }
 `;
 
+const SelectC = styled(FCSelect)`
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    height: 20px;
+    align-items: center;
+    border: 0;
+    border-bottom: ${(prop) => prop.error? `1px solid ${prop.theme.staticColor.delete}` : '1px solid #d2d2d2'};
+    font-size: 15px;
+    color: ${({theme}) => theme.textColor.strong};
+    padding: 7px 3px;
+    background: transparent;
+    transition: border-color 0.2s;
+    /* background-color: ${({theme}) => theme.mode == 'dark'? '#f9f9f90a' : '#f9f9f9'}; */
+    
+    & .value {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: '...';
+    }
+
+    & .options-container {
+       display: flex;
+       flex: 1;
+       flex-wrap: wrap;
+       width: calc(100% - 2px);
+       /* position: absolute;
+       top: 105%;
+       left: 0; */
+       min-width: 0;
+       overflow-x: hidden;
+       overflow-y: ${(props) => React.Children.toArray(props.children).length > 10? 'auto' : 'hidden' };
+       background-color: ${({theme}) => theme.background.primary};
+       color: ${({theme}) => theme.textColor.strong};
+       z-index: 10001;
+       transition: height 0.1s linear, opacity 0.3s linear, top 0.3s linear, box-shadow 0.1s linear;
+       border: 1px solid ${({theme}) => theme.borderColor};
+       box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px;
+    }
+
+    & .arrow-icon {
+        position: absolute;
+        right: 10px;
+    }
+
+    &[disabled='true'] {
+        border-color: ${({theme}) => theme.textColor.disabled};
+        color: ${({theme}) => theme.textColor.disabled};
+        cursor: not-allowed;
+    }
+
+    &[disabled='true'] .placeholder {
+        color: ${({theme}) => theme.textColor.disabled};
+    }
+
+    &[state='onFocus'] .arrow-icon {
+        transform: rotate(180deg);
+    }
+
+    &[state='onBlur'] .options-container {
+        /* top: 95%; */
+        height: 0;
+        opacity: 0;
+        overflow-y: hidden;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    &[state='onFocus'] .options-container {
+        height: calc(30px * ${(props) => React.Children.toArray(props.children).length});
+        max-height: calc(30px * 10);
+    }
+
+    & .placeholder,
+    &[placeholder-state='vissible'] .placeholder {
+        font-size: 15px;
+        cursor: text;
+        top: 5px;
+        left: 5px;
+        z-index: 0;
+        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` :'#9b9b9b'}
+    }
+
+    &[state='onFocus'] .placeholder,
+    &[placeholder-state='hidden'] .placeholder {
+        position: absolute;
+        top: -18px;
+        left: 0;
+        display: block;
+        transition: 0.2s;
+        font-size: 12px;
+        /* color: #9b9b9b; */
+        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` :'#9b9b9b'}
+    }
+
+    &[state='onFocus'] .placeholder {
+        /* color: ${({theme}) => theme.staticColor.primary}; */
+        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` : `${prop.theme.staticColor.primary}`}
+    }
+
+    &[state='onFocus'] {
+        border-bottom: 2px solid ${({theme}) => theme.staticColor.primary};
+        border-bottom: ${(prop) => prop.error? `2px solid ${prop.theme.staticColor.delete}` : `2px solid ${prop.theme.staticColor.primary}`}
+    }
+
+    & .options-container ${Option} {
+        display: flex;
+        flex: 0 1 100%;
+        height: 30px;
+        min-width: 0;
+        transition: background-color 0.2s linear;
+        background-color: transparent;
+    }
+
+    & .options-container ${Option}[selected='true'],
+    & .options-container ${Option}[selected='true']:hover {
+        background-color: ${({theme}) => theme.background.light};
+    }
+
+    & .options-container ${Option}:hover {
+        background-color: #e4eff742;
+    }
+
+    & .error-text {
+        position: absolute;
+        top: calc(100% + 1px);
+        font-size: 11px;
+        color: ${({theme}) => theme.staticColor.delete}
+    }
+
+    /* & .error-toltip {
+        position: absolute;
+        top: calc(100% + 1px);
+        width: 100%;
+        font-size: 11px;
+        color: ${({theme}) => theme.staticColor.delete};
+        z-index: 100;
+    } */
+`;
 export default Select;

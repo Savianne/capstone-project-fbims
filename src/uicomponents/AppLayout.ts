@@ -6,7 +6,9 @@ import ScrollingContent from './ScrollingContent';
 import SideBar from './SideBar';
 
 const AppLayout = styled.div`
-
+    body, html {
+        overflow: hidden;
+    }
     /* @font-face {
         font-family: IndieFlowerRegular;
         src: url(http://localhost:3000/assets/fonts/IndieFlower-Regular.ttf);
