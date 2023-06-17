@@ -10,6 +10,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux'
 import { store } from './global-state/store';
 
+import SnackBarContext from './uicomponents/reusables/SnackBar/SnackBarContext';
+import DeleteModalContext from './uicomponents/reusables/DeleteModal/DeleteModalContext';
+
 //FontAwesomeIcons
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { 
@@ -61,7 +64,12 @@ import {
   faCalendarTimes,
   faList,
   faCalendarPlus,
-  faBell
+  faBell,
+  faCaretUp,
+  faSortAlphaDown,
+  faSortAlphaDownAlt,
+  faSearch,
+  faCloudUploadAlt
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -86,6 +94,7 @@ library.add(faS, faVenusMars);
 library.add(faS, faPeopleGroup);
 library.add(faS, faHeart);
 library.add(faS, faCaretDown);
+library.add(faS, faCaretUp);
 library.add(faS, faFolderOpen);
 library.add(faS, faCheck);
 library.add(faS, faAt);
@@ -100,7 +109,7 @@ library.add(faS, faUserPen);
 library.add(faS, faTrash);
 library.add(faS, faCircleNotch);
 library.add(faS, faSpinner);
-library.add(faS, faArrowLeft);
+library.add(faS, faArrowLeft);  
 library.add(faS, faArrowRight);
 library.add(faS, faArrowAltCircleRight);
 library.add(faS, faArrowAltCircleLeft);
@@ -114,6 +123,10 @@ library.add(faS, faList);
 library.add(faS, faCalendarPlus);
 library.add(faR, faClock);
 library.add(faR, faBell);
+library.add(faR, faSortAlphaDown);
+library.add(faR, faSortAlphaDownAlt);
+library.add(faR, faSearch);
+library.add(faR, faCloudUploadAlt);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -123,7 +136,11 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <Provider store={store}>
-        <App />
+        <SnackBarContext>
+          <DeleteModalContext>
+            <App />
+          </DeleteModalContext>
+        </SnackBarContext>
       </Provider>
     </BrowserRouter>
   </React.StrictMode>

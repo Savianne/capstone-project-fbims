@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 import InputErrorToltip from "./InputErrorToltip";
 
@@ -71,6 +71,8 @@ const IconInput = styled(FCIconInput)`
         border-right: 1px solid ${(prop) => prop.error? prop.theme.staticColor.delete : prop.theme.borderColorStrong};
     }
 
+    ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+
     & input,
     & input:focus,
     & input:active {
@@ -85,6 +87,7 @@ const IconInput = styled(FCIconInput)`
         border: 0;
         background-color: transparent;
         color: inherit;
+        ${(props) => props.disabled && css`cursor: not-allowed;`};
     }
 
     & .error-toltip {

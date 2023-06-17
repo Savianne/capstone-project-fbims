@@ -33,6 +33,7 @@ import UserAvatar from './uicomponents/UserAvatar';
 import ThemeModeToggle from './uicomponents/ThemeModeToggle';
 import AdminDropdown from './uicomponents/AdminDropdown';
 import TodaysEventsSideBar from './uicomponents/TodaysEventsSideBar';
+import Scrollbars from 'react-custom-scrollbars-2';
 import 'react-loading-skeleton/dist/skeleton.css'
 
 //Routes
@@ -45,7 +46,7 @@ import Ministry from './uicomponents/routes/information/ministry/ministry';
 import Organizations from './uicomponents/routes/information/organizations/organizations';
 import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-new-ministry-form';
 import Calendar from './uicomponents/routes/calendar/Calendar';
-import { reactHooksModule } from '@reduxjs/toolkit/dist/query/react';
+import SnackBars from './uicomponents/reusables/SnackBar/SnackBars';
 
 function App() {
   const admin = useAppSelector(state => state.setAdmin.admin);
@@ -64,6 +65,7 @@ function App() {
     <React.Fragment>
       <Reset />
       <ThemeProvider theme={ theme }>
+        <SnackBars position='bottom-left' />
         <AppLayout>
           <AppHeader>
             <NavBarToggle />

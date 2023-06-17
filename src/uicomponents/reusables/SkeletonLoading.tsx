@@ -14,7 +14,7 @@ const FCSkeletonLoading: React.FC<ISkeleton> = ({className, round, width, height
     const theme = useTheme();
 
     return (
-        <Skeleton containerClassName={className} width={width? width : "100%"} height={height? height : "100%"} circle={round} {...theme.mode == "dark" && {baseColor: "#4a45454d", highlightColor: "#00000000"}} />
+        <Skeleton containerClassName={className} width={width? width : "100%"} height={height? height : "100%"} circle={round} {...theme.mode == "dark" && {baseColor: "#383949", highlightColor: "#06060605"}} />
     )
 }
 

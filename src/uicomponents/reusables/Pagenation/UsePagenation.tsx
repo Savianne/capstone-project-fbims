@@ -5,7 +5,8 @@ import UseRipple from '../Ripple/UseRipple';
 
 interface IUsePagenation extends IStyledFC {
     totalPage: number,
-    onChange: (value: number) => void
+    onChange: (value: number) => void,
+    disabled?: boolean
 }
 
 const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange}) => {
@@ -24,13 +25,20 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
     }
 
     React.useEffect(() => {
-        if(totalPage >= 6 && midNumbers) {
-            if(totalPage % 3 == 0 || (totalPage % 3 == 1 && currentPage < totalPage -1) || (totalPage % 3 == 2 && currentPage < totalPage -2)) {
-                if(currentPage % 3 == 1 && !(midNumbers[0] == currentPage) ) updateMidNumbers([currentPage, currentPage + 1, currentPage + 2]);
-                if(currentPage % 3 == 0 && !(midNumbers[2] == currentPage)) updateMidNumbers([currentPage - 2, currentPage - 1, currentPage]);
+        if(currentPage > totalPage) {
+            updateCurrentPage(totalPage);
+        } else {
+            if(totalPage >= 6 && midNumbers) {
+                if(totalPage % 3 == 0 || (totalPage % 3 == 1 && currentPage < totalPage -1) || (totalPage % 3 == 2 && currentPage < totalPage -2)) {
+                    if(currentPage % 3 == 1 && !(midNumbers[0] == currentPage) ) updateMidNumbers([currentPage, currentPage + 1, currentPage + 2]);
+                    if(currentPage % 3 == 0 && !(midNumbers[2] == currentPage)) updateMidNumbers([currentPage - 2, currentPage - 1, currentPage]);
+                }
             }
+    
+            onChange(currentPage);
         }
-    }, [currentPage]);
+
+    }, [currentPage, totalPage]);
 
     React.useEffect(() => {
         if(totalPage >= 6) {
@@ -44,7 +52,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
         if(totalPage == 3) updateMidNumbers([1, 2, 3]);
         if(totalPage == 4) updateMidNumbers([1, 2, 3, 4]);
         if(totalPage == 5) updateMidNumbers([1, 2, 3, 4, 5]);
-    }, []);
+    }, [totalPage]);
 
     return (
         <div className={className}>
@@ -58,7 +66,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                     {
                         currentPage >= 4?  
                         <UseRipple>
-                            <span className="btn prev-btn">
+                            <span className="btn prev-btn" onClick={(e) => updateCurrentPage(1)}>
                                 1
                             </span>    
                         </UseRipple> : ''
@@ -77,7 +85,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                         midNumbers? midNumbers.map(item => {
                             return (
                                 <UseRipple>
-                                    <span className={item == currentPage? 'btn page-number current-page' : 'btn page-number'}>
+                                    <span className={item == currentPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => updateCurrentPage(item)}>
                                         <strong>{item}</strong>
                                     </span>
                                 </UseRipple>
@@ -98,7 +106,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                     {
                         (totalPage % 3 == 2 && currentPage > totalPage - 5)?  
                         <UseRipple>
-                            <span className={currentPage == totalPage - 1? 'btn page-number current-page' : 'btn page-number'}>
+                            <span className={currentPage == totalPage - 1? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => updateCurrentPage(totalPage - 1)}>
                                 {totalPage - 1}
                             </span>
                         </UseRipple> : ''
@@ -108,7 +116,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                         (totalPage % 3 == 0 && currentPage <= totalPage - 3) ||
                         (totalPage % 3 == 1) || (totalPage % 3 == 2)?  
                         <UseRipple>
-                            <span className={currentPage == totalPage? 'btn page-number current-page' : 'btn page-number'}>
+                            <span className={currentPage == totalPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => updateCurrentPage(totalPage)}>
                                 {totalPage}
                             </span>
                         </UseRipple> : ''
@@ -118,7 +126,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                         midNumbers? midNumbers.map((item, index) => {
                             return (
                                 <UseRipple>
-                                    <span className={index + 1 == currentPage? 'btn page-number current-page' : 'btn page-number'}>
+                                    <span className={index + 1 == currentPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => updateCurrentPage(index + 1)}>
                                         <strong>{index + 1}</strong>
                                     </span>
                                 </UseRipple>

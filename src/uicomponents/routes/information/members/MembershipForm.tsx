@@ -1,10 +1,11 @@
 import React from "react";
-import { Renderer } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 
+//API import 
+import { useAddMemberRecordMutation } from "../../../../global-state/api/api";
 // import usePhilippinePlacesPicker from "../../../../utils/hooks/usePhilippinePlacesPicker";
 import usePhilippinePlacesPickerSelect, { optionValue } from "../../../../utils/hooks/usePhilippinePlacePickerSelect";
 
@@ -228,6 +229,8 @@ const ContentWraper = styled.div`
 `;
 
 const MembershipForm: React.FC = ({}) => {
+    const [addMemberRecord, {isLoading, isError, isSuccess}] = useAddMemberRecordMutation();
+
     const [dob, setDob] = React.useState<null | string>(null);
     const [doBap, setDoBap] = React.useState<null | string>(null);
     const [sameAsCurrentAddress, updateSameAsCurrentAddress] = React.useState(false);
@@ -413,9 +416,9 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
-                                <Input value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
-                                <Input value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
+                                <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
+                                <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
+                                <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
                                 <Select placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
                                     <Option value="">Please select</Option>
                                     <Option value="jr">JR</Option>
@@ -430,7 +433,7 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input value={dob? dob : ""} name="date-of-birth" type="date" placeholder="Date of Birth" error={form.errors.dateOfBirth} onValChange={(val) => setDob(val as string)} />
+                                <Input disabled={isLoading} value={dob? dob : ""} name="date-of-birth" type="date" placeholder="Date of Birth" error={form.errors.dateOfBirth} onValChange={(val) => setDob(val as string)} />
                                 {/* <input type="date" value={dob} onChange={(e) => setDob(e.target.value)}/> */}
                             </div>
                         </div>
@@ -537,7 +540,7 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input checked={sameAsCurrentAddress} type="checkbox" placeholder="same as current address" label="Same as Current Address?" onValChange={(val) => {
+                                <Input disabled={isLoading} checked={sameAsCurrentAddress} type="checkbox" placeholder="same as current address" label="Same as Current Address?" onValChange={(val) => {
                                     const v = val as boolean;
                                     updateSameAsCurrentAddress(v)}
                                 }/>
@@ -611,9 +614,9 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <IconInput value={form.values.email as string} type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
-                                <PHCPNumberInput value={form.values.cpNumber as string} placeholder="Mobile Number" error={form.errors.cpNumber} onChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
-                                <PHTelNumberInput value={form.values.telephoneNumber as string} placeholder="Mobile Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                                <IconInput disabled={isLoading} value={form.values.email as string} type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                                <PHCPNumberInput disabled={isLoading} value={form.values.cpNumber as string} placeholder="Mobile Number" error={form.errors.cpNumber} onChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                                <PHTelNumberInput disabled={isLoading} value={form.values.telephoneNumber as string} placeholder="Mobile Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
                                 {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
                             </div>
                         </div>
@@ -625,16 +628,16 @@ const MembershipForm: React.FC = ({}) => {
                             </span>
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
-                                <Input checked={isBaptised} type="checkbox" placeholder="" label="Is Baptised" onValChange={(val) => {
+                                <Input disabled={isLoading} checked={isBaptised} type="checkbox" placeholder="" label="Is Baptised" onValChange={(val) => {
                                     const v = val as boolean;
                                     updateIsBaptised(v)}
                                 }/>
                                 <Revealer reveal={isBaptised}>
-                                    <Input value={doBap? doBap : ""} name="date-of-baptism" type="date" placeholder="Date of Baptism" error={dateOfBaptismForm.errors.dateOfBaptism} onValChange={(val) => setDoBap(val as string)} />
+                                    <Input disabled={isLoading} value={doBap? doBap : ""} name="date-of-baptism" type="date" placeholder="Date of Baptism" error={dateOfBaptismForm.errors.dateOfBaptism} onValChange={(val) => setDoBap(val as string)} />
                                 </Revealer>
                             </div>
                         </div>
-                        <strong className="information-category-title">Organization & Ministry</strong>
+                        {/* <strong className="information-category-title">Organization & Ministry</strong>
                         <div className="data-category ministry-group">
                             <span className="data-category-title-container">
                                 <FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />
@@ -678,7 +681,7 @@ const MembershipForm: React.FC = ({}) => {
                             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                             <div className="input-category-group">
                                 <div className="organization-avatar-container">
-                                    {/* <AvatarGroup size='30px' avatars={[
+                                    <AvatarGroup size='30px' avatars={[
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
@@ -699,13 +702,13 @@ const MembershipForm: React.FC = ({}) => {
                                         {alt: 'radio'},
                                         {alt: 'radio'},
                                         {alt: 'radio'},
-                                    ]} limit={5}/> */}
+                                    ]} limit={5}/>
                                     0 Selected
                                     <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                                     <AddMembershipBtn><FontAwesomeIcon icon={["fas", "plus"]} /></AddMembershipBtn>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                         <Devider $orientation="horizontal"  $css="margin: 0 5px" />
                         <div className="submit-button-container">
                             <Button label="Clear Form" variant="standard" color="theme" onClick={(e) => {
@@ -715,6 +718,7 @@ const MembershipForm: React.FC = ({}) => {
                                 permanentAddressForm.clear();
                                 permanentAddress.setRegion(null);
                                 currentAddress.setRegion(null);
+                                addMemberRecord({name: "apple"})
                             }}/>
                             <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary" disabled={!formIsReadyState} />
                         </div>

@@ -9,30 +9,6 @@ const AppLayout = styled.div`
     body, html {
         overflow: hidden;
     }
-    /* @font-face {
-        font-family: IndieFlowerRegular;
-        src: url(http://localhost:3000/assets/fonts/IndieFlower-Regular.ttf);
-    }
-
-    @font-face {
-        font-family: LexendVariableFontwght;
-        src: url(http://localhost:3000/assets/fonts/Lexend-VariableFont_wght.ttf);
-    }
-
-    @font-face {
-        font-family: AssistantVariableFontwght;
-        src: url(http://localhost:3000/assets/fonts/Assistant-VariableFont_wght.ttf);
-    }
-
-    @font-face {
-        font-family: AssistantExtraLight;
-        src: url(http://localhost:3000/assets/fonts/static/Assistant-ExtraLight.ttf);
-    }
-
-    @font-face {
-        font-family: Sen-Regular;
-        src: url(http://localhost:3000/assets/fonts/Sen-Regular.ttf);
-    } */
 
     & {
         position: fixed;
@@ -48,6 +24,7 @@ const AppLayout = styled.div`
         font-family: AssistantVariableFontwght;
         line-height: 1.5;
         letter-spacing: 0.00938em;
+        align-content: flex-start;
     }
 
     & > ${AppHeader} {

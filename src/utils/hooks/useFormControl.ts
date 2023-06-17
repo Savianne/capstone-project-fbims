@@ -262,7 +262,15 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
             const obj = {[C]: null} as TFormFieldsValues<T>;
             return {...P, ...obj }
         }, {});
-        updateFormValues(clearedForm as TFormFieldsValues<T>)
+        updateFormValues(clearedForm as TFormFieldsValues<T>);
+
+        const clearedErrors = Object.keys(fields).reduce((P, C) => {
+            const obj = {[C]: null} as TFormErrorFieldsValues<T>;
+            return {...P, ...obj }
+        }, {});
+        updateFormErrors(clearedErrors as TFormErrorFieldsValues<T>)
+
+        updateIsReadyState(false);
     },}, formDispatchers];
     
     return retVal;

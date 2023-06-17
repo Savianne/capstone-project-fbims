@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 import InputErrorToltip from "./InputErrorToltip";
 
@@ -111,6 +111,7 @@ const PHTelNumberInput = styled(FCPHTelNumberInput)`
         border: 0;
         background-color: transparent;
         color: inherit;
+        ${(props) => props.disabled && css`cursor: not-allowed;`};
     }
 
     & .error-toltip {
@@ -121,6 +122,8 @@ const PHTelNumberInput = styled(FCPHTelNumberInput)`
         color: ${({theme}) => theme.staticColor.delete};
         z-index: 100;
     }
+
+    ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
 `;
 
 

@@ -49,7 +49,7 @@ const FCAddEventForm: React.FC<IAddEventForm> = ({className}) => {
         }}>
             <FormContent state={formState}
             onClick={(e) => e.stopPropagation()}>
-                <img src="assets/images/Calendar-Events.png"/>
+                <img src="/assets/images/Calendar-Events.png"/>
                 <div className="form-header">
                     <Button 
                     label="close" 
@@ -74,11 +74,11 @@ const FCAddEventForm: React.FC<IAddEventForm> = ({className}) => {
                                 selectedDate? <>
                                     <span className="input-area repeat-input-area">
                                         <Select placeholder="Reapeat" onValChange={(e) => updateReapingPattern(e)}>
-                                            <Option selected={repeatingPattern == 'null'} value="null">Does not Reapeat</Option>
-                                            <Option selected={repeatingPattern == 'd'} value="d">Daily</Option>
-                                            <Option selected={repeatingPattern == 'w'} value="w">Weekly</Option>
-                                            <Option selected={repeatingPattern == 'm'} value="y">Monthly</Option>
-                                            <Option selected={repeatingPattern == 'y'} value="y">Yearly</Option>
+                                            <Option value="null">Does not Reapeat</Option>
+                                            <Option value="d">Daily</Option>
+                                            <Option value="w">Weekly</Option>
+                                            <Option value="y">Monthly</Option>
+                                            <Option value="y">Yearly</Option>
                                         </Select>
                                     </span>
                                     <Revealer reveal={repeatingPattern !== "null"} maxHeight="300px">
@@ -127,8 +127,8 @@ const AddEventForm = styled(FCAddEventForm)`
 const FormContent = styled.div<{state: string}>`
     position: relative;
     flex-wrap: wrap;
-    max-width: 500px;
-    min-width: 500px;
+    max-width: ${(props) => props.state == "open"? '800px' : '150px'};
+    min-width: 300px;
     max-height: 0;
     max-height: ${(props) => props.state == "open"? '1000px' : 0};
     opacity: ${(props) => props.state == "open"? '1' : "0.40"};
@@ -138,7 +138,7 @@ const FormContent = styled.div<{state: string}>`
     box-shadow: ${(props) => props.state == "open"? '17px 20px 61px 21px rgb(0 0 0 / 25%)' : 'none'};
     overflow: hidden;
     padding-bottom: 10px;
-    transition: max-height 200ms, opacity 400ms, box-shadow 300ms;
+    transition: max-height 200ms, max-width 100ms, opacity 100ms, box-shadow 100ms;
 
     img {
         position: absolute;

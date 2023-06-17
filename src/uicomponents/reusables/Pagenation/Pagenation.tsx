@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, {css} from "styled-components";
 
 import UsePagenation from "./UsePagenation";
 
@@ -13,6 +13,9 @@ const Pagenation = styled(UsePagenation)`
     width: fit-content;
     border: 1px solid ${({theme}) => theme.borderColor};
     border-radius: 3px;
+
+    opacity: ${(props) => props.disabled? 0.5 : 1};
+    ${(props) => props.disabled && css`cursor: wait;`}
 
     & .btn {
         display: flex;
@@ -43,6 +46,8 @@ const Pagenation = styled(UsePagenation)`
         background-color: ${({theme}) => theme.staticColor.primary};
         color: white;
     }    
+
+    ${(props) => props.disabled && css`pointer-events: none;`}
 `;
 
 export default Pagenation;

@@ -16,6 +16,7 @@ import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)"
 import UseRipple from "../Ripple/UseRipple";
 import Scrollbar from "../ScrollBar";
 import InputErrorToltip from "./InputErrorToltip";
+import { JsxElement } from "typescript";
 
 export const SelectContext = React.createContext<{selected: string | null, select?: (option: string) => void}>({
     selected: null,
@@ -36,7 +37,6 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, value, placeholder,
     const selectRef = React.useRef<HTMLDivElement | null>(null);
     const [options, updateOptions] = React.useState<string[]>([]);
     const [optionsText, updateOptionsText] = React.useState<{[key: string]: string}>({});
-    const [onClickArea, setOnClickArea] = React.useState(false);
     const [compState, updateCompState] = React.useState('onBlur');
     const [selectedValue, updateSelectedValue] = React.useState<null | string>(null);
 
@@ -118,39 +118,17 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, value, placeholder,
         if(!(selectedValue !== null && selectedValue == options[options.indexOf(selectedValue)])) updateSelectedValue(null);
     }, [options , selectedValue]);
 
-    React.useEffect(() => {
-        function clickAway() {
-            if(compState == 'onFocus' && !(onClickArea)) {
-                updateCompState('onBlur');
-            }
-        }
-
-        window.addEventListener('click', clickAway);
-
-        return function cleanUp() {
-            window.removeEventListener('click', clickAway);
-        }
-        
-    });
-
     return (
         <SelectContext.Provider value={{selected: selectedValue, select: (option) => {
             setTimeout(() => {
                 updateSelectedValue(option);
                 updateCompState('onBlur');
-                // setOnClickArea(false);
             }, 400);
         }}}>
             <div className={className} 
             ref={selectRef} 
-            onClick={() => {
+            onClick={(e) => {
                 if(!disabled) updateCompState('onFocus');
-            }}
-            onMouseEnter={() => {
-                setOnClickArea(true);
-            }}
-            onMouseLeave={() => {
-                setOnClickArea(false);
             }}
             >
                 <span className="placeholder">{ placeholder }</span>
@@ -162,15 +140,24 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, value, placeholder,
                 {
                     selectedValue? <span className="value">{ optionsText[selectedValue] }</span> : ''
                 }
-                
-                <div className="options-container" 
-                    ref={setPopperElement}
-                    style={styles.popper}
-                    {...attributes.popper}>
-                        <Scrollbar>
-                            { children }
-                        </Scrollbar>
-                    </div> 
+                {
+                    compState == "onFocus" && 
+                    <SelectBackdrop modalWidth={`${selectRef.current?.clientWidth}px`} onClick={(e) => {
+                        e.stopPropagation();
+                        updateCompState('onBlur');
+                    }}>
+                        <div className="options-container"
+                        onClick={(e) => e.stopPropagation()}
+                        id="modal" 
+                        ref={setPopperElement}
+                        style={styles.popper}
+                        {...attributes.popper}>
+                            <Scrollbar>
+                                { children }
+                            </Scrollbar>
+                        </div> 
+                    </SelectBackdrop>
+                }
 
                 {
                     error? <>
@@ -238,6 +225,21 @@ export const Option = styled(FCOption)`
     
 `;
 
+const SelectBackdrop = styled.div<{modalWidth: string}>`;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    z-index: 10000;
+
+    #modal {
+        width: ${(prop => prop.modalWidth)}
+    }
+`;
+
 const Select = styled(FCSelect)`
     position: relative;
     display: flex;
@@ -268,11 +270,12 @@ const Select = styled(FCSelect)`
         left: 0;
     }
 
-    & .options-container {
+    & ${SelectBackdrop} .options-container {
         display: flex;
         flex: 1;
         flex-wrap: wrap;
-        width: calc(100% - 2px);
+        /* width: calc(100% - 2px); */
+        /* width: 400px; */
         min-width: 0;
         overflow-x: hidden;
         overflow-y: ${(props) => React.Children.toArray(props.children).length > 10? 'auto' : 'hidden' };
@@ -301,7 +304,7 @@ const Select = styled(FCSelect)`
         transform: rotate(180deg);
     }
 
-    &[state='onBlur'] .options-container {
+    &[state='onBlur'] ${SelectBackdrop} .options-container {
         top: 95%;
         height: 0;
         opacity: 0;
@@ -310,7 +313,7 @@ const Select = styled(FCSelect)`
         padding: 0;
     }
 
-    &[state='onFocus'] .options-container {
+    &[state='onFocus'] ${SelectBackdrop} .options-container {
         height: calc(30px * ${(props) => React.Children.toArray(props.children).length});
         max-height: calc(30px * 10);
     }
@@ -345,7 +348,7 @@ const Select = styled(FCSelect)`
         border-bottom: ${(prop) => prop.error? `2px solid ${prop.theme.staticColor.delete}` : `2px solid ${prop.theme.staticColor.primary}`}
     }
 
-    & .options-container ${Option} {
+    & ${SelectBackdrop} .options-container ${Option} {
         display: flex;
         flex: 0 1 100%;
         height: 30px;
@@ -354,11 +357,11 @@ const Select = styled(FCSelect)`
         background-color: transparent;
     }
 
-    & .options-container ${Option}[selected='true'],
-    & .options-container ${Option}[selected='true']:hover {
+    & ${SelectBackdrop} .options-container ${Option}[selected='true'],
+    & ${SelectBackdrop} .options-container ${Option}[selected='true']:hover {
         background-color: ${({theme}) => theme.background.light};
     }
-    & .options-container ${Option}:hover {
+    & ${SelectBackdrop} .options-container ${Option}:hover {
         background-color: #e4eff742;
     }
     & .error-text {

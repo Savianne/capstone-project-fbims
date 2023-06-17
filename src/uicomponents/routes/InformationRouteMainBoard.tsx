@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 import Devider from "../reusables/devider";
 import UseRipple from "../reusables/Ripple/UseRipple";
+import Modal from "../reusables/Modal";
+import { IStyledFC } from "../IStyledFC";
 
 const AddRecordBtn = styled(UseRipple)`
     display: flex;
@@ -128,7 +130,8 @@ interface IInformationRouteMainBoard {
         verse: string,
         content: string
     },
-    addRecordFormUrl: string,
+    addRecordFormUrl?: string,
+    addRecordFN?: () => void,
     dataFolderTitle:  string,
     dataFolderIcon: JSX.Element,
     dataFolderTotal: number,
@@ -139,6 +142,7 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
         bgImage, 
         verseText, 
         addRecordFormUrl, 
+        addRecordFN,
         dataFolderIcon, 
         dataFolderTitle,
         dataFolderTotal,
@@ -146,16 +150,12 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
     
     const navigate = useNavigate();
 
-    return (
+    return (<>
         <Board bgImage={bgImage}>
             <span className="bg-image"></span>
             <span className="cover"></span>
             <div className="board-content">
-                <span className="icon">
-                    {
-                        dataFolderIcon
-                    }
-                </span>
+                
                 <Devider $orientation="vertical" $css="z-index: 100; height: 83px;margin: 0 10px 0 30px;& .devider { border-color: #fff }" $lineWidth="3px" />
                 <div className="bible-verse">
                     <p className="verse-text"><FontAwesomeIcon icon={["fas", "quote-left"]} pull="left" size="lg" />{verseText.content}</p>
@@ -165,10 +165,12 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
                     <p className="total">{dataFolderTotal}</p>
                     <p className="data-title">{dataFolderTitle}</p>
                 </span>
-                <AddRecordBtn onClick={(e) => setTimeout(() => navigate(addRecordFormUrl), 400)}><FontAwesomeIcon icon={["fas", "plus"]} /></AddRecordBtn>
+                <AddRecordBtn onClick={(e) => setTimeout(() => addRecordFN? addRecordFN() : navigate(addRecordFormUrl? addRecordFormUrl : "/"), 100)}><FontAwesomeIcon icon={["fas", "plus"]} /></AddRecordBtn>
             </div>
         </Board>
-    );
+    </>);
 }
+
+
 
 export default InformationRouteMainBoard;

@@ -25,7 +25,7 @@ export interface IFCInput extends IStyledFC {
     autoFocus?: boolean
 }
 
-const CheckboxBase = styled(UseRipple)`
+const CheckboxBase = styled(UseRipple)<{disabled?: boolean}>`
     position: relative;
     display: flex;
     height: 40px;
@@ -35,6 +35,7 @@ const CheckboxBase = styled(UseRipple)`
     justify-content: center;
     border-radius: 50%;
     transition: background-color 300ms ease-in-out;
+    ${(props) => props.disabled && css`opacity: 1; cursor: not-allowed;background-color: ${props.theme.background.light}`};
 
     &:hover {
         background-color: ${({theme}) => theme.background.light};
@@ -43,13 +44,17 @@ const CheckboxBase = styled(UseRipple)`
     & input {
         position: absolute;
         opacity: 0;
-        background-color: pink;
         cursor: pointer;
         height: 100%;
         width: 100%;
         z-index: 2;
     }
     
+    input,
+    input:checked {
+        ${(props) => props.disabled && css`opacity: 0; cursor: not-allowed;`};
+    }
+
     & input ~ .checkboxChecked {
         display: flex;
         align-items: center;
@@ -79,7 +84,6 @@ const CheckboxBase = styled(UseRipple)`
         opacity: 1;
     }
 
-
     /* & input:checked ~ .checkboxChecked {
         background-color: #2196F3;
         border-color: #2196F3;
@@ -93,26 +97,18 @@ const CheckboxBase = styled(UseRipple)`
 
 const FCInput: React.FC<IFCInput> = ({className, onValChange, name, value, disabled, type = 'text', placeholder, error, label, checked, autoFocus}) => {
     const inputRef = React.useRef<null | HTMLInputElement>(null);
-    const [inputVal, updateInputVal] = React.useState<string | boolean | number | readonly string[]>("");
     const [inputState, updateInputState] = React.useState<'init' | 'onfocus' | 'onblur'>('init');
-
-    // React.useEffect(() => {
-    //    updateInputVal(value as string | boolean | number | readonly string[]);
-    // },[value]);
     
     const checkboxInput = 'checkbox' as typeof type;
 
-    // React.useEffect(() => {
-    //     updateInputVal(checked as boolean);
-    // }, [checked]);
     return (
         <div className={className}>
             {
                 type == checkboxInput? <>
-                    <CheckboxBase>
+                    <CheckboxBase disabled={disabled}>
                         <input 
+                        disabled={disabled}
                         autoFocus={autoFocus}
-                        // checked={inputVal? inputVal as boolean : false}
                         checked={checked}
                         ref={inputRef}
                         type={type}
@@ -124,10 +120,8 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, name, value, disab
                             updateInputState('onblur')
                         }}
                         onFocus={(e) => updateInputState('onfocus')}
-                        // value={typeof inputVal == 'string'? inputVal : ''}
-                        // value={inputVal? inputVal as string | number | readonly string[] : ""}
                         placeholder={placeholder}
-                        className={error? 'error-field input-field' : 'input-field'} />
+                        className='input-field' />
                         <span className="checkboxChecked"><i><FontAwesomeIcon icon={["fas", "check"]} /></i></span>
                     </CheckboxBase>
                     <p className="label">{label}</p>
@@ -135,20 +129,18 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, name, value, disab
                 :
                 <>
                     <input 
+                    disabled={disabled}
                     autoFocus={autoFocus}
                     ref={inputRef}
                     type={type}
                     onChange={(e) => {
                         onValChange(e.target.value);
-                        // if(value !== null && value == undefined) updateInputVal(e.target.value)
                     }} 
-                    // onChange={(e) => updateInputVal(e.target.value)} 
                     onBlur={(e) => {
                         if(type == 'date') e.preventDefault();
                         updateInputState('onblur')
                     }}
                     onFocus={(e) => updateInputState('onfocus')}
-                    // value={inputVal? inputVal as string | number | readonly string[] : ""}
                     value={value? value as string | number | readonly string[] : ""}
                     placeholder={placeholder}
                     className={error? 'error-field input-field' : 'input-field'}
@@ -247,7 +239,10 @@ const Input = styled(FCInput)`
         }
     }}
 
-    
+    &, input {
+        ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+    }
+
     /* & .error-text, */
     & .error-toltip {
         position: absolute;

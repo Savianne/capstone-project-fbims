@@ -5,12 +5,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 
 import UseRipple from "../../../reusables/Ripple/UseRipple";
+import Input from "../../../reusables/Inputs/Input";
+import Button from "../../../reusables/Buttons/Button";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
-
+import Modal from "../../../reusables/Modal";
+import AvatarUploader from "../../../reusables/AvatarUploader/AvatarUploader";
 import GroupList, { GroupListItem, IFCGroupListItem } from "../GroupList";
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";
+import AddMinistryForm from "./addMinistryModalView";
 
 const ContentWraper = styled.div`
     display: flex;
@@ -21,6 +25,8 @@ const ContentWraper = styled.div`
 `;
 
 const Ministry: React.FC = () => {
+    const [addMinistryModal, updateAddMinistryModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
+    const [modalIsLoading, updateModalIsLoading] = React.useState(false);
     const [groupList, updateGroupList] = React.useState<null | IFCGroupListItem[]>([
         {
             groupName: 'Usher Ministry',
@@ -88,7 +94,7 @@ const Ministry: React.FC = () => {
             ],
         },
     ])
-    return (
+    return (<>
         <RouteContentBase>
             <RouteContentBaseHeader>
                 <strong>Ministry</strong>
@@ -106,7 +112,8 @@ const Ministry: React.FC = () => {
                     dataFolderIcon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />}
                     dataFolderTitle="Members"
                     dataFolderTotal={556}
-                    addRecordFormUrl="./add-ministry" />
+                    addRecordFormUrl="./add-ministry" 
+                    addRecordFN={() => updateAddMinistryModal("ondisplay")}/>
                     <GroupList>
                         {
                             groupList?.map(group => {
@@ -119,7 +126,14 @@ const Ministry: React.FC = () => {
                 </ContentWraper>
             </RouteContentBaseBody>
         </RouteContentBase>
-    )
+        { 
+        (addMinistryModal == "open" || addMinistryModal == "ondisplay" || addMinistryModal == "close") && 
+        <Modal isLoading={modalIsLoading} state={addMinistryModal} title="Add New Ministry" onClose={() => updateAddMinistryModal("remove")} maxWidth="1000px"> 
+            <AddMinistryForm />
+        </Modal>
+    }
+    </>)
 };
+
 
 export default Ministry;
