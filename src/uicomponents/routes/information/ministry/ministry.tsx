@@ -1,20 +1,22 @@
 import { Link, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
-
-import UseRipple from "../../../reusables/Ripple/UseRipple";
-import Input from "../../../reusables/Inputs/Input";
-import Button from "../../../reusables/Buttons/Button";
+import doRequest from "../../../../API/doRequest";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import Modal from "../../../reusables/Modal";
 import AvatarUploader from "../../../reusables/AvatarUploader/AvatarUploader";
-import GroupList, { GroupListItem, IFCGroupListItem } from "../GroupList";
+import GroupList, { GroupListItem, MinistryListItem } from "../GroupList";
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";
 import AddMinistryForm from "./addMinistryModalView";
+
+import useGetMinistries from "../../../../API/hooks/useGetMinistries";
+
+import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
 
 const ContentWraper = styled.div`
     display: flex;
@@ -27,73 +29,48 @@ const ContentWraper = styled.div`
 const Ministry: React.FC = () => {
     const [addMinistryModal, updateAddMinistryModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
     const [modalIsLoading, updateModalIsLoading] = React.useState(false);
-    const [groupList, updateGroupList] = React.useState<null | IFCGroupListItem[]>([
-        {
-            groupName: 'Usher Ministry',
-            membersAvatar: [
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-            ],
-        },
-        {
-            avatar: '/assets/images/avatar/apple.png',
-            groupName: 'Music Ministry',
-            membersAvatar: [
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-            ],
-        },
-        {
-            groupName: 'Documentation Ministry',
-            membersAvatar: [
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-            ],
-        },
-        {
-            groupName: 'Tech Ministry',
-            membersAvatar: [
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-                {alt: 'radio'},
-            ],
-        },
-    ])
+    const [ministryCountTotal, setMinistryCountTotal] = React.useState<"isLoading" | "isLoadError" | number>("isLoading");
+    const {data, isLoading, isError, isUpdating, error} = useGetMinistries();
+   
+    React.useEffect(() => {
+        doRequest<{total_count: number}>({
+          method: "POST",
+          url: "/get-records-count/ministry" 
+        })
+        .then(response => {
+            setMinistryCountTotal(response.data?.total_count as number);
+        })
+        .catch(err => setMinistryCountTotal("isLoadError"));
+
+        const socket = io('http://localhost:3008');
+
+        socket.on(`ADDED_NEW_MINISTRY`, () => {
+            doRequest<{total_count: number}>({
+                method: "POST",
+                url: "/get-records-count/ministry" 
+            })
+            .then(response => {
+                setMinistryCountTotal(response.data?.total_count as number);
+            })
+            .catch(err => setMinistryCountTotal("isLoadError"));
+        });
+
+        socket.on(`DELETED_MINISTRY`, () => {
+            doRequest<{total_count: number}>({
+                method: "POST",
+                url: "/get-records-count/ministry" 
+            })
+            .then(response => {
+                setMinistryCountTotal(response.data?.total_count as number);
+            })
+            .catch(err => setMinistryCountTotal("isLoadError"));
+        });
+
+        return function () {
+            socket.disconnect();
+        }
+    }, []);
+
     return (<>
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -111,14 +88,14 @@ const Ministry: React.FC = () => {
                     verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
                     dataFolderIcon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />}
                     dataFolderTitle="Members"
-                    dataFolderTotal={556}
+                    dataFolderTotal={ministryCountTotal}
                     addRecordFormUrl="./add-ministry" 
                     addRecordFN={() => updateAddMinistryModal("ondisplay")}/>
                     <GroupList>
                         {
-                            groupList?.map(group => {
+                           data && data.length && data.map(group => {
                                 return (
-                                    <GroupListItem avatar={group.avatar} groupName={group.groupName} membersAvatar={group.membersAvatar} />
+                                    <MinistryListItem avatar={group.avatar? `${AVATAR_BASE_URL}/${group.avatar}` : null} groupName={group.ministryName} groupUID={group.ministryUID} />
                                 )
                             })
                         }
@@ -129,7 +106,7 @@ const Ministry: React.FC = () => {
         { 
         (addMinistryModal == "open" || addMinistryModal == "ondisplay" || addMinistryModal == "close") && 
         <Modal isLoading={modalIsLoading} state={addMinistryModal} title="Add New Ministry" onClose={() => updateAddMinistryModal("remove")} maxWidth="1000px"> 
-            <AddMinistryForm />
+            <AddMinistryForm onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
         </Modal>
     }
     </>)

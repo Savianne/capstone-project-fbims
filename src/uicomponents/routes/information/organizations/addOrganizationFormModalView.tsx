@@ -5,17 +5,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import Input from "../../../reusables/Inputs/Input";
 import Button from "../../../reusables/Buttons/Button";
-import AvatarUploader from "../../../reusables/AvatarUploader/AvatarUploader";
 import useFormControl from "../../../../utils/hooks/useFormControl";
 import { AvatarUploaderComponent, useAvatarUploaderContext } from "../../../reusables/AvatarUploader/AvatarUploader";
-import addMinistry from "../../../../API/addMinistry";
+import addOrganization from "../../../../API/addOrganization";
 import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
 
-interface IAddMinistryForm extends IStyledFC {
+interface IAddOrganizationForm extends IStyledFC {
     onLoading: (isLoading: boolean) => void;
 }
-const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) => {
-    const addSnackBar = useAddSnackBar()
+const FCAddOrganizationForm: React.FC<IAddOrganizationForm> = ({className, onLoading}) => {
+    const addSnackBar = useAddSnackBar();
     const [
         disabled, setDisabled,
         imageTmpUploaded, setImageTmpUploaded,
@@ -30,7 +29,7 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
       ] = useAvatarUploaderContext();
 
     const [isLoading, setIsLoading] = React.useState(false);
-    const [addMinistryForm, addMinistryFormDispatchers] = useFormControl({
+    const [addOrganizationForm, addOrganizationFormDispatchers] = useFormControl({
         title: {
             validateAs: "text",
             minValLen: 5,
@@ -55,7 +54,7 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
     });
 
     React.useEffect(() => {
-        addMinistryFormDispatchers?.avatar(imageTmpUploaded as string | null);
+        addOrganizationFormDispatchers?.avatar(imageTmpUploaded as string | null);
     }, [imageTmpUploaded]);
 
     React.useEffect(() => {
@@ -78,26 +77,26 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
                 ]} />
             </AvatarUploaderArea>
             <div className="input-group">
-                <Input disabled={isLoading} value={addMinistryForm.values.title as string} error={addMinistryForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addMinistryFormDispatchers?.title(val)} />
-                <Input disabled={isLoading} value={addMinistryForm.values.description as string} error={addMinistryForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addMinistryFormDispatchers?.description(val)}/>
-                <Button isLoading={isLoading} disabled={!addMinistryForm.isReady || isDeletingTmpImage as boolean || isUploading as boolean} label="Add Mnistry" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} color="primary" onClick={() => {
+                <Input disabled={isLoading} value={addOrganizationForm.values.title as string} error={addOrganizationForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addOrganizationFormDispatchers?.title(val)} />
+                <Input disabled={isLoading} value={addOrganizationForm.values.description as string} error={addOrganizationForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addOrganizationFormDispatchers?.description(val)}/>
+                <Button isLoading={isLoading} disabled={!addOrganizationForm.isReady || isDeletingTmpImage as boolean || isUploading as boolean} label="Add Organization" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} color="primary" onClick={() => {
                     setIsLoading(true);
                     (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(true);
-                    addMinistry({name: addMinistryForm.values.title as string, description: addMinistryForm.values.description as string, avatar: addMinistryForm.values.avatar as string | null})
+                    addOrganization({name: addOrganizationForm.values.title as string, description: addOrganizationForm.values.description as string, avatar: addOrganizationForm.values.avatar as string | null})
                     .then(response => {
                         if(response.success) {
                             setIsLoading(false);
                             (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
                             selectedImage && !isUploading && (reset as () => void)();
-                            addMinistryForm.clear();
-                            addSnackBar("Successfully added a new Ministry", "success", 5)
+                            addOrganizationForm.clear();
+                            addSnackBar("Successfully added new organization", "success", 5);
                         }
                         else throw response
                     })
                     .catch(error => {
                         setIsLoading(false);
                         (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
-                        addSnackBar("Faild to add a Ministry", "error", 5)
+                        addSnackBar("Error Adding Organization", "error", 5);
                     });
                 }} />
             </div>
@@ -105,7 +104,7 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
     )
 }
 
-const AddMinistryForm = styled(FCAddMinistryForm)`
+const AddOrganizationForm = styled(FCAddOrganizationForm)`
     display: flex;
     flex: 0 1 100%;
     justify-content: center;
@@ -150,4 +149,4 @@ const AvatarUploaderArea = styled.div`
 
 `
 
-export default AddMinistryForm;
+export default AddOrganizationForm;

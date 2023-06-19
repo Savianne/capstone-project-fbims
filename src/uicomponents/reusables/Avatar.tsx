@@ -4,7 +4,7 @@ import { IStyledFC } from "../IStyledFC";
 
 
 interface IFCAvatar extends IStyledFC {
-    src?: string,
+    src?: string | null,
     alt: string,
     size: string,
 } 

@@ -6,7 +6,7 @@ import Avatar from "./Avatar";
 
 interface IAvatar {
     alt: string,
-    src?: string,
+    src?: string | null,
 }
 
 interface IFCAvatarGroup extends IStyledFC {

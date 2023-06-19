@@ -35,6 +35,7 @@ import AdminDropdown from './uicomponents/AdminDropdown';
 import TodaysEventsSideBar from './uicomponents/TodaysEventsSideBar';
 import Scrollbars from 'react-custom-scrollbars-2';
 import 'react-loading-skeleton/dist/skeleton.css'
+import SnackBars from './uicomponents/reusables/SnackBar/SnackBars';
 
 //Routes
 import Layout from './uicomponents/routes/layout';
@@ -46,7 +47,7 @@ import Ministry from './uicomponents/routes/information/ministry/ministry';
 import Organizations from './uicomponents/routes/information/organizations/organizations';
 import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-new-ministry-form';
 import Calendar from './uicomponents/routes/calendar/Calendar';
-import SnackBars from './uicomponents/reusables/SnackBar/SnackBars';
+import ManageMinistryView from './uicomponents/routes/information/ministry/manage-ministry-view';
 
 function App() {
   const admin = useAppSelector(state => state.setAdmin.admin);
@@ -92,7 +93,8 @@ function App() {
                     </Route>
                     <Route path='ministry'>
                       <Route index element={<Ministry />} />
-                      <Route path='add-ministry' element={<AddNewMinistryForm />} />
+                      <Route path="/app/information/ministry/:ministryUID" element={<ManageMinistryView />} />
+                      {/* <Route path='add-ministry' element={<AddNewMinistryForm />} /> */}
                     </Route>
                     <Route path='organizations' element={<Organizations />} />
                   </Route>

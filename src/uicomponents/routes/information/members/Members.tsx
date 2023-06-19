@@ -196,7 +196,7 @@ const Members: React.FC = () => {
     }, [isErrorMembersCount]);
 
     React.useEffect(() => {
-        if(listLimit && membersCount && membersCount.querySuccess) setTotalPage(Math.ceil(membersCount.result.total_count / listLimit));
+        if(listLimit && membersCount && membersCount.success) setTotalPage(Math.ceil(membersCount.data.total_count / listLimit));
     }, [membersCount, listLimit]);
 
     React.useEffect(() => {
@@ -246,11 +246,11 @@ const Members: React.FC = () => {
                 verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
                 dataFolderIcon={<FontAwesomeIcon icon={["fas", "users"]} />}
                 dataFolderTitle="Members"
-                dataFolderTotal={membersCount && membersCount.querySuccess && membersCount.result.total_count? membersCount.result.total_count : 0}
+                dataFolderTotal={membersCount && membersCount.success && membersCount.data.total_count? membersCount.data.total_count : 0}
                 addRecordFormUrl="./new-member"
                 addRecordFN={() => updateAddMemberRecordModal("ondisplay")} />
                 <div className="table-control">
-                    <ShowEntriesCounter disabled={isLoadingMembersCount || isLoadingMembersList} onChange={(val) => setListLimit(val)} max={membersCount && membersCount.querySuccess && membersCount.result.total_count? membersCount.result.total_count : 100} />
+                    <ShowEntriesCounter disabled={isLoadingMembersCount || isLoadingMembersList} onChange={(val) => setListLimit(val)} max={membersCount && membersCount.success && membersCount.data.total_count? membersCount.data.total_count : 100} />
                     <Devider $orientation="vertical" $css="height: 30px"/>
                     <SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "A-Z"} onClick={(e) => setSorting("A-Z")}><FontAwesomeIcon icon={["fas", "sort-alpha-down"]} /></SortToggle><SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "Z-A"} onClick={(e) => setSorting("Z-A")}><FontAwesomeIcon icon={["fas", "sort-alpha-down-alt"]} /></SortToggle>
                     <Devider $orientation="vertical" $css="height: 30px"/>

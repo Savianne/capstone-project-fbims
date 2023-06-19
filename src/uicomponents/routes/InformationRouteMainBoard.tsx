@@ -7,6 +7,7 @@ import Devider from "../reusables/devider";
 import UseRipple from "../reusables/Ripple/UseRipple";
 import Modal from "../reusables/Modal";
 import { IStyledFC } from "../IStyledFC";
+import ScaleLoader from "react-spinners/ScaleLoader";
 
 const AddRecordBtn = styled(UseRipple)`
     display: flex;
@@ -134,7 +135,7 @@ interface IInformationRouteMainBoard {
     addRecordFN?: () => void,
     dataFolderTitle:  string,
     dataFolderIcon: JSX.Element,
-    dataFolderTotal: number,
+    dataFolderTotal: "isLoading" | "isLoadError" | number,
 } 
 
 const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
@@ -162,7 +163,9 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
                     <p className="verse">- {verseText.verse}</p>
                 </div>
                 <span className="data-total-info">
-                    <p className="total">{dataFolderTotal}</p>
+                    {
+                        dataFolderTotal == "isLoading"? <p className="total"><ScaleLoader color="white" height={"20px"}/></p> : dataFolderTotal == "isLoadError"? <p className="total"><FontAwesomeIcon icon={["fas", "exclamation-circle"]} size="lg" /></p> : <p className="total">{dataFolderTotal}</p>
+                    }
                     <p className="data-title">{dataFolderTitle}</p>
                 </span>
                 <AddRecordBtn onClick={(e) => setTimeout(() => addRecordFN? addRecordFN() : navigate(addRecordFormUrl? addRecordFormUrl : "/"), 100)}><FontAwesomeIcon icon={["fas", "plus"]} /></AddRecordBtn>

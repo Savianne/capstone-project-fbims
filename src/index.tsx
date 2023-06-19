@@ -69,7 +69,8 @@ import {
   faSortAlphaDown,
   faSortAlphaDownAlt,
   faSearch,
-  faCloudUploadAlt
+  faCloudUploadAlt,
+  faEdit
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -127,6 +128,8 @@ library.add(faR, faSortAlphaDown);
 library.add(faR, faSortAlphaDownAlt);
 library.add(faR, faSearch);
 library.add(faR, faCloudUploadAlt);
+library.add(faR, faEdit);
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

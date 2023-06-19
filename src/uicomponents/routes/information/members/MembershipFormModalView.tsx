@@ -16,6 +16,7 @@ import UseRipple from "../../../reusables/Ripple/UseRipple";
 import Button from "../../../reusables/Buttons/Button";
 import PHCPNumberInput from "../../../reusables/Inputs/PHCPNumberInput";
 import PHTelNumberInput from "../../../reusables/Inputs/PHTelNumberInput";
+import { AvatarUploaderComponent, useAvatarUploaderContext } from "../../../reusables/AvatarUploader/AvatarUploader";
 
 //Custom Hooks
 import useFormControl from "../../../../utils/hooks/useFormControl";
@@ -79,6 +80,19 @@ interface IFCMembershipForm extends IStyledFC {
 }
 
 const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLoading, onSuccess, onError}) => {
+    const [
+        disabled, setDisabled,
+        imageTmpUploaded, setImageTmpUploaded,
+        isDeletingTmpImage, setIsDeletingTmpImage,
+        isUploading, setIsUploading,
+        uploadProgress, setUploadProgress,
+        imageReplace, setImageReplace,
+        selectedImage, setSelectedImage,
+        errorUpload, setErrorUpload,
+        getRootProps, getInputProps, isDragActive,
+        reset,
+    ] = useAvatarUploaderContext();
+
     const addSnackBar = useAddSnackBar()
     const [addMemberRecord, {data: addRecordTransactionFlag, isLoading, isError, isSuccess}] = useAddMemberRecordMutation();
 
@@ -154,6 +168,11 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             errorText: 'Invalid Entry',
             validateAs: "number",
             validators: [validatePHTelephone]
+        },
+        avatar: {
+            required: false,
+            errorText: 'Invalid Entry',
+            validateAs: 'text',
         }
     });
 
@@ -314,32 +333,59 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 outsidePHCurrentAdressForm.clear()
                 outsidePHPermanentAdressForm.clear();
                 updateSameAsCurrentAddress(false);
-                updateSameAsPermanentAddress(false)
+                updateSameAsPermanentAddress(false);
+                (reset as () => void)();
+                (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
                 addSnackBar("Record Added Successfully!", "success", 5);
-            })() : addSnackBar("Query Failed!", "error", 5);
+            })() : (() => {
+                (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
+                addSnackBar("Query Failed!", "error", 5)
+            })()
         }
     }, [addRecordTransactionFlag])
 
+    React.useEffect(() => {
+        formDispatcher?.avatar(imageTmpUploaded as string | null);
+    }, [imageTmpUploaded])
     return (
     <div className={className}>
         <strong className="information-category-title">Personal Information</strong>
-        <div className="data-category full-name-group">
-            <span className="data-category-title-container">
-                <FontAwesomeIcon icon={["fas", "user"]} />
-                <p>Full Name</p>
-            </span>
-            <Devider $orientation="vertical" $css="margin: 0 5px" />
-            <div className="input-category-group">
-                <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
-                <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
-                <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
-                <Select disabled={isLoading} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
-                    <Option value="">Please select</Option>
-                    <Option value="jr">JR</Option>
-                    <Option value="sr">SR</Option>
-                </Select>
+        <div className="basic-info-group">
+            <div className="avatar-uploader-container">
+                <AvatarUploaderComponent context={[
+                    disabled, setDisabled,
+                    imageTmpUploaded, setImageTmpUploaded,
+                    isDeletingTmpImage, setIsDeletingTmpImage,
+                    isUploading, setIsUploading,
+                    uploadProgress, setUploadProgress,
+                    imageReplace, setImageReplace,
+                    selectedImage, setSelectedImage,
+                    errorUpload, setErrorUpload,
+                    getRootProps, getInputProps, isDragActive,
+                    reset,
+                ]} />
+            </div>
+            <div className="basic-info-category-group">
+                <div className="data-category full-name-group">
+                    {/* <span className="data-category-title-container">
+                        <FontAwesomeIcon icon={["fas", "user"]} />
+                        <p>Full Name</p>
+                    </span> */}
+                    {/* <Devider $orientation="vertical" $css="margin: 0 5px" /> */}
+                    <div className="input-category-group">
+                        <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
+                        <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
+                        <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
+                        <Select disabled={isLoading} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
+                            <Option value="">Please select</Option>
+                            <Option value="jr">JR</Option>
+                            <Option value="sr">SR</Option>
+                        </Select>
+                    </div>
+                </div>
             </div>
         </div>
+        <Devider $orientation="horizontal"  $css="margin: 0 5px" />
         <div className="data-category birth-date-group">
             <span className="data-category-title-container">
                 <FontAwesomeIcon icon={["fas", "cake-candles"]} />
@@ -348,6 +394,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             <Devider $orientation="vertical"  $css="margin: 0 5px" />
             <div className="input-category-group">
                 <Input disabled={isLoading} value={dob? dob : ""} name="date-of-birth" type="date" placeholder="Date of Birth" error={form.errors.dateOfBirth} onValChange={(val) => setDob(val as string)} />
+                {/* <Input disabled={isLoading} value={dob? dob : ""} name="date-of-birth" type="date" placeholder="Date of Birth" error={form.errors.dateOfBirth} onValChange={(val) => setDob(val as string)} /> */}
                 {/* <input type="date" value={dob} onChange={(e) => setDob(e.target.value)}/> */}
             </div>
         </div>
@@ -603,8 +650,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 outsidePHCurrentAdressForm.clear()
                 outsidePHPermanentAdressForm.clear()
             }}/>
-            <Button disabled={isLoading || !formIsReadyState} isLoading={isLoading} label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary"  
+            <Button disabled={isLoading || !formIsReadyState || isDeletingTmpImage as boolean || isUploading as boolean} isLoading={isLoading} label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary"  
             onClick={(e) => {
+                (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false)
                 const currentAddressData = !sameAsPermanetAddress? 
                 outsidePHCurrentAddress? {
                     philippines: false,
@@ -666,6 +714,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                         maritalStatus: form.values.maritalStatus,
                         dateOfBirth: form.values.dateOfBirth,
                         gender: form.values.gender,
+                        avatar: form.values.avatar,
                     },
                     contactInformation: {
                         email: form.values.email? form.values.email : null,
@@ -678,7 +727,6 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                         ...dateOfBaptismForm.values
                     } : null
                 }
-
                 addMemberRecord(record);
             }}/>
         </div>
@@ -695,6 +743,27 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
     background-color:  ${({theme}) => theme.background.primary};
     /* box-shadow: 3px 3px 5px 1px rgb(0 0 0 / 5%); */
     min-width: 0;
+
+    .basic-info-group {
+        display: flex;
+        flex: 0 1 100%;
+        padding: 10px 0;
+        min-width: 0;
+        margin-bottom: 30px;
+        align-items: center;
+    }
+
+    .basic-info-category-group {
+        display: flex;
+        flex: 1;
+    }
+
+    .basic-info-group .avatar-uploader-container {
+        display: flex;
+        width: 350px;
+        justify-content: center;
+        align-content: flex-start;
+    }
 
     & .information-category-title {
         flex: 0 1 100%;
@@ -809,6 +878,8 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
 
     & .address-group .input-category-group ${Revealer} ${Select},
     & .address-group .input-category-group ${Revealer} ${Input},
+    & .full-name-group .input-category-group ${Input},
+    & .full-name-group .input-category-group ${Select},
     & .date-of-baptism-group .input-category-group ${Revealer} ${Input},
     & .current-address-group .input-category-group ${Select},
     & .current-address-group .input-category-group ${Revealer} ${Input},
@@ -837,5 +908,7 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
     & .submit-button-container ${Button}:first-child {
         margin-left: auto;
     }
+
+
 `
 export default MembershipFormModalView;

@@ -465,7 +465,7 @@ const AvatarUploader = styled(FCAvatarUploader)`
   }
 `
 export function useAvatarUploaderContext() {
-  const [diabled, setDisabled] = useState(false);
+  const [disabled, setDisabled] = useState(false);
   const [imageTmpUploaded, setImageTmpUploaded] = useState<null | string>(null);
   const [isDeletingTmpImage, setIsDeletingTmpImage] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -481,7 +481,7 @@ export function useAvatarUploaderContext() {
         preview: URL.createObjectURL(image),
       });
 
-      if(isUploading || isDeletingTmpImage) {
+      if(isUploading || isDeletingTmpImage || disabled) {
         return;
       }
 
@@ -521,6 +521,7 @@ export function useAvatarUploaderContext() {
   }, [selectedImage]);
 
   return [
+    disabled, setDisabled,
     imageTmpUploaded, setImageTmpUploaded,
     isDeletingTmpImage, setIsDeletingTmpImage,
     isUploading, setIsUploading,
@@ -564,6 +565,7 @@ interface IAvatarUploaderComponent extends IStyledFC {
 
 const FCAvatarUploaderComponent: React.FC<IAvatarUploaderComponent> = ({className, context}) => {
   const [
+    disabled, setDisabled,
     imageTmpUploaded, setImageTmpUploaded,
     isDeletingTmpImage, setIsDeletingTmpImage,
     isUploading, setIsUploading,
