@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import philippinePlaces from "../philippinePlaces/philippinePlaces";
 
-
 export function optionValue(code: string, val: string) {
     return `${code}:${val}`
 }

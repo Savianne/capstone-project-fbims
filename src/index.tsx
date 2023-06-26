@@ -68,9 +68,11 @@ import {
   faCaretUp,
   faSortAlphaDown,
   faSortAlphaDownAlt,
-  faSearch,
   faCloudUploadAlt,
-  faEdit
+  faEdit,
+  faHome,
+  faSearch,
+  faTired
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -122,13 +124,15 @@ library.add(faS, faCalendarDay);
 library.add(faS, faCalendarTimes);
 library.add(faS, faList);
 library.add(faS, faCalendarPlus);
+library.add(faS, faSearch);
 library.add(faR, faClock);
 library.add(faR, faBell);
 library.add(faR, faSortAlphaDown);
 library.add(faR, faSortAlphaDownAlt);
-library.add(faR, faSearch);
 library.add(faR, faCloudUploadAlt);
 library.add(faR, faEdit);
+library.add(faR, faHome);
+library.add(faR, faTired);
 
 
 const root = ReactDOM.createRoot(

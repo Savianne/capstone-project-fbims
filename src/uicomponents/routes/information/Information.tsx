@@ -2,11 +2,13 @@ import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ScaleLoader from "react-spinners/ScaleLoader";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../RouteContentBase";
-
+import doRequest from "../../../API/doRequest";
 import UseRipple from "../../reusables/Ripple/UseRipple";
 import Devider from "../../reusables/devider";
 import SiteMap from "../SiteMap";
+import useGetRecordsCount from "../../../API/hooks/useGetRecordsCount";
 
 const FolderContainer = styled.div`
     display: flex;
@@ -57,10 +59,12 @@ interface IFolder {
     name: string,
     records: number,
     className?: string,
-    path: string
+    path: string,
+    isLoading: boolean,
+    isError: boolean
 }
 
-const FCFolder: React.FC<IFolder> = ({icon, name, records, className, path}) => {
+const FCFolder: React.FC<IFolder> = ({icon, name, records, className, path, isLoading, isError}) => {
     const navigate = useNavigate();
     return (
         <div className={className}>
@@ -73,7 +77,9 @@ const FCFolder: React.FC<IFolder> = ({icon, name, records, className, path}) => 
             </div>
             <div className="container bot">
                 <span className="records">
-                    <strong>{ records }</strong>
+                    {
+                        isLoading? <ScaleLoader color="#36d7b7" height={"15px"}/> : isError? <span className="isError"><FontAwesomeIcon icon={["fas", "exclamation-circle"]} /> Error!</span> : <strong>{ records }</strong>
+                    }
                     <p>Records</p>
                 </span>
                 <ManageBtn onClick={() => setTimeout(() => navigate(path), 400) }>
@@ -145,7 +151,11 @@ const Folder = styled(FCFolder)`
         width: 90%;
         height: fit-content;
         font-size: 12px;
-        color: ${({theme}) => theme.textColor.strong}
+        color: ${({theme}) => theme.textColor.strong};
+
+        .isError {
+            color: ${({theme}) => theme.staticColor.delete};
+        }
     }
 
     & .bot .records strong {
@@ -161,6 +171,12 @@ const Folder = styled(FCFolder)`
 `;
 
 const Information: React.FC = () => {
+    const {
+        members,
+        ministry,
+        organizations
+    } = useGetRecordsCount();
+
     return (
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -173,17 +189,17 @@ const Information: React.FC = () => {
             <RouteContentBaseBody>
                 <FolderContainer>
                     <FolderBase>
-                        <Folder name='Members' icon={<FontAwesomeIcon icon={["fas", "users"]} />} records={0} path="members" />
+                        <Folder isError={members.isError} isLoading={members.isLoading} name='Members' icon={<FontAwesomeIcon icon={["fas", "users"]} />} records={members.count} path="members" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={0} path="ministry" />
+                        <Folder isError={ministry.isError} isLoading={ministry.isLoading} name='Ministry' icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} records={ministry.count} path="ministry" />
                     </FolderBase>
                     <FolderBase>
-                        <Folder name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={0} path="organizations" />
+                        <Folder isError={organizations.isError} isLoading={organizations.isLoading} name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={organizations.count} path="organizations" />
                     </FolderBase>
-                    <FolderBase>
+                    {/* <FolderBase>
                         <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={0} path="families" />
-                    </FolderBase>
+                    </FolderBase> */}
                 </FolderContainer>
             </RouteContentBaseBody>
         </RouteContentBase>

@@ -19,7 +19,7 @@ const FCSkeletonLoading: React.FC<ISkeleton> = ({className, round, width, height
 }
 
 const SkeletonLoading = styled(FCSkeletonLoading)`
-    flex: 1;
+    flex: 0 1 100%;
 `
 
 export default SkeletonLoading;

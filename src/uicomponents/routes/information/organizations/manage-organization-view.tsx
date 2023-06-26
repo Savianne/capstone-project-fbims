@@ -10,11 +10,13 @@ import GoBackBtn from "../../../GoBackBtn";
 import Button from "../../../reusables/Buttons/Button";
 import Avatar from "../../../reusables/Avatar";
 import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
-import Input from "../../../reusables/Inputs/Input";
-import AddMinistryMemberSearchComp from "../../../search/AddMinistryMemberSearchComponent";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
-import useGetMinistryInfo from "../../../../API/hooks/useGetMinistryInfo";
-import useGetMinistryMembers from "../../../../API/hooks/useGetMinistryMembers";
+import Input from "../../../reusables/Inputs/Input";
+
+import useGetOrganizationInfo from "../../../../API/hooks/useGetOrganizationInfo";
+import useGetOrganizatioMembers from "../../../../API/hooks/useGetOrganizationMembers";
+import AddOrganizationMemberSearchComp from "../../../search/AddOrganizationMembersSearchComponent";
+
 import { IStyledFC } from "../../../IStyledFC";
 
 interface IMember {
@@ -79,8 +81,8 @@ const ContentWraper = styled.div`
     .tab-toggle {
         display: flex;
         flex: 0 1 100%;
-        align-items: center;
         padding: 20px 0;
+        align-items: center;
     }
 
     .tab-content {
@@ -93,34 +95,24 @@ const ContentWraper = styled.div`
             flex-wrap: wrap;
             gap: 10px;
         }
-
     }
 `;
 
-const ManageMinistryView: React.FC = () => {
-    const { ministryUID } = useParams();
-    const {data:ministryMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList} = useGetMinistryMembers(ministryUID as string);
-    const {data, isLoading, isError, isUpdating, error} = useGetMinistryInfo(ministryUID as string);
-
+const ManageOrganizationView: React.FC = () => {
+    const { orgUID } = useParams();
+    const {data:organizationMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList} = useGetOrganizatioMembers(orgUID as string);
+    const {data, isLoading, isError, isUpdating, error} = useGetOrganizationInfo(orgUID as string);
     const [addMemberState, setAddMemberState] = React.useState(false);
-
-
-    React.useEffect(() => {
-        console.log(data)
-    }, [data]);
-    React.useEffect(() => {
-        console.log(ministryUID)
-    }, [ministryUID])
     return (
         <RouteContentBase>
             {
-                addMemberState && <AddMinistryMemberSearchComp close={() => setAddMemberState(!addMemberState)} ministryUID={ministryUID as string} />
+                addMemberState && <AddOrganizationMemberSearchComp close={() => setAddMemberState(!addMemberState)} organizationUID={orgUID as string} />
             }
             <RouteContentBaseHeader>
-                <strong>Manage {data?.ministryName} </strong>
+                <strong>Manage {data?.organizationName} </strong>
                 <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                 <SiteMap>
-                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> ministry</Link> / <Link to='./'>{ministryUID}</Link>
+                    /information/organization/ {orgUID as string}
                 </SiteMap>
                 <GoBackBtn />
             </RouteContentBaseHeader>
@@ -131,7 +123,7 @@ const ManageMinistryView: React.FC = () => {
                             <Avatar size="140px " src={`${AVATAR_BASE_URL}/${data?.avatar}`} alt="A" />
                         </div>
                         <div className="group-info">
-                            <h1>{data?.ministryName}</h1>
+                            <h1>{data?.organizationName}</h1>
                             <p>{data?.description}</p>
                         </div>
                         <div className="button-group">
@@ -140,12 +132,12 @@ const ManageMinistryView: React.FC = () => {
                         </div>
                     </header>
                     <div className="tab-toggle">
-                        <MembersListTabToggle membersTotal={543} isActive />
-                        <Addmemberbtn onClick={() => setAddMemberState(!addMemberState)} />
+                        <MembersListTabToggle membersTotal={543} isActive={false} />
+                        <Addmemberbtn onClick={() => setAddMemberState(true)} />
                     </div>
                     <div className="tab-content">
                         {
-                            ministryMembers && <MembersList list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                            organizationMembers && <MembersList list={[...organizationMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
                         }
                         {
                             iseLoadingMembers && <>
@@ -350,4 +342,4 @@ const Addmemberbtn = styled(FCAddMembersBtn)`
     }
 `;
 
-export default ManageMinistryView;
+export default ManageOrganizationView;

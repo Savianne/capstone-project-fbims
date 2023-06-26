@@ -3,7 +3,7 @@ import io  from "socket.io-client";
 import getOrganizationMembers from "../getOrganizationMembers";
 import { TOrganizationMembersData } from "../getOrganizationMembers";
 
-function useGetOrganizatioMembers(ministryUID: string) {
+function useGetOrganizatioMembers(orgUID: string) {
     const [isLoading, setIsLoading] = React.useState(true);
     const [isError, setIsError] = React.useState(false);
     const [error, setError] = React.useState<null | any>(null);
@@ -11,7 +11,7 @@ function useGetOrganizatioMembers(ministryUID: string) {
     const [data, setData] = React.useState<null | TOrganizationMembersData[]>(null);
 
     React.useEffect(() => {
-        getOrganizationMembers(ministryUID)
+        getOrganizationMembers(orgUID)
         .then(response => {
             if(response.success) {
                 setIsLoading(false);
@@ -27,9 +27,9 @@ function useGetOrganizatioMembers(ministryUID: string) {
         
         const socket = io('http://localhost:3008');
 
-        socket.on(`ADDED_NEW_MEMBER_TO${ministryUID}`, () => {
+        socket.on(`ADDED_NEW_ORGANIZATION_MEMBER_TO${orgUID}`, () => {
             setIsUpdating(true);
-            getOrganizationMembers(ministryUID)
+            getOrganizationMembers(orgUID)
             .then(response => {
                 if(response.success) {
                     setIsUpdating(false);
@@ -44,9 +44,9 @@ function useGetOrganizatioMembers(ministryUID: string) {
             });
         });
 
-        socket.on(`DELETED_MEMBER_FROM_${ministryUID}`, () => {
+        socket.on(`DELETED_ORGANIZATION_MEMBER_FROM_${orgUID}`, () => {
             setIsUpdating(true);
-            getOrganizationMembers(ministryUID)
+            getOrganizationMembers(orgUID)
             .then(response => {
                 if(response.success) {
                     setIsUpdating(false);

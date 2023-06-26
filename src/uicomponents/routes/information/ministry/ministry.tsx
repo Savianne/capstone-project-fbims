@@ -10,6 +10,7 @@ import SiteMap from "../../SiteMap";
 import Modal from "../../../reusables/Modal";
 import AvatarUploader from "../../../reusables/AvatarUploader/AvatarUploader";
 import GroupList, { GroupListItem, MinistryListItem } from "../GroupList";
+import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";
 import AddMinistryForm from "./addMinistryModalView";
@@ -98,6 +99,15 @@ const Ministry: React.FC = () => {
                                     <MinistryListItem avatar={group.avatar? `${AVATAR_BASE_URL}/${group.avatar}` : null} groupName={group.ministryName} groupUID={group.ministryUID} />
                                 )
                             })
+                        }
+                        {
+                            isLoading && <>
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                            </>
                         }
                     </GroupList>
                 </ContentWraper>

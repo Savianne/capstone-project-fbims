@@ -14,6 +14,7 @@ import Modal from "../../../reusables/Modal";
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";
 import GroupList from "../GroupList";
+import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
 import { OrgaizationListItem } from "../GroupList";
 
@@ -102,6 +103,15 @@ const Organizations: React.FC = () => {
                                     <OrgaizationListItem avatar={group.avatar? `${AVATAR_BASE_URL}/${group.avatar}` : null} groupName={group.organizationName} groupUID={group.organizationUID} />
                                 )
                             })
+                        }
+                        {
+                            isLoading && <>
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                            </>
                         }
                     </GroupList>
                 </ContentWraper>

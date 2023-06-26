@@ -27,7 +27,7 @@ function useGetMinistryMembers(ministryUID: string) {
         
         const socket = io('http://localhost:3008');
 
-        socket.on(`ADDED_NEW_MEMBER_TO${ministryUID}`, () => {
+        socket.on(`ADDED_NEW_MINISTRY_MEMBER_TO${ministryUID}`, () => {
             setIsUpdating(true);
             getMinistryMembers(ministryUID)
             .then(response => {
@@ -44,7 +44,7 @@ function useGetMinistryMembers(ministryUID: string) {
             });
         });
 
-        socket.on(`DELETED_MEMBER_FROM_${ministryUID}`, () => {
+        socket.on(`DELETED_MINISTRY_MEMBER_FROM_${ministryUID}`, () => {
             setIsUpdating(true);
             getMinistryMembers(ministryUID)
             .then(response => {

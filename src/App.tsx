@@ -48,6 +48,7 @@ import Organizations from './uicomponents/routes/information/organizations/organ
 import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-new-ministry-form';
 import Calendar from './uicomponents/routes/calendar/Calendar';
 import ManageMinistryView from './uicomponents/routes/information/ministry/manage-ministry-view';
+import ManageOrganizationView from './uicomponents/routes/information/organizations/manage-organization-view';
 
 function App() {
   const admin = useAppSelector(state => state.setAdmin.admin);
@@ -96,7 +97,10 @@ function App() {
                       <Route path="/app/information/ministry/:ministryUID" element={<ManageMinistryView />} />
                       {/* <Route path='add-ministry' element={<AddNewMinistryForm />} /> */}
                     </Route>
-                    <Route path='organizations' element={<Organizations />} />
+                    <Route path='organizations'>
+                      <Route index element={<Organizations />} />
+                      <Route path="/app/information/organizations/:orgUID" element={<ManageOrganizationView />} />
+                    </Route>
                   </Route>
                   <Route path='attendance'>
                     {/* <Route index element={<QRScanner />} /> */}

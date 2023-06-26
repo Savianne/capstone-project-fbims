@@ -8,7 +8,9 @@ export type TMinistryMembersData = {
     middleName: string,
     surname: string,
     extName: string | null,
-    avatar: string | null
+    avatar: string | null,
+    gender: string,
+    dateOfBirth: string
 }
 
 const getMinistryMembers = (ministryUID: string) : Promise<TResponseFlag<TMinistryMembersData[]>> => {

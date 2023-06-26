@@ -15,6 +15,7 @@ import deleteMembersRecord from "../../../../API/deleteMembersRecord";
 
 import { DeleteModalContextProvider, TConfirmDeleteFunction } from "../../../reusables/DeleteModal/DeleteModalContext";
 import { resolve } from "path";
+import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
 
 interface IMinisty {
     name: string,
@@ -194,7 +195,7 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                                 return (
                                 <tr>
                                     <td cell-name="fullname">{item.first_name.toLocaleUpperCase()} {item.middle_name[0].toLocaleUpperCase()}. {item.surname.toLocaleUpperCase()}</td>
-                                    <td cell-name="avatar"><Avatar size='30px' src={item.avatar} alt={item.first_name} /></td>
+                                    <td cell-name="avatar"><Avatar size='30px' src={item.avatar? `${AVATAR_BASE_URL}/${item.avatar}` : null} alt={item.first_name} /></td>
                                     <td cell-name="created-by">{item.added_by.toLocaleUpperCase()}</td>
                                     <td cell-name="creation-time">{new Date(item.creation_time).toDateString()}</td>
                                     <td cell-name="action">

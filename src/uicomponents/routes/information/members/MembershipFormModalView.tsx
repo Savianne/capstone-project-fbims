@@ -176,6 +176,26 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         }
     });
 
+    const [homeContactInfoForm, homeContactInfoFormDispatchers] = useFormControl({
+        email: {
+            required: false,
+            errorText: 'Invalid Entry',
+            validateAs: 'email'
+        },
+        cpNumber: {
+            required: false,
+            errorText: 'Invalid Entry',
+            validateAs: "number",
+            validators: [validatePHNumber]
+        },
+        telephoneNumber: {
+            required: false,
+            errorText: 'Invalid Entry',
+            validateAs: "number",
+            validators: [validatePHTelephone]
+        },
+    })
+
     const [permanentAddressForm, permanentAddressFormValueDispatchers] = useFormControl({
         region: {
             required: true,
@@ -267,13 +287,15 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
 
     React.useEffect(() => {
         const personalInfoReady = form.isReady;
+        const homeContactInfoReady = homeContactInfoForm.isReady;
         const permanentAddressReady = sameAsCurrentAddress? true : (outsidePHPermanetAddress? outsidePHPermanentAdressForm.isReady : permanentAddressForm.isReady);
         const currentAddressReady = sameAsPermanetAddress? true : (outsidePHCurrentAddress? outsidePHCurrentAdressForm.isReady : currentAddressForm.isReady);
         const dateOfBaptismReady = !isBaptised? true : dateOfBaptismForm.isReady;
 
-        (personalInfoReady && permanentAddressReady && currentAddressReady && dateOfBaptismReady)? updateFormIsReadyState(true) : updateFormIsReadyState(false);
+        (personalInfoReady && homeContactInfoReady && permanentAddressReady && currentAddressReady && dateOfBaptismReady)? updateFormIsReadyState(true) : updateFormIsReadyState(false);
 
     }, [
+        homeContactInfoForm.isReady,
         form.isReady, 
         permanentAddressForm.isReady, 
         currentAddressForm.isReady,  
@@ -325,6 +347,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         if(addRecordTransactionFlag) {
             addRecordTransactionFlag.querySuccess? (() => {
                 form.clear();
+                homeContactInfoForm.clear();
                 setDob(null);
                 setDoBap(null);
                 dateOfBaptismForm.clear();
@@ -376,7 +399,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                         <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
                         <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
                         <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
-                        <Select disabled={isLoading} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
+                        <Select disabled={isLoading} value={form.values.extName as string} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
                             <Option value="">Please select</Option>
                             <Option value="jr">JR</Option>
                             <Option value="sr">SR</Option>
@@ -610,14 +633,27 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         <strong className="information-category-title">Contact Information</strong>
         <div className="data-category contact-group">
             <span className="data-category-title-container">
-                <FontAwesomeIcon icon={["fas", "map-location-dot"]} />
-                <p>Contact</p>
+                <FontAwesomeIcon icon={["fas", "user"]} />
+                <p>Contact (Personal)</p>
             </span>
             <Devider $orientation="vertical" $css="margin: 0 5px" />
             <div className="input-category-group">
                 <IconInput disabled={isLoading} value={form.values.email as string} type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
                 <PHCPNumberInput disabled={isLoading} value={form.values.cpNumber as string} placeholder="Mobile Number" error={form.errors.cpNumber} onChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
-                <PHTelNumberInput disabled={isLoading} value={form.values.telephoneNumber as string} placeholder="Mobile Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                <PHTelNumberInput disabled={isLoading} value={form.values.telephoneNumber as string} placeholder="Telephone Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
+            </div>
+        </div>
+        <div className="data-category contact-group">
+            <span className="data-category-title-container">
+                <FontAwesomeIcon icon={["fas", "home"]} />
+                <p>Contact (Home)</p>
+            </span>
+            <Devider $orientation="vertical" $css="margin: 0 5px" />
+            <div className="input-category-group">
+                <IconInput disabled={isLoading} value={homeContactInfoForm.values.email as string} type="email" placeholder="Email Address" error={homeContactInfoForm.errors.email} onValChange={(e) => homeContactInfoFormDispatchers?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                <PHCPNumberInput disabled={isLoading} value={homeContactInfoForm.values.cpNumber as string} placeholder="Mobile Number" error={homeContactInfoForm.errors.cpNumber} onChange={(e) => homeContactInfoFormDispatchers?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                <PHTelNumberInput disabled={isLoading} value={homeContactInfoForm.values.telephoneNumber as string} placeholder="Telephone Number" error={homeContactInfoForm.errors.telephoneNumber} onChange={(e) => homeContactInfoFormDispatchers?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
                 {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
             </div>
         </div>
@@ -642,6 +678,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         <div className="submit-button-container">
             <Button disabled={isLoading} label="Clear Form" variant="standard" color="theme" onClick={(e) => {
                 form.clear();
+                homeContactInfoForm.clear();
                 setDob(null);
                 setDoBap(null);
                 dateOfBaptismForm.clear();
@@ -721,6 +758,11 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                         cpNumber: form.values.cpNumber? form.values.cpNumber : null,
                         telephoneNumber: form.values.telephoneNumber? form.values.telephoneNumber : null,
                     }, 
+                    homeContactInformation: {
+                        email: homeContactInfoForm.values.email? homeContactInfoForm.values.email : null,
+                        cpNumber: homeContactInfoForm.values.cpNumber? homeContactInfoForm.values.cpNumber : null,
+                        telephoneNumber: homeContactInfoForm.values.telephoneNumber? homeContactInfoForm.values.telephoneNumber : null,
+                    }, 
                     currentAddress: currentAddressData,
                     permanentAddress: permanentAddressData,
                     baptismInformation: isBaptised? {
@@ -793,7 +835,7 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
     }
     
     & .data-category .data-category-title-container {
-        background-color: ${({theme}) => theme.background.light};
+        /* background-color: ${({theme}) => theme.background.light}; */
         align-items: center;
         justify-content: center;
         flex-direction: column;
@@ -805,48 +847,48 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
     }
 
     & .full-name-group .data-category-title-container {
-        background-color: #019aff33;
+        /* background-color: #019aff33; */
         color: #4bb2f7;
     }
 
     & .birth-date-group .data-category-title-container {
-        background-color: #ffb72f75;
+        /* background-color: #ffb72f75; */
         color: #ffac1f;
     }
 
     & .gender-group .data-category-title-container {
-        background-color: #f696fc52;
+        /* background-color: #f696fc52; */
         color: #ee3ff9;
     }
 
     & .marital-status-group .data-category-title-container {
-        background-color: #fd151547;
+        /* background-color: #fd151547; */
         color: #f74a4a;
     }
 
     & .address-group .data-category-title-container,
      & .ministry-group .data-category-title-container {
-        background-color: #2dff7636;
+        /* background-color: #2dff7636; */
         color: #23c703;
     }
 
     & .current-address-group .data-category-title-container {
-        background-color: #0beed930;
+        /* background-color: #0beed930; */
         color: #0beed9;
     }
 
     & .contact-group .data-category-title-container {
-        background-color: #4706a13d;
+        /* background-color: #4706a13d; */
         color: #9245ff;
     }
 
     & .date-of-baptism-group .data-category-title-container {
-        background-color: #8b088a59;
+        /* background-color: #8b088a59; */
         color: #cd28cc;
     }
 
     & .organization-group .data-category-title-container {
-        background-color: #00bcd43d;
+        /* background-color: #00bcd43d; */
         color: #27e7ff;
     }
 

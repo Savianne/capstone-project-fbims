@@ -8,7 +8,9 @@ export type TOrganizationMembersData = {
     middleName: string,
     surname: string,
     extName: string | null,
-    avatar: string | null
+    avatar: string | null,
+    gender: string,
+    dateOfBirth: string
 }
 
 const getOrganizationMembers = (organizationUID: string) : Promise<TResponseFlag<TOrganizationMembersData[]>> => {
