@@ -287,6 +287,7 @@ const Calendar6x7 = styled(FC6x7Calendar)`
     .calendar-toolbar .date-text-area,
     .date-text-area-sm-screen {
         justify-content: center;
+        margin-right: 10px;
         color: ${({theme}) => theme.textColor.strong}
     }
     

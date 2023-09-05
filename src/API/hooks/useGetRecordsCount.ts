@@ -1,7 +1,7 @@
 import React from "react";
 import { io } from "socket.io-client";
 import doRequest from "../doRequest";
-
+import { SOCKETIO_URL } from "../BASE_URL";
 function useGetRecordsCount() {
     const [membersCount, setMembersCount] = React.useState(0);
     const [ministryCount, setMinistryCount] = React.useState(0);
@@ -67,7 +67,7 @@ function useGetRecordsCount() {
             setIsErrorOrgCount(true);
         });
 
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
         socket.on('NEW_MEMBERS_RECORD_ADDED', () => {
             setIsLoadingMembersCount(true);

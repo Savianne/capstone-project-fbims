@@ -1,10 +1,9 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { createPortal } from "react-dom";
 import React, { ReactChildren, ReactElement, useContext } from "react";
 import { IStyledFC } from "../../IStyledFC";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePopper } from 'react-popper';
-import { Boundary } from '@popperjs/core';
 
 // import { Scrollbars } from 'react-custom-scrollbars-2';
 
@@ -25,6 +24,7 @@ export const SelectContext = React.createContext<{selected: string | null, selec
 export interface IFCSelect extends IStyledFC {
     // children: ReactElement[],
     children: any,
+    viewOnly?: boolean,
     placeholder: string,
     value?: string,
     error?: IFormErrorFieldValues | null,
@@ -45,6 +45,7 @@ const FCSelect: React.FC<IFCSelect> = ({className, children, value, placeholder,
 
     const { styles, attributes } = usePopper(referenceElement, popperElement,
         {
+            // placement: "left-end",
             modifiers: [
                 {
                     name: 'preventOverflow',
@@ -225,7 +226,7 @@ export const Option = styled(FCOption)`
     
 `;
 
-const SelectBackdrop = styled.div<{modalWidth: string}>`;
+const SelectBackdrop = styled.div<{modalWidth: string}>`
     position: fixed;
     top: 0;
     left: 0;
@@ -296,10 +297,16 @@ const Select = styled(FCSelect)`
         border-color: ${({theme}) => theme.textColor.disabled};
         color: ${({theme}) => theme.textColor.disabled};
         cursor: not-allowed;
+        opacity: 0.7;
     }
+
     &[disabled='true'] .placeholder {
         color: ${({theme}) => theme.textColor.disabled};
+        opacity: 0.7;
     }
+
+    & ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+
     &[state='onFocus'] .arrow-icon {
         transform: rotate(180deg);
     }
@@ -370,6 +377,12 @@ const Select = styled(FCSelect)`
         font-size: 11px;
         color: ${({theme}) => theme.staticColor.delete}
     }
+
+    /* ${(props) => props.viewOnly? css`
+        border-color: ${({theme}) => theme.textColor.strong};
+        color: ${({theme}) => theme.textColor.strong};
+        cursor: not-allowed;
+    `: ""} */
     /* & .error-toltip {
         position: absolute;
         top: calc(100% + 1px);

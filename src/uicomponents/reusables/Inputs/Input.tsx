@@ -22,7 +22,8 @@ export interface IFCInput extends IStyledFC {
     onValChange: (val: TInputVal) => void,
     label?: string,
     checked?: boolean;
-    autoFocus?: boolean
+    autoFocus?: boolean,
+    viewOnly?: boolean
 }
 
 const CheckboxBase = styled(UseRipple)<{disabled?: boolean}>`
@@ -149,7 +150,7 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, name, value, disab
                     {
                         error? <>
                             <span className="error-toltip">
-                                <InputErrorToltip error={error} />
+                                <InputErrorToltip error={error as IFormErrorFieldValues} />
                             </span>
                         </> : ''
                     }
@@ -241,6 +242,10 @@ const Input = styled(FCInput)`
 
     &, input {
         ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+    }
+
+    &, input {
+        ${(props) => props.viewOnly && css`opacity: 1; cursor: not-allowed;`};
     }
 
     /* & .error-text, */

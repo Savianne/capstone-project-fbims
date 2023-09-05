@@ -110,7 +110,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         firstName: {
             required: true,
             minValLen: 3,
-            maxValLen: 15,
+            maxValLen: 25,
             errorText: 'Invalid Entry',
             validateAs: 'text',
         },

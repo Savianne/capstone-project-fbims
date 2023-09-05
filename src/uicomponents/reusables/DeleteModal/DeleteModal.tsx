@@ -50,12 +50,6 @@ const FCDeleteModal: React.FC<IStyledFC> = ({className}) => {
                         <h2>You are about to delete</h2>
                         <h3>{deleteModalContext?.itemName}</h3>
                         <div className="modal-btn-container">
-                            <Button  
-                            disabled={isDeleting}
-                            color="theme"
-                            onClick={(e) => deleteModalContext?.closeDeleteModal()} 
-                            label="Cancel" />
-                            <Devider $orientation="vertical" />
                             <Button 
                             isLoading={isDeleting}
                             icon={<FontAwesomeIcon icon={["fas", "trash"]} />} 
@@ -69,7 +63,7 @@ const FCDeleteModal: React.FC<IStyledFC> = ({className}) => {
                                     if(res.success) {
                                         updateIsDeleting(false);
                                         deleteModalContext.closeDeleteModal();
-                                        addSnackBar("Member's record deleted!", "default", 5);
+                                        addSnackBar(deleteModalContext.successMessage, "default", 5);
                                     } else throw res
                                 })
                                 .catch(() => {
@@ -78,6 +72,12 @@ const FCDeleteModal: React.FC<IStyledFC> = ({className}) => {
                                 })
                             }} 
                             label="Continue Delete" />
+                            <Devider $orientation="vertical" />
+                            <Button  
+                            disabled={isDeleting}
+                            color="theme"
+                            onClick={(e) => deleteModalContext?.closeDeleteModal()} 
+                            label="Cancel" />
                         </div>
                     </div>
                 </div>

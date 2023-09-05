@@ -97,18 +97,22 @@ const AddMinistryMemberSearchComp: React.FC<IAddMinistryMemberSearchComp> = ({cl
                         <FontAwesomeIcon icon={["fas", "search"]} />
                     </span>
                     <input autoFocus value={searchTerm} placeholder="Search for members" onChange={handleInputChange} />
-                        {
-                            isLoading && <ScaleLoader color="#36d7b7" height={"10px"} style={{marginRight: "5px", width: '60px'}}/>
-                        }
-                    <Button 
-                    onClick={() => {
-                        setSearchTerm("");
-                        isLoading && setIsLoading(false);
-                        if (cancelTokenSource) {
-                            cancelTokenSource.cancel('Operation canceled by the user.');
-                        }
-                        setResults(null);
-                    }} label="" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "times"]} />} />
+                    {
+                        isLoading && <ScaleLoader color="#36d7b7" height={"10px"} style={{marginRight: "5px", width: '60px'}}/>
+                    }
+                    {
+                        searchTerm !== ""? 
+                        <Button 
+                        onClick={() => {
+                            setSearchTerm("");
+                            isLoading && setIsLoading(false);
+                            if (cancelTokenSource) {
+                                cancelTokenSource.cancel('Operation canceled by the user.');
+                            }
+                            setResults(null);
+                        }} label="" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "times"]} />} /> : ""
+                    }
+                    
                     <Devider $variant="center" $orientation="vertical" $flexItem $css="margin-left: 10px;margin-right: 10px;height: 60%"/>
                     <Button onClick={() => close()} label="Cancel" variant="hidden-bg-btn" />
                 </div>
@@ -125,7 +129,7 @@ const AddMinistryMemberSearchComp: React.FC<IAddMinistryMemberSearchComp> = ({cl
                     }
 
                     {
-                        result != null && result.length != 0 && result.map(item => <SearchResultItem item={item} ministryUID={ministryUID} onAddSuccess={() => {
+                        result != null && result.length != 0 && result.map(item => <SearchResultItem key={item.memberUID} item={item} ministryUID={ministryUID} onAddSuccess={() => {
                             const newList = result.map(i => {
                                 return i.memberUID == item.memberUID? {...i, isMember: ministryUID} as ISearchResult : i;
                             });
@@ -148,7 +152,7 @@ const SearchResultItem: React.FC<{item: ISearchResult, ministryUID: string, onAd
     
     return (
         <div key={item.memberUID} className="result-item">
-            <Avatar src={item.avatar? `${AVATAR_BASE_URL}/${item.avatar}` : null} alt={item.name} size="30px" />
+            <Avatar src={item.avatar} alt={item.name} size="30px" />
             <p className="name">{ item.name }</p>
             <div className="btn-area">
                 <Button isLoading={isLoading} label="Add to Ministry" disabled={!!item.isMember} iconButton icon={<FontAwesomeIcon icon={["fas", item.isMember? "check" : "plus"]} />} 

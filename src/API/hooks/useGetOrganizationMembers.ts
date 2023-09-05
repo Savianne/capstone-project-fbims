@@ -2,6 +2,7 @@ import React from "react";
 import io  from "socket.io-client";
 import getOrganizationMembers from "../getOrganizationMembers";
 import { TOrganizationMembersData } from "../getOrganizationMembers";
+import { SOCKETIO_URL } from "../BASE_URL";
 
 function useGetOrganizatioMembers(orgUID: string) {
     const [isLoading, setIsLoading] = React.useState(true);
@@ -25,7 +26,7 @@ function useGetOrganizatioMembers(orgUID: string) {
             setError(error);
         });
         
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
         socket.on(`ADDED_NEW_ORGANIZATION_MEMBER_TO${orgUID}`, () => {
             setIsUpdating(true);

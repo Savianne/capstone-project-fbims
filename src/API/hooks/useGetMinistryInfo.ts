@@ -21,7 +21,7 @@ function useGetMinistryInfo(minstryUId: string) {
             .catch(error => {
                 setIsLoading(false);
                 setIsError(true);
-                setError(error);
+                setError(error.error);
             });
         }
         

@@ -125,7 +125,7 @@ const AddOrganizationMemberSearchComp: React.FC<IAddOrganizationyMemberSearchCom
                     }
 
                     {
-                        result != null && result.length != 0 && result.map(item => <SearchResultItem item={item} organizationUID={organizationUID} onAddSuccess={() => {
+                        result != null && result.length != 0 && result.map(item => <SearchResultItem key={item.memberUID} item={item} organizationUID={organizationUID} onAddSuccess={() => {
                             const newList = result.map(i => {
                                 return i.memberUID == item.memberUID? {...i, isMember: organizationUID} as ISearchResult : i;
                             });
@@ -147,8 +147,8 @@ const SearchResultItem: React.FC<{item: ISearchResult, organizationUID: string, 
     const [isError, setIsError] = React.useState(false);
     
     return (
-        <div key={item.memberUID} className="result-item">
-            <Avatar src={item.avatar? `${AVATAR_BASE_URL}/${item.avatar}` : null} alt={item.name} size="30px" />
+        <div className="result-item">
+            <Avatar src={item.avatar} alt={item.name} size="30px" />
             <p className="name">{ item.name }</p>
             <div className="btn-area">
                 <Button isLoading={isLoading} label="Add to Ministry" disabled={!!item.isMember} iconButton icon={<FontAwesomeIcon icon={["fas", item.isMember? "check" : "plus"]} />} 

@@ -10,6 +10,7 @@ import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import DeleteModal from "../../../reusables/DeleteModal/DeleteModal";
 
 import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
+import { useNavigate } from "react-router-dom";
 
 import deleteMembersRecord from "../../../../API/deleteMembersRecord";
 
@@ -118,6 +119,11 @@ const SMembersTable = styled.table`
 
     & tr td[cell-name=action] {
         width: 120px;
+
+        ${Button} {
+            margin-left: auto;
+            margin-right: auto;
+        }
     }
 
     & tr td[cell-name=action] .action-button-group-container {
@@ -147,8 +153,8 @@ interface IMembersTable {
 }
 
 const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expectedListLen}) => {
+    const navigate = useNavigate();
     const deleteModal = useDeleteModal();
-    const modalCon = React.useContext(DeleteModalContextProvider);
     const [expectedListLenVal, setExpctedListLen] = React.useState<null | number[]>(null);
 
     React.useEffect(() => {
@@ -168,13 +174,13 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                 <th cell-name="avatar">Avatar</th>
                 <th cell-name="created-by">Created By</th>
                 <th cell-name="date-created">Date Created</th>
-                <th>Actions</th>
+                <th>Action</th>
             </tr>
             {
                 isLoading && expectedListLenVal? <>
                 {
                     expectedListLenVal.map((item, id) => {
-                        return <tr className="skeleton-row">
+                        return <tr key={id} className="skeleton-row">
                         <td cell-name="fullname"><SkeletonLoading height="45px" /></td>
                         <td cell-name="avatar"><SkeletonLoading height="45px" /></td>
                         <td cell-name="created-by"><SkeletonLoading height="45px" /></td>
@@ -193,13 +199,13 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                         {
                             membersList.map((item, index) => {
                                 return (
-                                <tr>
+                                <tr key={item.member_uid}>
                                     <td cell-name="fullname">{item.first_name.toLocaleUpperCase()} {item.middle_name[0].toLocaleUpperCase()}. {item.surname.toLocaleUpperCase()}</td>
-                                    <td cell-name="avatar"><Avatar size='30px' src={item.avatar? `${AVATAR_BASE_URL}/${item.avatar}` : null} alt={item.first_name} /></td>
+                                    <td cell-name="avatar"><Avatar size='30px' src={item.avatar} alt={item.first_name} /></td>
                                     <td cell-name="created-by">{item.added_by.toLocaleUpperCase()}</td>
                                     <td cell-name="creation-time">{new Date(item.creation_time).toDateString()}</td>
                                     <td cell-name="action">
-                                        <div className="action-button-group-container">
+                                        {/* <div className="action-button-group-container">
                                             <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton onClick={(e) => alert('cliked')} />
                                             <Devider $orientation="vertical" $variant="center" />
                                             <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton 
@@ -215,8 +221,9 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                                                 })
                                             }} />
                                             <Devider $orientation="vertical" $variant="center"/>
-                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton />
-                                        </div>
+                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton onClick={() => navigate(`/app/information/members/view/${item.member_uid}`)} />
+                                        </div> */}
+                                        <Button label="View profile" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`/app/information/members/view/${item.member_uid}`)} />
                                     </td>
                                 </tr>
                                 )

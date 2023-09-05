@@ -19,6 +19,7 @@ const AddRecordBtn = styled(UseRipple)`
     justify-content: center;
     color: white;
     font-size: 13px;
+    cursor: pointer;
 
     & #ripple {
         background-color: whitesmoke;

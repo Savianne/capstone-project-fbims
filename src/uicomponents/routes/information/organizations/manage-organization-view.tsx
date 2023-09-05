@@ -1,9 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
@@ -12,11 +11,14 @@ import Avatar from "../../../reusables/Avatar";
 import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import Input from "../../../reusables/Inputs/Input";
-
+import UseRipple from "../../../reusables/Ripple/UseRipple";
 import useGetOrganizationInfo from "../../../../API/hooks/useGetOrganizationInfo";
 import useGetOrganizatioMembers from "../../../../API/hooks/useGetOrganizationMembers";
 import AddOrganizationMemberSearchComp from "../../../search/AddOrganizationMembersSearchComponent";
-
+import Menu, {MenuItem, MenuItemIcon, MenuItemLabel } from "../../../reusables/Menu/Menu";
+import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
+import doRequest from "../../../../API/doRequest";
+import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
 import { IStyledFC } from "../../../IStyledFC";
 
 interface IMember {
@@ -26,6 +28,24 @@ interface IMember {
     memberUID: string,
     gender: string
 }
+
+const MenuBtn = styled(UseRipple)`
+    display: flex;
+    width: 23px;
+    height: 23px;
+    border: 1.5px solid ${({theme}) => theme.textColor.strong};
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    color: ${({theme}) => theme.textColor.strong};
+    font-size: 13px;
+    cursor: pointer;
+
+    & #ripple {
+        background-color: whitesmoke;
+    }
+
+`
 
 const ContentWraper = styled.div`
     display: flex;
@@ -37,6 +57,7 @@ const ContentWraper = styled.div`
     justify-content: center;
 
     header {
+        position: relative;
         display: flex;
         align-items: center;
         flex: 0 1 100%;
@@ -66,28 +87,34 @@ const ContentWraper = styled.div`
         font-weight: 600;
     }
 
-    header .button-group {
+    header ${MenuBtn} {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    header .data-total {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
         display: flex;
-        gap: 10px;
         flex-direction: column;
-        width fit-content;
-        height: fit-content;
+        text-align: right;
+        font-size: 16px;
+        line-height: 23px;
+        color: ${({theme}) => theme.textColor.strong};
+        font-weight: 100;
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
     }
 
-    header .button-group ${Button} {
-        width: 100px;
-    }
-
-    .tab-toggle {
+    .list-container {
         display: flex;
         flex: 0 1 100%;
-        padding: 20px 0;
-        align-items: center;
-    }
-
-    .tab-content {
-        display: flex;
-        flex: 0 1 100%;
+        margin-top: 15px;
 
         .skeleton-item {
             display: flex;
@@ -100,9 +127,23 @@ const ContentWraper = styled.div`
 
 const ManageOrganizationView: React.FC = () => {
     const { orgUID } = useParams();
+    const addSnackBar = useAddSnackBar();
+    const navigate = useNavigate();
+    const deleteModal = useDeleteModal();
     const {data:organizationMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList} = useGetOrganizatioMembers(orgUID as string);
     const {data, isLoading, isError, isUpdating, error} = useGetOrganizationInfo(orgUID as string);
     const [addMemberState, setAddMemberState] = React.useState(false);
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+    const open = Boolean(anchorEl);
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
     return (
         <RouteContentBase>
             {
@@ -120,22 +161,74 @@ const ManageOrganizationView: React.FC = () => {
                 <ContentWraper>
                     <header>
                         <div className="avatar-area">
-                            <Avatar size="140px " src={`${AVATAR_BASE_URL}/${data?.avatar}`} alt="A" />
+                            <Avatar size="140px " src={data?.avatar} alt="A" />
                         </div>
                         <div className="group-info">
                             <h1>{data?.organizationName}</h1>
                             <p>{data?.description}</p>
                         </div>
-                        <div className="button-group">
-                            <Button icon={<FontAwesomeIcon icon={["fas", "trash"]} />} label="Delete" color="delete" />
-                            <Button icon={<FontAwesomeIcon icon={["fas", "edit"]} />} label="Edit" color="edit" />
+                        <div className="data-total">
+                            <h1>{organizationMembers?.length}</h1>
+                            <p>{organizationMembers && organizationMembers.length > 1? "Members" : "Member"}</p>
                         </div>
+                        <MenuBtn onClick={handleClick}><FontAwesomeIcon icon={["fas", "ellipsis-h"]} /></MenuBtn>
+                        <Menu
+                        placement="left"
+                        anchorEl={anchorEl} 
+                        open={open} 
+                        onClose={handleClose}>
+                            <MenuItem onClick={() => {
+                                handleClose();
+                                setTimeout(() => {
+                                    setAddMemberState(true);
+                                }, 400)
+                            }}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "plus"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Add Member</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem onClick={() => {
+                                handleClose();
+                                setTimeout(() => {
+                                    deleteModal(
+                                        data?.organizationName as string, 
+                                        `Successfully deleted ${data?.organizationName}`,
+                                        () => new Promise((res, rej) => {
+                                            doRequest<null>({
+                                                method: "delete",
+                                                url: `/delete-organization/${data?.organizationUID}`
+                                            })
+                                            .then(response => {
+                                                res({success: true});
+                                                navigate("/app/information/organizations")
+                                            })
+                                            .catch(err => {
+                                                addSnackBar("Deletion Faild!", "error", 5);
+                                            })
+                                    }))
+                                }, 400)
+                            }}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "trash"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Delete this Ministry</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem onClick={handleClose}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "edit"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Edit Ministry Name</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem onClick={handleClose}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "edit"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Edit Ministry Description</MenuItemLabel>
+                            </MenuItem>
+                        </Menu>
                     </header>
-                    <div className="tab-toggle">
-                        <MembersListTabToggle membersTotal={543} isActive={false} />
-                        <Addmemberbtn onClick={() => setAddMemberState(true)} />
-                    </div>
-                    <div className="tab-content">
+                    <div className="list-container">
                         {
                             organizationMembers && <MembersList list={[...organizationMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
                         }
@@ -157,70 +250,6 @@ const ManageOrganizationView: React.FC = () => {
     )
 }
 
-interface IFCMembersListTabToggle extends IStyledFC {
-    membersTotal: number;
-    isActive: boolean
-}
-
-const FCMembersListTabToggle: React.FC<IFCMembersListTabToggle> = ({className, membersTotal, isActive}) => {
-
-    return (
-        <div className={className}>
-            <span className="bar"></span>
-            <div className="content">
-                <h1>Members List</h1>
-                <span>Total: <h5>{membersTotal}</h5></span>
-            </div>
-        </div>
-    )
-}
-
-const MembersListTabToggle = styled(FCMembersListTabToggle)`
-    display: flex;
-    height: 90px;
-    flex: 0 1 fit-content;
-    min-width: 100px;
-    padding: 5px;
-    border-radius: 5px;
-    align-items: center;
-    color: ${({theme}) => theme.textColor.strong};
-    background-color: ${({theme}) => theme.background.lighter};
-    box-shadow: 0 4px 4px 0 rgba(0,0,0,0.25);
-
-    .bar {
-        display: flex;
-        height: 100%;
-        border-radius: 5px;
-        width: 5px;
-        background-color: ${({theme, isActive}) => isActive? theme.staticColor.primary : theme.staticColor.disabled};;
-    }
-
-    .content {
-        display: flex;
-        flex; 1;
-        flex-wrap: wrap;
-        padding: 15px 0;
-        margin-left: 10px;
-        height: fit-content;
-        font-weight: bold;
-
-        h1 {
-            flex: 0 1 100%;
-            font-size: 25px;
-        }
-
-        span {
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-
-            h5 {
-                font-size: 25px;
-                margin-left: 10px;
-            }
-        }
-    }
-`
 
 interface IFCMembersTable extends IStyledFC {
     list: IMember[] | null,
@@ -245,18 +274,47 @@ interface IFCList extends IStyledFC {
 }
 
 const FCListItem: React.FC<IFCList> = ({className, item}) => {
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
     return (
         <div className={className}>
-            <Avatar alt={item.name} src={item.avatar} size="50px" />
+            <Avatar alt={item.name} src={item.avatar} size="40px" />
             <div className="info">
                 <h1>{item.name}</h1>
-                <span>
+                {/* <span>
                     <strong>Gender: <p>{item.gender}</p></strong>
                     <Devider $orientation="vertical" $flexItem $variant="center" $css="margin: 0 10px; border-width: 2px"/>
                     <strong>Age: <p>{item.age}</p></strong>
-                </span>
+                </span> */}
+                <Button label="More" color="theme" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "ellipsis-h"]} />} onClick={handleClick} />
+                <Menu
+                placement="left"
+                anchorEl={anchorEl} 
+                open={open} 
+                onClose={handleClose}>
+                    <MenuItem onClick={() => {
+                        handleClose()
+                    }}>
+                        <MenuItemIcon>
+                            <FontAwesomeIcon icon={["fas", "user"]} />
+                        </MenuItemIcon>
+                        <MenuItemLabel>View profile</MenuItemLabel>
+                    </MenuItem>
+                    <MenuItem onClick={handleClose}>
+                        <MenuItemIcon>
+                            <FontAwesomeIcon icon={["fas", "user-minus"]} />
+                        </MenuItemIcon>
+                        <MenuItemLabel>Remove to Ministry</MenuItemLabel>
+                    </MenuItem>
+                </Menu>
             </div>
-            <Button label="Remove" color="delete" variant="hidden-bg-btn" onClick={() => alert(item.memberUID)} />
         </div>
     )
 } 
@@ -264,7 +322,7 @@ const FCListItem: React.FC<IFCList> = ({className, item}) => {
 const ListItem = styled(FCListItem)`
     display: flex;
     flex: 0 1 100%;
-    height: 70px;
+    height: 50px;
     padding: 10px;
     align-items: center;
     border-radius: 5px;
@@ -273,18 +331,18 @@ const ListItem = styled(FCListItem)`
     .info {
         display: flex;
         flex: 1;
-        flex-wrap: wrap;
+        /* flex-wrap: wrap; */
         height: fit-content;
         margin-left: 15px;
         color:  ${({theme}) => theme.textColor.strong};
 
         h1 {
             flex: 0 1 100%;
-            font-size: 20px;
-            font-weight: 300;
+            font-size: 15px;
+            /* font-weight: 300; */
         }
 
-        span {
+        /* span {
             display: flex;
             align-items: center;
             height: 15px;
@@ -301,7 +359,7 @@ const ListItem = styled(FCListItem)`
                     font-weight: 200;
                 }
             }
-        }
+        } */
     }
 
     ${Button} {
@@ -315,31 +373,6 @@ const MembersList = styled(FCMembersList)`
     flex: 0 1 100%;
     flex-wrap: wrap;
     gap: 10px;
-`;
-
-interface IAddMemberBtn extends IStyledFC {
-    onClick: () => void
-}
-
-const FCAddMembersBtn: React.FC<IAddMemberBtn> = ({className, onClick}) => {
-
-    return (
-        <div className={className}>
-            <Button onClick={() => onClick()} iconButton icon={<FontAwesomeIcon icon={['fas', "plus"]} />} label="" variant="hidden-bg-btn" color="primary" />
-        </div>
-    )
-}
-
-const Addmemberbtn = styled(FCAddMembersBtn)`
-    width: fit-content;
-    height: fit-content;
-    margin: 0 10px;
-
-    ${Button} {
-        height: 50px;
-        width: 50px;
-        font-size: 30px;
-    }
 `;
 
 export default ManageOrganizationView;

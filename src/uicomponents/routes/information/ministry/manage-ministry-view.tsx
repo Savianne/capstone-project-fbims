@@ -1,9 +1,9 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import React from "react";
 import styled from "styled-components";
+import ScaleLoader from "react-spinners/ScaleLoader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
-import { useParams } from "react-router-dom";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
@@ -15,7 +15,14 @@ import AddMinistryMemberSearchComp from "../../../search/AddMinistryMemberSearch
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import useGetMinistryInfo from "../../../../API/hooks/useGetMinistryInfo";
 import useGetMinistryMembers from "../../../../API/hooks/useGetMinistryMembers";
+import UseRipple from "../../../reusables/Ripple/UseRipple";
 import { IStyledFC } from "../../../IStyledFC";
+import doRequest from "../../../../API/doRequest";
+import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
+import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
+import ConfirmModal from "../../../reusables/ConfirmModal/ConfirmModal";
+import Menu, { MenuItem, MenuItemIcon, MenuItemLabel } from "../../../reusables/Menu/Menu";
+import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
 
 interface IMember {
     name: string,
@@ -24,6 +31,24 @@ interface IMember {
     memberUID: string,
     gender: string
 }
+
+const MenuBtn = styled(UseRipple)`
+    display: flex;
+    width: 23px;
+    height: 23px;
+    border: 1.5px solid ${({theme}) => theme.textColor.strong};
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    color: ${({theme}) => theme.textColor.strong};
+    font-size: 13px;
+    cursor: pointer;
+
+    & #ripple {
+        background-color: whitesmoke;
+    }
+
+`
 
 const ContentWraper = styled.div`
     display: flex;
@@ -35,6 +60,7 @@ const ContentWraper = styled.div`
     justify-content: center;
 
     header {
+        position: relative;
         display: flex;
         align-items: center;
         flex: 0 1 100%;
@@ -64,28 +90,34 @@ const ContentWraper = styled.div`
         font-weight: 600;
     }
 
-    header .button-group {
+    header ${MenuBtn} {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    header .data-total {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
         display: flex;
-        gap: 10px;
         flex-direction: column;
-        width fit-content;
-        height: fit-content;
+        text-align: right;
+        font-size: 16px;
+        line-height: 23px;
+        color: ${({theme}) => theme.textColor.strong};
+        font-weight: 100;
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
     }
 
-    header .button-group ${Button} {
-        width: 100px;
-    }
-
-    .tab-toggle {
+    .list-container {
         display: flex;
         flex: 0 1 100%;
-        align-items: center;
-        padding: 20px 0;
-    }
-
-    .tab-content {
-        display: flex;
-        flex: 0 1 100%;
+        margin-top: 15px;
 
         .skeleton-item {
             display: flex;
@@ -98,20 +130,27 @@ const ContentWraper = styled.div`
 `;
 
 const ManageMinistryView: React.FC = () => {
+    const addSnackBar = useAddSnackBar();
+    const navigate = useNavigate();
     const { ministryUID } = useParams();
-    const {data:ministryMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList} = useGetMinistryMembers(ministryUID as string);
+    const deleteModal = useDeleteModal();
+    const {data:ministryMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList, setData} = useGetMinistryMembers(ministryUID as string);
     const {data, isLoading, isError, isUpdating, error} = useGetMinistryInfo(ministryUID as string);
 
     const [addMemberState, setAddMemberState] = React.useState(false);
 
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
-    React.useEffect(() => {
-        console.log(data)
-    }, [data]);
-    React.useEffect(() => {
-        console.log(ministryUID)
-    }, [ministryUID])
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
     return (
+        !isError?
         <RouteContentBase>
             {
                 addMemberState && <AddMinistryMemberSearchComp close={() => setAddMemberState(!addMemberState)} ministryUID={ministryUID as string} />
@@ -128,24 +167,78 @@ const ManageMinistryView: React.FC = () => {
                 <ContentWraper>
                     <header>
                         <div className="avatar-area">
-                            <Avatar size="140px " src={`${AVATAR_BASE_URL}/${data?.avatar}`} alt="A" />
+                            <Avatar size="140px " src={data?.avatar} alt="A" />
                         </div>
                         <div className="group-info">
                             <h1>{data?.ministryName}</h1>
                             <p>{data?.description}</p>
                         </div>
-                        <div className="button-group">
-                            <Button icon={<FontAwesomeIcon icon={["fas", "trash"]} />} label="Delete" color="delete" />
-                            <Button icon={<FontAwesomeIcon icon={["fas", "edit"]} />} label="Edit" color="edit" />
+                        <div className="data-total">
+                            <h1>{ministryMembers?.length}</h1>
+                            <p>{ministryMembers && ministryMembers.length > 1? "Members" : "Member"}</p>
                         </div>
+                        <MenuBtn onClick={handleClick}><FontAwesomeIcon icon={["fas", "ellipsis-h"]} /></MenuBtn>
+                        <Menu
+                        placement="left"
+                        anchorEl={anchorEl} 
+                        open={open} 
+                        onClose={handleClose}>
+                            <MenuItem onClick={() => {
+                                handleClose();
+                                setTimeout(() => {
+                                    setAddMemberState(true);
+                                }, 400)
+                            }}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "plus"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Add Member</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem onClick={() => {
+                                handleClose();
+                                setTimeout(() => {
+                                    deleteModal(
+                                        data?.ministryName as string, 
+                                        `Successfully deleted ${data?.ministryName}`,
+                                        () => new Promise((res, rej) => {
+                                            doRequest<null>({
+                                                method: "delete",
+                                                url: `/delete-ministry/${data?.ministryUID}`
+                                            })
+                                            .then(response => {
+                                                res({success: true});
+                                                navigate("/app/information/ministry")
+                                            })
+                                            .catch(err => {
+                                                addSnackBar("Deletion Faild!", "error", 5);
+                                            })
+                                    }))
+                                }, 400)
+                            }}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "trash"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Delete this Ministry</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem onClick={handleClose}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "edit"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Edit Ministry Name</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem onClick={handleClose}>
+                                <MenuItemIcon>
+                                    <FontAwesomeIcon icon={["fas", "edit"]} />
+                                </MenuItemIcon>
+                                <MenuItemLabel>Edit Ministry Description</MenuItemLabel>
+                            </MenuItem>
+                        </Menu>
                     </header>
-                    <div className="tab-toggle">
-                        <MembersListTabToggle membersTotal={543} isActive />
-                        <Addmemberbtn onClick={() => setAddMemberState(!addMemberState)} />
-                    </div>
-                    <div className="tab-content">
+                    <div className="list-container">
                         {
-                            ministryMembers && <MembersList list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                            ministryMembers && data?.ministryUID && <MembersList remove={(memberUID) => {
+                                setData(ministryMembers.filter(item => item.memberUID !== memberUID))
+                            }} ministryUID={data.ministryUID} list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
                         }
                         {
                             iseLoadingMembers && <>
@@ -162,86 +255,25 @@ const ManageMinistryView: React.FC = () => {
                 </ContentWraper>
             </RouteContentBaseBody>
         </RouteContentBase>
+        : <h1>{error}</h1>
     )
 }
 
-interface IFCMembersListTabToggle extends IStyledFC {
-    membersTotal: number;
-    isActive: boolean
-}
-
-const FCMembersListTabToggle: React.FC<IFCMembersListTabToggle> = ({className, membersTotal, isActive}) => {
-
-    return (
-        <div className={className}>
-            <span className="bar"></span>
-            <div className="content">
-                <h1>Members List</h1>
-                <span>Total: <h5>{membersTotal}</h5></span>
-            </div>
-        </div>
-    )
-}
-
-const MembersListTabToggle = styled(FCMembersListTabToggle)`
-    display: flex;
-    height: 90px;
-    flex: 0 1 fit-content;
-    min-width: 100px;
-    padding: 5px;
-    border-radius: 5px;
-    align-items: center;
-    color: ${({theme}) => theme.textColor.strong};
-    background-color: ${({theme}) => theme.background.lighter};
-    box-shadow: 0 4px 4px 0 rgba(0,0,0,0.25);
-
-    .bar {
-        display: flex;
-        height: 100%;
-        border-radius: 5px;
-        width: 5px;
-        background-color: ${({theme, isActive}) => isActive? theme.staticColor.primary : theme.staticColor.disabled};;
-    }
-
-    .content {
-        display: flex;
-        flex; 1;
-        flex-wrap: wrap;
-        padding: 15px 0;
-        margin-left: 10px;
-        height: fit-content;
-        font-weight: bold;
-
-        h1 {
-            flex: 0 1 100%;
-            font-size: 25px;
-        }
-
-        span {
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-
-            h5 {
-                font-size: 25px;
-                margin-left: 10px;
-            }
-        }
-    }
-`
 
 interface IFCMembersTable extends IStyledFC {
     list: IMember[] | null,
+    ministryUID: string,
+    remove: (memberUID: string) => void
 } 
 
 
-const FCMembersList: React.FC<IFCMembersTable> = ({className, list}) => {
+const FCMembersList: React.FC<IFCMembersTable> = ({className, list, ministryUID, remove}) => {
 
     return (
         <div className={className}>
             {
                 list && list.map(item => {
-                    return <ListItem item={item} />
+                    return <ListItem key={item.memberUID} remove={(memberUID) => remove(memberUID)} item={item} ministryUID={ministryUID} />
                 })
             }
         </div>
@@ -249,22 +281,83 @@ const FCMembersList: React.FC<IFCMembersTable> = ({className, list}) => {
 }
 
 interface IFCList extends IStyledFC {
-    item: IMember
+    item: IMember,
+    ministryUID: string,
+    remove: (memberUID: string) => void
 }
 
-const FCListItem: React.FC<IFCList> = ({className, item}) => {
+const FCListItem: React.FC<IFCList> = ({className, item, ministryUID, remove}) => {
+    const {modal, confirm} = useConfirmModal();
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [itemOnRemove, setItemOnRemove] = React.useState(false);
+    const itemComponentRef = React.useRef<null | HTMLDivElement>(null);
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    React.useEffect(() => {
+        if(itemOnRemove) {
+            itemComponentRef.current?.setAttribute('ondelete', 'true');
+            doRequest({
+                method: 'delete',
+                url: "/remove-ministry-member",
+                data: {
+                    ministryUID: ministryUID,
+                    memberUID: item.memberUID
+                }
+            })
+            .then(response => {
+                remove(item.memberUID);
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        } else {
+            itemComponentRef.current?.removeAttribute('ondelete');
+        }
+    }, [itemOnRemove])    
     return (
-        <div className={className}>
-            <Avatar alt={item.name} src={item.avatar} size="50px" />
+        <div className={className} ref={itemComponentRef}>
+            <ConfirmModal context={modal} variant={"warning"} />
+            <Avatar alt={item.name} src={item.avatar} size="40px" />
             <div className="info">
                 <h1>{item.name}</h1>
-                <span>
-                    <strong>Gender: <p>{item.gender}</p></strong>
-                    <Devider $orientation="vertical" $flexItem $variant="center" $css="margin: 0 10px; border-width: 2px"/>
-                    <strong>Age: <p>{item.age}</p></strong>
-                </span>
             </div>
-            <Button label="Remove" color="delete" variant="hidden-bg-btn" onClick={() => alert(item.memberUID)} />
+            {
+                itemOnRemove? <ScaleLoader color="#36d7b7" height={"20px"}/> : 
+                <Button label="More" color="theme" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "ellipsis-h"]} />} onClick={handleClick} />
+            }
+            <Menu
+            placement="left"
+            anchorEl={anchorEl} 
+            open={open} 
+            onClose={handleClose}>
+                <MenuItem onClick={() => {
+                    handleClose()
+                }}>
+                    <MenuItemIcon>
+                        <FontAwesomeIcon icon={["fas", "user"]} />
+                    </MenuItemIcon>
+                    <MenuItemLabel>View profile</MenuItemLabel>
+                </MenuItem>
+                <MenuItem onClick={() => {
+                    handleClose();
+                    setTimeout(() => {
+                        confirm("Remove Member", `Are you sure you want to remove ${item.name} to this Ministry?`, () => {
+                            setItemOnRemove(true);
+                        })
+                    }, 300)
+                }}>
+                    <MenuItemIcon>
+                        <FontAwesomeIcon icon={["fas", "user-minus"]} />
+                    </MenuItemIcon>
+                    <MenuItemLabel>Remove to Ministry</MenuItemLabel>
+                </MenuItem>
+            </Menu>
         </div>
     )
 } 
@@ -272,27 +365,31 @@ const FCListItem: React.FC<IFCList> = ({className, item}) => {
 const ListItem = styled(FCListItem)`
     display: flex;
     flex: 0 1 100%;
-    height: 70px;
+    height: 50px;
     padding: 10px;
     align-items: center;
     border-radius: 5px;
     background-color: ${({theme}) => theme.background.lighter};
     
+    &[ondelete='true'] {
+        opacity: 0.3;
+    }
+
     .info {
         display: flex;
         flex: 1;
-        flex-wrap: wrap;
+        /* flex-wrap: wrap; */
         height: fit-content;
         margin-left: 15px;
         color:  ${({theme}) => theme.textColor.strong};
 
         h1 {
             flex: 0 1 100%;
-            font-size: 20px;
-            font-weight: 300;
+            font-size: 15px;
+            /* font-weight: bold; */
         }
 
-        span {
+        /* span {
             display: flex;
             align-items: center;
             height: 15px;
@@ -302,14 +399,14 @@ const ListItem = styled(FCListItem)`
                 display: flex;
                 align-items: center;
                 font-weight: 600;
-                font-size: 15px;
+                font-size: 13px;
 
                 p {
                     margin-left: 10px;
                     font-weight: 200;
                 }
             }
-        }
+        } */
     }
 
     ${Button} {
@@ -325,29 +422,5 @@ const MembersList = styled(FCMembersList)`
     gap: 10px;
 `;
 
-interface IAddMemberBtn extends IStyledFC {
-    onClick: () => void
-}
-
-const FCAddMembersBtn: React.FC<IAddMemberBtn> = ({className, onClick}) => {
-
-    return (
-        <div className={className}>
-            <Button onClick={() => onClick()} iconButton icon={<FontAwesomeIcon icon={['fas', "plus"]} />} label="" variant="hidden-bg-btn" color="primary" />
-        </div>
-    )
-}
-
-const Addmemberbtn = styled(FCAddMembersBtn)`
-    width: fit-content;
-    height: fit-content;
-    margin: 0 10px;
-
-    ${Button} {
-        height: 50px;
-        width: 50px;
-        font-size: 30px;
-    }
-`;
 
 export default ManageMinistryView;

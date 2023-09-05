@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
 import React from "react";
 import { IStyledFC } from "../IStyledFC";
-
+import { AVATAR_BASE_URL } from "../../API/BASE_URL";
 
 interface IFCAvatar extends IStyledFC {
     src?: string | null,
@@ -14,7 +14,7 @@ const FCAvatar: React.FC<IFCAvatar> = ({src, alt, className, size}) => {
     
     React.useEffect(() => {
         if(src) {
-            fetch(src)
+            fetch(`${AVATAR_BASE_URL}/${src}`)
             .then(res => {
                 res.status == 200?  setAvatarSrc(true) :  setAvatarSrc(false)
             })
@@ -54,7 +54,7 @@ const Avatar = styled(FCAvatar)`
     font-size: 1.2em;
     background-color: #15A9FD;
     ${({src, theme}) => {
-        return src? css`background-image: url(${src});` : css`background-color: #15A9FD;`
+        return src? css`background-image: url(${AVATAR_BASE_URL}/${src});` : css`background-color: #15A9FD;`
     }}
 `;
 

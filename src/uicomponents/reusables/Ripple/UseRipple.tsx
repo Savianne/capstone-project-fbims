@@ -66,7 +66,7 @@ const UseRipple = styled(CreateRipple)`
         transform: translate(-50%, -50%);
         pointer-events: none;
         border-radius: 50%;
-        animation: ${rippleAnimation} 0.8s ease-in infinite;
+        animation: ${rippleAnimation} 0.6s ease-in;
         /* z-index: 1000; */
     }
 `;

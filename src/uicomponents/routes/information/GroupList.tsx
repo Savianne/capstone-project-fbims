@@ -54,7 +54,7 @@ export const MinistryListItem: React.FC<IFCGroupListItem> = ({className, avatar,
     React.useEffect(() => {
         if(data) {
             const itemList = data.map(item => {
-                return {src: item.avatar? `${AVATAR_BASE_URL}/${item.avatar}` : null, alt: item.firstName}
+                return {src: item.avatar, alt: item.firstName}
             });
             setAvatarList(itemList);
         }
@@ -89,7 +89,7 @@ export const OrgaizationListItem: React.FC<IFCGroupListItem> = ({className, avat
     React.useEffect(() => {
         if(data) {
             const itemList = data.map(item => {
-                return {src: item.avatar? `${AVATAR_BASE_URL}/${item.avatar}` : null, alt: item.firstName}
+                return {src: item.avatar, alt: item.firstName}
             });
             setAvatarList(itemList);
         }

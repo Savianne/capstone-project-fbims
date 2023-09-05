@@ -17,7 +17,7 @@ import AddMinistryForm from "./addMinistryModalView";
 
 import useGetMinistries from "../../../../API/hooks/useGetMinistries";
 
-import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
+import { SOCKETIO_URL } from "../../../../API/BASE_URL";
 
 const ContentWraper = styled.div`
     display: flex;
@@ -43,7 +43,7 @@ const Ministry: React.FC = () => {
         })
         .catch(err => setMinistryCountTotal("isLoadError"));
 
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
         socket.on(`ADDED_NEW_MINISTRY`, () => {
             doRequest<{total_count: number}>({
@@ -88,7 +88,7 @@ const Ministry: React.FC = () => {
                     bgImage="/assets/images/ministry.jpeg"
                     verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
                     dataFolderIcon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />}
-                    dataFolderTitle="Members"
+                    dataFolderTitle="Ministries"
                     dataFolderTotal={ministryCountTotal}
                     addRecordFormUrl="./add-ministry" 
                     addRecordFN={() => updateAddMinistryModal("ondisplay")}/>
@@ -96,7 +96,7 @@ const Ministry: React.FC = () => {
                         {
                            data && data.length && data.map(group => {
                                 return (
-                                    <MinistryListItem avatar={group.avatar? `${AVATAR_BASE_URL}/${group.avatar}` : null} groupName={group.ministryName} groupUID={group.ministryUID} />
+                                    <MinistryListItem key={group.ministryUID} avatar={group.avatar} groupName={group.ministryName} groupUID={group.ministryUID} />
                                 )
                             })
                         }

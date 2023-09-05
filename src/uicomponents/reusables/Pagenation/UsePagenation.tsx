@@ -82,9 +82,9 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                     }
 
                     {
-                        midNumbers? midNumbers.map(item => {
+                        midNumbers? midNumbers.map((item, index) => {
                             return (
-                                <UseRipple>
+                                <UseRipple key={index}>
                                     <span className={item == currentPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => updateCurrentPage(item)}>
                                         <strong>{item}</strong>
                                     </span>
@@ -125,7 +125,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
                     {
                         midNumbers? midNumbers.map((item, index) => {
                             return (
-                                <UseRipple>
+                                <UseRipple key={index}>
                                     <span className={index + 1 == currentPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => updateCurrentPage(index + 1)}>
                                         <strong>{index + 1}</strong>
                                     </span>

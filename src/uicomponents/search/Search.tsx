@@ -57,9 +57,10 @@ const SearchStyled = styled.div`
             flex-wrap: wrap;
             flex: 0 1 100%;
             height: fit-content;
-            max-height: 600px;
+            max-height: CALC(100vh - 35vh);
             margin-top: 10px;
             padding-bottom: 15px;
+            overflow-x: auto;
 
             h1 {
                 display: flex;

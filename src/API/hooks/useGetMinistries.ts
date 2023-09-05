@@ -2,6 +2,7 @@ import React from "react";
 import io  from "socket.io-client";
 import getMinistries from "../getMinistries";
 import { IministryMember } from "../getMinistries";
+import { SOCKETIO_URL } from "../BASE_URL";
 
 function useGetMinistries() {
     const [isLoading, setIsLoading] = React.useState(true);
@@ -25,7 +26,7 @@ function useGetMinistries() {
             setError(error);
         });
         
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
         socket.on('ADDED_NEW_MINISTRY', () => {
             setIsUpdating(true);

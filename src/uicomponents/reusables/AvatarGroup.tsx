@@ -29,9 +29,9 @@ const FCAvatarGroup: React.FC<IFCAvatarGroup> = ({className, size, limit, avatar
     return (
         <div className={className} style={{backgroundColor: elemRef.current?.parentElement?.style.backgroundColor , borderColor: elemRef.current?.style.backgroundColor}} ref={elemRef}>
             {
-                avatarList? avatarList.map(avatar => {
+                avatarList? avatarList.map((avatar, i) => {
                     return (
-                        <span className="avatar-wraper">
+                        <span key={i} className="avatar-wraper">
                             <Avatar src={avatar.src} alt={avatar.alt} size={size} />
                         </span>
                     )

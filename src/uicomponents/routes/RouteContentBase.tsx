@@ -11,7 +11,7 @@ const RouteContentBase = styled.div`
     border: 0.5px solid ${({theme}) => theme.borderColor};
     background-color: ${({theme}) => theme.background.primary};
     min-width: 0;
-`;
+`;  
 
 const RouteContentBaseHeader = styled.div`
     display: flex;

@@ -72,7 +72,12 @@ import {
   faEdit,
   faHome,
   faSearch,
-  faTired
+  faTired,
+  faEllipsisV,
+  faUserMinus,
+  faExclamationTriangle,
+  faInfoCircle,
+  faQuestionCircle
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -103,6 +108,7 @@ library.add(faS, faCheck);
 library.add(faS, faAt);
 library.add(faS, faPhoneAlt);
 library.add(faS, faEllipsisH);
+library.add(faS, faEllipsisV);
 library.add(faS, faCheckCircle);
 library.add(faS, faPlaceOfWorship);
 library.add(faS, faPlus);
@@ -133,6 +139,10 @@ library.add(faR, faCloudUploadAlt);
 library.add(faR, faEdit);
 library.add(faR, faHome);
 library.add(faR, faTired);
+library.add(faR, faUserMinus);
+library.add(faR, faExclamationTriangle);
+library.add(faR, faInfoCircle);
+library.add(faR, faQuestionCircle);
 
 
 const root = ReactDOM.createRoot(

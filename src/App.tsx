@@ -49,6 +49,9 @@ import AddNewMinistryForm from './uicomponents/routes/information/ministry/add-n
 import Calendar from './uicomponents/routes/calendar/Calendar';
 import ManageMinistryView from './uicomponents/routes/information/ministry/manage-ministry-view';
 import ManageOrganizationView from './uicomponents/routes/information/organizations/manage-organization-view';
+import ViewMember from './uicomponents/routes/information/members/ViewMember';
+import EditMember from './uicomponents/routes/information/members/EditMember';
+import DeleteModal from './uicomponents/reusables/DeleteModal/DeleteModal';
 
 function App() {
   const admin = useAppSelector(state => state.setAdmin.admin);
@@ -69,6 +72,7 @@ function App() {
       <ThemeProvider theme={ theme }>
         <SnackBars position='bottom-left' />
         <AppLayout>
+          <DeleteModal />
           <AppHeader>
             <NavBarToggle />
             <SystemLogo>
@@ -90,6 +94,8 @@ function App() {
                     <Route index element={<Information />} />
                     <Route path='members'>
                       <Route index element={<Members />} />
+                      <Route path='view/:memberUID' element={<ViewMember />} />
+                      <Route path='edit/:memberUID' element={<EditMember />} />
                       <Route path='new-member' element={<MembershipForm />} />
                     </Route>
                     <Route path='ministry'>

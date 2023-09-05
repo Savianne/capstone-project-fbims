@@ -2,7 +2,7 @@ import React from "react";
 import io  from "socket.io-client";
 import getOrganizations from "../getOrganizations";
 import { IOrganizationMember } from "../getOrganizations";
-
+import { SOCKETIO_URL } from "../BASE_URL";
 function useGetOrganizations() {
     const [isLoading, setIsLoading] = React.useState(true);
     const [isError, setIsError] = React.useState(false);
@@ -25,7 +25,7 @@ function useGetOrganizations() {
             setError(error);
         });
         
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
         socket.on('ADDED_NEW_ORGANIZATION', () => {
             setIsUpdating(true);

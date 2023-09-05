@@ -2,6 +2,7 @@ import React from "react";
 import io  from "socket.io-client";
 import getMinistryMembers from "../getMinistryMembers";
 import { TMinistryMembersData } from "../getMinistryMembers";
+import { SOCKETIO_URL } from "../BASE_URL";
 
 function useGetMinistryMembers(ministryUID: string) {
     const [isLoading, setIsLoading] = React.useState(true);
@@ -25,7 +26,7 @@ function useGetMinistryMembers(ministryUID: string) {
             setError(error);
         });
         
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
         socket.on(`ADDED_NEW_MINISTRY_MEMBER_TO${ministryUID}`, () => {
             setIsUpdating(true);
@@ -72,7 +73,8 @@ function useGetMinistryMembers(ministryUID: string) {
         isUpdating,
         isError,
         error,
-        data
+        data,
+        setData,
     }
 }
 
