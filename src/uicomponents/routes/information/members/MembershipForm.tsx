@@ -188,14 +188,19 @@ const ContentWraper = styled.div`
     }
 
     & #membershipForm .data-category .input-category-group ${Input},
-    & #membershipForm .data-category .input-category-group ${Select},
-    & #membershipForm .address-group .input-category-group ${AddressBox} {
+    & #membershipForm .data-category .input-category-group ${Select} {
+        flex: 0 1 230px;
         margin-left: 10px;
+    }
+
+    & #membershipForm .address-group .input-category-group ${AddressBox} {
+        width: fit-content;
     }
 
     & #membershipForm .data-category .input-category-group ${IconInput},
     & #membershipForm .data-category .input-category-group ${PHCPNumberInput},
     & #membershipForm .data-category .input-category-group ${PHTelNumberInput} {
+        flex: 0 1 230px;
         margin: 10px 0 10px 10px;
     }
     
@@ -207,7 +212,7 @@ const ContentWraper = styled.div`
     & #membershipForm .address-group .input-category-group ${Revealer} ${Select},
     & #membershipForm .date-of-baptism-group .input-category-group ${Revealer} ${Input},
     & #membershipForm .current-address-group .input-category-group ${Select} {
-        flex: 0 1 100%;
+        flex: 0 1 230px;
         margin: 10px 0 25px 10px;
     }
 
@@ -408,7 +413,7 @@ const MembershipForm: React.FC = ({}) => {
             <RouteContentBaseBody>
                 <ContentWraper>
                     <div id="membershipForm">
-                        <strong className="information-category-title">Personal Information</strong>
+                        {/* <strong className="information-category-title">Personal Information</strong> */}
                         <div className="data-category full-name-group">
                             <span className="data-category-title-container">
                                 <FontAwesomeIcon icon={["fas", "user"]} />
@@ -620,7 +625,7 @@ const MembershipForm: React.FC = ({}) => {
                                 {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
                             </div>
                         </div>
-                        <strong className="information-category-title">Baptism Information</strong>
+                        {/* <strong className="information-category-title">Baptism Information</strong> */}
                         <div className="data-category date-of-baptism-group">
                             <span className="data-category-title-container">
                                 <FontAwesomeIcon icon={["fas", "place-of-worship"]} />

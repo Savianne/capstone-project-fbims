@@ -12,6 +12,7 @@ import { useGetRecordCountQuery } from "../../../../global-state/api/api";
 import { useGetMembersListMutation } from "../../../../global-state/api/api";
 
 import Pagenation from "../../../reusables/Pagenation/Pagenation";
+import Pagination from "../../../reusables/Pagenation/Pagination";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
@@ -173,7 +174,7 @@ const ContentWraper = styled.div`
         padding: 20px 5px 0 5px;
     }
 
-    & .table-control ${Pagenation} {
+    & .table-control ${Pagination} {
         margin-left: auto;
     }
 `;
@@ -255,7 +256,7 @@ const Members: React.FC = () => {
                     <SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "A-Z"} onClick={(e) => setSorting("A-Z")}><FontAwesomeIcon icon={["fas", "sort-alpha-down"]} /></SortToggle><SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "Z-A"} onClick={(e) => setSorting("Z-A")}><FontAwesomeIcon icon={["fas", "sort-alpha-down-alt"]} /></SortToggle>
                     <Devider $orientation="vertical" $css="height: 30px"/>
                     <Button iconButton icon={<FontAwesomeIcon icon={["fas", "search"]} />} label="Search Button" variant="hidden-bg-btn" />
-                    { totalPage !== null && <Pagenation disabled={isLoadingMembersCount || isLoadingMembersList} totalPage={totalPage} onChange={(value) => updateCurrentTablePage(value)} /> }
+                    { totalPage !== null && <Pagination disabled={isLoadingMembersCount || isLoadingMembersList} totalPage={totalPage} onChange={(value) => updateCurrentTablePage(value)} /> }
                 </div>
                 <MembersTable
                 expectedListLen={listLimit? listLimit : 0}
@@ -271,7 +272,16 @@ const Members: React.FC = () => {
     { 
         (addMemberRecordModal == "open" || addMemberRecordModal == "ondisplay" || addMemberRecordModal == "close") && 
         <Modal isLoading={modalIsLoading} state={addMemberRecordModal} title="Add Member Record" onClose={() => updateAddMemberRecordModal("remove")} maxWidth="1000px"> 
-            <MembershipFormModalView onError={() => updateModalIsLoading(false)} onSuccess={() => updateModalIsLoading(false)} onLoading={() => updateModalIsLoading(true)}/>
+            <MembershipFormModalView 
+            onError={() => {
+                updateModalIsLoading(false);
+                addSnackBar("Query Failed!", "error", 5)
+            }}
+            onSuccess={() => {
+                addSnackBar("Record Added Successfully!", "success", 5);
+                updateModalIsLoading(false)
+            }} 
+            onLoading={() => updateModalIsLoading(true)}/>
         </Modal>
     }
     </>)

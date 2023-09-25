@@ -39,7 +39,7 @@ const Revealer = styled(FCRevealer)`
         width: 100%;
         height: fit-content;
         align-items: center;
-        justify-content: center;
+        /* justify-content: center; */
         opacity: ${(props) => props.reveal? 1 : 0};
         transition: opacity 500ms linear, top 500ms linear;
     }

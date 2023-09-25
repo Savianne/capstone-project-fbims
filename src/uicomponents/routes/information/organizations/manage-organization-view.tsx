@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 import { useParams, useNavigate } from "react-router-dom";
+import ScaleLoader from "react-spinners/ScaleLoader";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
@@ -19,6 +20,8 @@ import Menu, {MenuItem, MenuItemIcon, MenuItemLabel } from "../../../reusables/M
 import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
 import doRequest from "../../../../API/doRequest";
 import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
+import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
+import ConfirmModal from "../../../reusables/ConfirmModal/ConfirmModal";
 import { IStyledFC } from "../../../IStyledFC";
 
 interface IMember {
@@ -130,7 +133,7 @@ const ManageOrganizationView: React.FC = () => {
     const addSnackBar = useAddSnackBar();
     const navigate = useNavigate();
     const deleteModal = useDeleteModal();
-    const {data:organizationMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList} = useGetOrganizatioMembers(orgUID as string);
+    const {data:organizationMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList, setData} = useGetOrganizatioMembers(orgUID as string);
     const {data, isLoading, isError, isUpdating, error} = useGetOrganizationInfo(orgUID as string);
     const [addMemberState, setAddMemberState] = React.useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -230,7 +233,13 @@ const ManageOrganizationView: React.FC = () => {
                     </header>
                     <div className="list-container">
                         {
-                            organizationMembers && <MembersList list={[...organizationMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                            organizationMembers && data?.organizationUID && 
+                            <MembersList 
+                            remove={(memberUID) => {
+                                setData(organizationMembers.filter(item => item.memberUID !== memberUID))
+                            }} 
+                            organizationUID={data.organizationUID}
+                            list={[...organizationMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
                         }
                         {
                             iseLoadingMembers && <>
@@ -253,16 +262,18 @@ const ManageOrganizationView: React.FC = () => {
 
 interface IFCMembersTable extends IStyledFC {
     list: IMember[] | null,
+    organizationUID: string,
+    remove: (memberUID: string) => void
 } 
 
 
-const FCMembersList: React.FC<IFCMembersTable> = ({className, list}) => {
+const FCMembersList: React.FC<IFCMembersTable> = ({className, list, organizationUID, remove}) => {
 
     return (
         <div className={className}>
             {
                 list && list.map(item => {
-                    return <ListItem item={item} />
+                    return <ListItem key={item.memberUID} remove={(memberUID) => remove(memberUID)} item={item} organizationUID={organizationUID} />
                 })
             }
         </div>
@@ -270,12 +281,18 @@ const FCMembersList: React.FC<IFCMembersTable> = ({className, list}) => {
 }
 
 interface IFCList extends IStyledFC {
-    item: IMember
+    item: IMember,
+    organizationUID: string,
+    remove: (organizationUID: string) => void
 }
 
-const FCListItem: React.FC<IFCList> = ({className, item}) => {
+const FCListItem: React.FC<IFCList> = ({className, item, organizationUID, remove}) => {
+    const addSnackBar = useAddSnackBar();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-
+    const navigate = useNavigate();
+    const {modal, confirm} = useConfirmModal();
+    const [itemOnRemove, setItemOnRemove] = React.useState(false);
+    const itemComponentRef = React.useRef<null | HTMLDivElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -283,36 +300,66 @@ const FCListItem: React.FC<IFCList> = ({className, item}) => {
     const handleClose = () => {
         setAnchorEl(null);
     };
+
+    React.useEffect(() => {
+        if(itemOnRemove) {
+            itemComponentRef.current?.setAttribute('ondelete', 'true');
+            doRequest({
+                method: 'delete',
+                url: "/remove-organization-member",
+                data: {
+                    organizationUID: organizationUID,
+                    memberUID: item.memberUID
+                }
+            })
+            .then(response => {
+                remove(item.memberUID);
+                addSnackBar("Successfully removed a member from the organization", "default", 5);
+            })
+            .catch(err => {
+                addSnackBar("Faild to removed a member from the organization", "error", 5);
+            })
+        } else {
+            itemComponentRef.current?.removeAttribute('ondelete');
+        }
+    }, [itemOnRemove])   
     return (
-        <div className={className}>
+        <div className={className} ref={itemComponentRef}>
+            <ConfirmModal context={modal} variant={"warning"} />
             <Avatar alt={item.name} src={item.avatar} size="40px" />
             <div className="info">
                 <h1>{item.name}</h1>
-                {/* <span>
-                    <strong>Gender: <p>{item.gender}</p></strong>
-                    <Devider $orientation="vertical" $flexItem $variant="center" $css="margin: 0 10px; border-width: 2px"/>
-                    <strong>Age: <p>{item.age}</p></strong>
-                </span> */}
-                <Button label="More" color="theme" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "ellipsis-h"]} />} onClick={handleClick} />
+                {
+                    itemOnRemove? <ScaleLoader color="#36d7b7" height={"20px"}/> : 
+                    <Button label="More" color="theme" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "ellipsis-h"]} />} onClick={handleClick} />
+                }
                 <Menu
                 placement="left"
                 anchorEl={anchorEl} 
                 open={open} 
                 onClose={handleClose}>
                     <MenuItem onClick={() => {
-                        handleClose()
-                    }}>
-                        <MenuItemIcon>
-                            <FontAwesomeIcon icon={["fas", "user"]} />
-                        </MenuItemIcon>
-                        <MenuItemLabel>View profile</MenuItemLabel>
-                    </MenuItem>
-                    <MenuItem onClick={handleClose}>
-                        <MenuItemIcon>
-                            <FontAwesomeIcon icon={["fas", "user-minus"]} />
-                        </MenuItemIcon>
-                        <MenuItemLabel>Remove to Ministry</MenuItemLabel>
-                    </MenuItem>
+                    handleClose();
+                    navigate(`/app/information/members/view/${item.memberUID}`)
+                }}>
+                    <MenuItemIcon>
+                        <FontAwesomeIcon icon={["fas", "user"]} />
+                    </MenuItemIcon>
+                    <MenuItemLabel>View profile</MenuItemLabel>
+                </MenuItem>
+                <MenuItem onClick={() => {
+                    handleClose();
+                    setTimeout(() => {
+                        confirm("Remove Member", `Are you sure you want to remove ${item.name} to this Organization?`, () => {
+                            setItemOnRemove(true);
+                        })
+                    }, 300)
+                }}>
+                    <MenuItemIcon>
+                        <FontAwesomeIcon icon={["fas", "user-minus"]} />
+                    </MenuItemIcon>
+                    <MenuItemLabel>Remove to Organization</MenuItemLabel>
+                </MenuItem>
                 </Menu>
             </div>
         </div>
@@ -328,6 +375,10 @@ const ListItem = styled(FCListItem)`
     border-radius: 5px;
     background-color: ${({theme}) => theme.background.lighter};
     
+    &[ondelete='true'] {
+        opacity: 0.3;
+    }
+
     .info {
         display: flex;
         flex: 1;

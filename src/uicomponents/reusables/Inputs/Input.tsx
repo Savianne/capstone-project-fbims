@@ -245,7 +245,7 @@ const Input = styled(FCInput)`
     }
 
     &, input {
-        ${(props) => props.viewOnly && css`opacity: 1; cursor: not-allowed;`};
+        ${(props) => props.viewOnly && css`opacity: 1; cursor: not-allowed; pointer-events: none`};
     }
 
     /* & .error-text, */

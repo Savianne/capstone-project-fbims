@@ -6,28 +6,24 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Input from "../../../reusables/Inputs/Input";
 import Button from "../../../reusables/Buttons/Button";
 import AvatarUploader from "../../../reusables/AvatarUploader/AvatarUploader";
+import Devider from "../../../reusables/devider";
 import useFormControl from "../../../../utils/hooks/useFormControl";
-import { AvatarUploaderComponent, useAvatarUploaderContext } from "../../../reusables/AvatarUploader/AvatarUploader";
+// import { AvatarUploaderComponent, useAvatarUploaderContext } from "../../../reusables/AvatarUploader/AvatarUploader";
+import AvatarPicker from "../../../reusables/AvatarPicker/AvatarPicker";
 import addMinistry from "../../../../API/addMinistry";
 import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
+import Alert from "../../../reusables/Alert";
 
 interface IAddMinistryForm extends IStyledFC {
     onLoading: (isLoading: boolean) => void;
 }
 const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) => {
-    const addSnackBar = useAddSnackBar()
-    const [
-        disabled, setDisabled,
-        imageTmpUploaded, setImageTmpUploaded,
-        isDeletingTmpImage, setIsDeletingTmpImage,
-        isUploading, setIsUploading,
-        uploadProgress, setUploadProgress,
-        imageReplace, setImageReplace,
-        selectedImage, setSelectedImage,
-        errorUpload, setErrorUpload,
-        getRootProps, getInputProps, isDragActive,
-        reset,
-      ] = useAvatarUploaderContext();
+    const addSnackBar = useAddSnackBar();
+    const [isUploadingDp, setIsUploadingDp] = React.useState(false);
+    const [errorUploadingDp, setErrorUploadingDp] = React.useState(false);
+    const [tempDpName, setTempDpName] = React.useState<null | string>(null); 
+    const [disablePictureInput, setDisablePictureInput] = React.useState(false);
+    const [resetDpInputValue, setResetDpInputValue] = React.useState(false);
 
     const [isLoading, setIsLoading] = React.useState(false);
     const [addMinistryForm, addMinistryFormDispatchers] = useFormControl({
@@ -47,59 +43,61 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
         },
         avatar: {
             validateAs: "text",
-            minValLen: 4,
-            maxValLen: 100,
             required: false,
             errorText: "invalid Input"
         }
     });
 
-    React.useEffect(() => {
-        addMinistryFormDispatchers?.avatar(imageTmpUploaded as string | null);
-    }, [imageTmpUploaded]);
+    // React.useEffect(() => {
+    //     addMinistryFormDispatchers?.avatar(imageTmpUploaded as string | null);
+    // }, [imageTmpUploaded]);
 
     React.useEffect(() => {
         onLoading(isLoading)
     }, [isLoading])
     return(
         <div className={className}>
-            <AvatarUploaderArea>
-                <AvatarUploaderComponent context={[
-                    disabled, setDisabled,
-                    imageTmpUploaded, setImageTmpUploaded,
-                    isDeletingTmpImage, setIsDeletingTmpImage,
-                    isUploading, setIsUploading,
-                    uploadProgress, setUploadProgress,
-                    imageReplace, setImageReplace,
-                    selectedImage, setSelectedImage,
-                    errorUpload, setErrorUpload,
-                    getRootProps, getInputProps, isDragActive,
-                    reset,
-                ]} />
-            </AvatarUploaderArea>
             <div className="input-group">
                 <Input disabled={isLoading} value={addMinistryForm.values.title as string} error={addMinistryForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addMinistryFormDispatchers?.title(val)} />
                 <Input disabled={isLoading} value={addMinistryForm.values.description as string} error={addMinistryForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addMinistryFormDispatchers?.description(val)}/>
-                <Button isLoading={isLoading} disabled={!addMinistryForm.isReady || isDeletingTmpImage as boolean || isUploading as boolean} label="Add Mnistry" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} color="primary" onClick={() => {
-                    setIsLoading(true);
-                    (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(true);
-                    addMinistry({name: addMinistryForm.values.title as string, description: addMinistryForm.values.description as string, avatar: addMinistryForm.values.avatar as string | null})
-                    .then(response => {
-                        if(response.success) {
-                            setIsLoading(false);
-                            (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
-                            selectedImage && !isUploading && (reset as () => void)();
-                            addMinistryForm.clear();
-                            addSnackBar("Successfully added a new Ministry", "success", 5)
-                        }
-                        else throw response
-                    })
-                    .catch(error => {
+            </div>
+            <Alert severity="info" variant="default">
+            While it is not mandatory, you have the option to upload a display picture or logo for the ministry if you wish to do so.
+            </Alert>
+            <AvatarUploaderArea>
+                <AvatarPicker onChange={(avatar) => {
+                    addMinistryFormDispatchers?.avatar(avatar);
+                    errorUploadingDp && setErrorUploadingDp(false);
+                    isUploadingDp && setIsUploadingDp(false);
+                    resetDpInputValue && setResetDpInputValue(false)
+                }} 
+                onErrorUpload={() => setErrorUploadingDp(true)} 
+                onUpload={() => setIsUploadingDp(true)} 
+                disabledPicker={disablePictureInput} 
+                doReset={resetDpInputValue} />
+            </AvatarUploaderArea>
+            <Devider $orientation="horizontal"  $css="margin: 0 5px" />
+            <div className="btn-submit-area">
+                <Button isLoading={isLoading || isUploadingDp} disabled={isLoading || !addMinistryForm.isReady || errorUploadingDp as boolean || isUploadingDp as boolean} label="Add Mnistry" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} color="primary" onClick={() => {
+                setIsLoading(true);
+                setDisablePictureInput(true);
+                addMinistry({name: addMinistryForm.values.title as string, description: addMinistryForm.values.description as string, avatar: addMinistryForm.values.avatar as string | null})
+                .then(response => {
+                    if(response.success) {
                         setIsLoading(false);
-                        (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
-                        addSnackBar("Faild to add a Ministry", "error", 5)
-                    });
-                }} />
+                        setResetDpInputValue(true);
+                        setDisablePictureInput(false);
+                        addMinistryForm.clear();
+                        addSnackBar("Successfully added a new Ministry", "success", 5)
+                    }
+                    else throw response
+                })
+                .catch(error => {
+                    setIsLoading(false);
+                    setDisablePictureInput(false);
+                    addSnackBar("Faild to add a Ministry", "error", 5)
+                });
+            }} />
             </div>
         </div>
     )
@@ -109,13 +107,12 @@ const AddMinistryForm = styled(FCAddMinistryForm)`
     display: flex;
     flex: 0 1 100%;
     justify-content: center;
-    margin-top: 30px;
-    /* flex-wrap: wrap; */
+    flex-wrap: wrap;
 
     .input-group {
         display: flex;
-        flex: 0 1 450px;
-        height: 400px;
+        flex: 0 1 100%;
+        height: fit-content;
         align-content: flex-start;
         flex-wrap: wrap;
 
@@ -129,14 +126,22 @@ const AddMinistryForm = styled(FCAddMinistryForm)`
         }
     }
 
+    .btn-submit-area {
+        display: flex;
+        flex: 0 1 100%;
+        margin-top: 5px;
+        justify-content: flex-end;
+    }
+
 `;
 
 const AvatarUploaderArea = styled.div`
     display: flex;
-    width: 350px;
+    width: 100%;
     flex-wrap: wrap;
     justify-content: center;
     align-content: flex-start;
+    margin-top: 15px;
 
     h1 {
         width: 100%;

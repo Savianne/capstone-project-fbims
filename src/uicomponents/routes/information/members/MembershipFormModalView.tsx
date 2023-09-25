@@ -17,6 +17,8 @@ import Button from "../../../reusables/Buttons/Button";
 import PHCPNumberInput from "../../../reusables/Inputs/PHCPNumberInput";
 import PHTelNumberInput from "../../../reusables/Inputs/PHTelNumberInput";
 import { AvatarUploaderComponent, useAvatarUploaderContext } from "../../../reusables/AvatarUploader/AvatarUploader";
+import AvatarPicker from "../../../reusables/AvatarPicker/AvatarPicker";
+import Alert from "../../../reusables/Alert";
 
 //Custom Hooks
 import useFormControl from "../../../../utils/hooks/useFormControl";
@@ -80,22 +82,15 @@ interface IFCMembershipForm extends IStyledFC {
 }
 
 const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLoading, onSuccess, onError}) => {
-    const [
-        disabled, setDisabled,
-        imageTmpUploaded, setImageTmpUploaded,
-        isDeletingTmpImage, setIsDeletingTmpImage,
-        isUploading, setIsUploading,
-        uploadProgress, setUploadProgress,
-        imageReplace, setImageReplace,
-        selectedImage, setSelectedImage,
-        errorUpload, setErrorUpload,
-        getRootProps, getInputProps, isDragActive,
-        reset,
-    ] = useAvatarUploaderContext();
-
+    
     const addSnackBar = useAddSnackBar()
     const [addMemberRecord, {data: addRecordTransactionFlag, isLoading, isError, isSuccess}] = useAddMemberRecordMutation();
-
+    
+    const [isUploadingDp, setIsUploadingDp] = React.useState(false);
+    const [errorUploadingDp, setErrorUploadingDp] = React.useState(false);
+    const [tempDpName, setTempDpName] = React.useState<null | string>(null); 
+    const [disablePictureInput, setDisablePictureInput] = React.useState(false);
+    const [resetDpInputValue, setResetDpInputValue] = React.useState(false);
     const [dob, setDob] = React.useState<null | string>(null);
     const [doBap, setDoBap] = React.useState<null | string>(null);
     const [isBaptised, updateIsBaptised] = React.useState(true);
@@ -357,58 +352,43 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 outsidePHPermanentAdressForm.clear();
                 updateSameAsCurrentAddress(false);
                 updateSameAsPermanentAddress(false);
-                (reset as () => void)();
-                (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
-                addSnackBar("Record Added Successfully!", "success", 5);
+                setResetDpInputValue(true);
+                setDisablePictureInput(false);
+                // addSnackBar("Record Added Successfully!", "success", 5);
             })() : (() => {
-                (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false);
-                addSnackBar("Query Failed!", "error", 5)
+                setDisablePictureInput(false);
+                // addSnackBar("Query Failed!", "error", 5)
             })()
         }
     }, [addRecordTransactionFlag])
 
     React.useEffect(() => {
-        formDispatcher?.avatar(imageTmpUploaded as string | null);
-    }, [imageTmpUploaded])
+        formDispatcher?.avatar(tempDpName as string | null);
+    }, [tempDpName]);
+
+    React.useEffect(() => {
+        console.log(permanentAddress.values)
+    }, [permanentAddress])
     return (
     <div className={className}>
-        <strong className="information-category-title">Personal Information</strong>
-        <div className="basic-info-group">
-            <div className="avatar-uploader-container">
-                <AvatarUploaderComponent context={[
-                    disabled, setDisabled,
-                    imageTmpUploaded, setImageTmpUploaded,
-                    isDeletingTmpImage, setIsDeletingTmpImage,
-                    isUploading, setIsUploading,
-                    uploadProgress, setUploadProgress,
-                    imageReplace, setImageReplace,
-                    selectedImage, setSelectedImage,
-                    errorUpload, setErrorUpload,
-                    getRootProps, getInputProps, isDragActive,
-                    reset,
-                ]} />
-            </div>
-            <div className="basic-info-category-group">
-                <div className="data-category full-name-group">
-                    {/* <span className="data-category-title-container">
-                        <FontAwesomeIcon icon={["fas", "user"]} />
-                        <p>Full Name</p>
-                    </span> */}
-                    {/* <Devider $orientation="vertical" $css="margin: 0 5px" /> */}
-                    <div className="input-category-group">
-                        <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
-                        <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
-                        <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
-                        <Select disabled={isLoading} value={form.values.extName as string} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
-                            <Option value="">Please select</Option>
-                            <Option value="jr">JR</Option>
-                            <Option value="sr">SR</Option>
-                        </Select>
-                    </div>
-                </div>
+        <strong className="information-category-title">Basic Information</strong>
+        <div className="data-category full-name-group">
+            <span className="data-category-title-container">
+                <FontAwesomeIcon icon={["fas", "user"]} />
+                <p>Full Name</p>
+            </span>
+            <Devider $orientation="vertical" $css="margin: 0 5px" />
+            <div className="input-category-group">
+                <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
+                <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
+                <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
+                <Select disabled={isLoading} value={form.values.extName as string} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
+                    <Option value="">Please select</Option>
+                    <Option value="jr">JR</Option>
+                    <Option value="sr">SR</Option>
+                </Select>
             </div>
         </div>
-        <Devider $orientation="horizontal"  $css="margin: 0 5px" />
         <div className="data-category birth-date-group">
             <span className="data-category-title-container">
                 <FontAwesomeIcon icon={["fas", "cake-candles"]} />
@@ -452,7 +432,8 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 </Select>
             </div>
         </div>
-        <Devider $orientation="horizontal"  $css="margin: 0 5px" />
+        {/* <Devider $orientation="horizontal"  $css="margin: 0 5px" /> */}
+        <strong className="information-category-title">Location Information</strong>
         <div className="data-category address-group">
             <span className="data-category-title-container">
                 <FontAwesomeIcon icon={["fas", "map-location-dot"]} />
@@ -474,7 +455,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                     }/>
                     {
                         !outsidePHPermanetAddress? <>
-                        <Select disabled={isLoading} placeholder="Region" 
+                        <Select 
+                        value={permanentAddress.values.region}
+                        disabled={isLoading} placeholder="Region" 
                         error={permanentAddressForm.errors.region}
                         onValChange={(val) => {
                             permanentAddress?.setRegion(val);
@@ -488,7 +471,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        <Select disabled={!permanentAddress.values.region || isLoading} placeholder="Province" 
+                        <Select
+                        value={permanentAddress.values.province}
+                        disabled={!permanentAddress.values.region || isLoading} placeholder="Province" 
                         error={permanentAddressForm.errors.province}
                         onValChange={(val) => {
                             permanentAddress?.setProvince(val)
@@ -502,7 +487,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        <Select disabled={!permanentAddress.values.province || isLoading} placeholder="City / Municipality" 
+                        <Select 
+                        value={permanentAddress.values.cityMun}
+                        disabled={!permanentAddress.values.province || isLoading} placeholder="City / Municipality" 
                         error={permanentAddressForm.errors.cityOrMunicipality}
                         onValChange={(val) => {
                             permanentAddress.setCityMun(val)
@@ -516,7 +503,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        <Select disabled={!permanentAddress.values.cityMun || isLoading} placeholder="Barangay" 
+                        <Select 
+                        value={permanentAddress.values.barangay}
+                        disabled={!permanentAddress.values.cityMun || isLoading} placeholder="Barangay" 
                         error={permanentAddressForm.errors.barangay}
                         onValChange={(val) => {
                             permanentAddress.setBarangay(val)
@@ -541,7 +530,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 }
             </div>
         </div>
-        <Devider $orientation="horizontal"  $css="margin: 0 5px" />
+        {/* <Devider $orientation="horizontal"  $css="margin: 0 5px" /> */}
         <div className="data-category current-address-group">
             <span className="data-category-title-container">
                 <FontAwesomeIcon icon={["fas", "map-location-dot"]} />
@@ -563,7 +552,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                     }/>
                     {
                         !outsidePHCurrentAddress? <>
-                        <Select disabled={isLoading} placeholder="Region" 
+                        <Select 
+                        value={currentAddress.values.region}
+                        disabled={isLoading} placeholder="Region" 
                         error={currentAddressForm.errors.region}
                         onValChange={(val) => {
                             currentAddress?.setRegion(val);
@@ -577,7 +568,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        <Select disabled={!currentAddress.values.region || isLoading} placeholder="Province" 
+                        <Select 
+                        value={currentAddress.values.province}
+                        disabled={!currentAddress.values.region || isLoading} placeholder="Province" 
                         error={currentAddressForm.errors.province}
                         onValChange={(val) => {
                             currentAddress?.setProvince(val)
@@ -591,7 +584,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        <Select disabled={!currentAddress.values.province || isLoading} placeholder="City / Municipality" 
+                        <Select 
+                        value={currentAddress.values.cityMun}
+                        disabled={!currentAddress.values.province || isLoading} placeholder="City / Municipality" 
                         error={currentAddressForm.errors.cityOrMunicipality}
                         onValChange={(val) => {
                             currentAddress.setCityMun(val)
@@ -605,7 +600,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        <Select disabled={!currentAddress.values.cityMun || isLoading} placeholder="Barangay" 
+                        <Select 
+                        value={currentAddress.values.barangay}
+                        disabled={!currentAddress.values.cityMun || isLoading} placeholder="Barangay" 
                         error={currentAddressForm.errors.barangay}
                         onValChange={(val) => {
                             currentAddress.setBarangay(val)
@@ -675,8 +672,25 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             </div>
         </div>
         <Devider $orientation="horizontal"  $css="margin: 0 5px" />
+        <div className="picture-upload-area">
+            <Alert severity="info" variant="default">
+            Uploading a formal display picture for the member's profile is optional but recommended for a professional appearance.
+            </Alert>
+            <AvatarPicker 
+            onChange={(avatar) => {
+                errorUploadingDp && setErrorUploadingDp(false);
+                isUploadingDp && setIsUploadingDp(false);
+                resetDpInputValue && setResetDpInputValue(false)
+                setTempDpName(avatar);
+            }}
+            onErrorUpload={() => setErrorUploadingDp(true)} 
+            onUpload={() => setIsUploadingDp(true)} 
+            disabledPicker={disablePictureInput} 
+            doReset={resetDpInputValue} />
+        </div>
+        <Devider $orientation="horizontal"  $css="margin: 0 5px" />
         <div className="submit-button-container">
-            <Button disabled={isLoading} label="Clear Form" variant="standard" color="theme" onClick={(e) => {
+            <Button disabled={isLoading || isUploadingDp} label="Clear Form" variant="standard" color="theme" onClick={(e) => {
                 form.clear();
                 homeContactInfoForm.clear();
                 setDob(null);
@@ -684,12 +698,13 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 dateOfBaptismForm.clear();
                 permanentAddress.setRegion(null);
                 currentAddress.setRegion(null);
-                outsidePHCurrentAdressForm.clear()
-                outsidePHPermanentAdressForm.clear()
+                outsidePHCurrentAdressForm.clear();
+                outsidePHPermanentAdressForm.clear();
+                tempDpName && setResetDpInputValue(true);
             }}/>
-            <Button disabled={isLoading || !formIsReadyState || isDeletingTmpImage as boolean || isUploading as boolean} isLoading={isLoading} label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary"  
+            <Button disabled={isLoading || !formIsReadyState || errorUploadingDp as boolean || isUploadingDp as boolean} isLoading={isLoading} label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary"  
             onClick={(e) => {
-                (setDisabled as React.Dispatch<React.SetStateAction<boolean>>)(false)
+                setDisablePictureInput(true);
                 const currentAddressData = !sameAsPermanetAddress? 
                 outsidePHCurrentAddress? {
                     philippines: false,
@@ -810,10 +825,11 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
     & .information-category-title {
         flex: 0 1 100%;
         height: fit-content;
-        text-align: center;
-        border-bottom: 1px solid ${({theme}) => theme.borderColor};
+        /* text-align: center; */
+        /* border-bottom: 1px solid ${({theme}) => theme.borderColor}; */
         padding-bottom: 5px;
         /* font-size: 20px; */
+        font-weight: 600;
         margin-bottom: 15px;
         margin-top: 15px;
         color: ${({theme}) => theme.textColor.strong};
@@ -900,6 +916,11 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
         min-width: 0;
     }
 
+    /* & .full-name-group .input-category-group ${Input},
+    & .full-name-group .input-category-group ${Input} {
+        flex: 1;
+    } */
+
     & .data-category .input-category-group ${Input},
     & .data-category .input-category-group ${Select},
     & .address-group .input-category-group ${AddressBox} {
@@ -911,6 +932,17 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
     & .data-category .input-category-group ${PHTelNumberInput} {
         margin: 10px 0 10px 10px;
     }
+
+    & .picture-upload-area {
+        display: inline-block;
+        width: 100%;
+        padding: 15px;
+        background-color: ${({theme}) => theme.mode == "dark"? "#0f0f0f3d" : "#F9F9F9"};
+
+        ${AvatarPicker} {
+            margin: 15px auto 0 auto;
+        }
+    }
     
     & .address-group .input-category-group ${Revealer},
     & .current-address-group .input-category-group ${Revealer},
@@ -920,8 +952,6 @@ const MembershipFormModalView = styled(FCMembershipFormModalView)`
 
     & .address-group .input-category-group ${Revealer} ${Select},
     & .address-group .input-category-group ${Revealer} ${Input},
-    & .full-name-group .input-category-group ${Input},
-    & .full-name-group .input-category-group ${Select},
     & .date-of-baptism-group .input-category-group ${Revealer} ${Input},
     & .current-address-group .input-category-group ${Select},
     & .current-address-group .input-category-group ${Revealer} ${Input},

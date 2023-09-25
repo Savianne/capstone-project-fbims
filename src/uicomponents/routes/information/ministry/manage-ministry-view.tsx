@@ -13,16 +13,17 @@ import { AVATAR_BASE_URL } from "../../../../API/BASE_URL";
 import Input from "../../../reusables/Inputs/Input";
 import AddMinistryMemberSearchComp from "../../../search/AddMinistryMemberSearchComponent";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
-import useGetMinistryInfo from "../../../../API/hooks/useGetMinistryInfo";
-import useGetMinistryMembers from "../../../../API/hooks/useGetMinistryMembers";
 import UseRipple from "../../../reusables/Ripple/UseRipple";
 import { IStyledFC } from "../../../IStyledFC";
 import doRequest from "../../../../API/doRequest";
-import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
-import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
 import ConfirmModal from "../../../reusables/ConfirmModal/ConfirmModal";
 import Menu, { MenuItem, MenuItemIcon, MenuItemLabel } from "../../../reusables/Menu/Menu";
+import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
+import useGetMinistryInfo from "../../../../API/hooks/useGetMinistryInfo";
+import useGetMinistryMembers from "../../../../API/hooks/useGetMinistryMembers";
+import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
 import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
+import Alert, { AlertTitle } from "../../../reusables/Alert";
 
 interface IMember {
     name: string,
@@ -236,9 +237,13 @@ const ManageMinistryView: React.FC = () => {
                     </header>
                     <div className="list-container">
                         {
-                            ministryMembers && data?.ministryUID && <MembersList remove={(memberUID) => {
+                            ministryMembers && data?.ministryUID && 
+                            <MembersList 
+                            remove={(memberUID) => {
                                 setData(ministryMembers.filter(item => item.memberUID !== memberUID))
-                            }} ministryUID={data.ministryUID} list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                            }} 
+                            ministryUID={data.ministryUID} 
+                            list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
                         }
                         {
                             iseLoadingMembers && <>
@@ -271,6 +276,21 @@ const FCMembersList: React.FC<IFCMembersTable> = ({className, list, ministryUID,
 
     return (
         <div className={className}>
+            <Alert severity="warning" variant="default" action={<Button onClick={() => alert('hey')} label="View" variant="standard" color="primary" />}>
+                <AlertTitle>Warning</AlertTitle>
+                The Quick Brown fox jump over the head of the lazy dog!
+            </Alert>
+            <Alert>
+                <AlertTitle>Error</AlertTitle>
+                The Quick Brown fox jump over the head of the lazy dog!
+            </Alert>
+            <Alert severity="info" variant="default" onClose={() => alert('close')}>
+                <AlertTitle>Error</AlertTitle>
+                The Quick Brown fox jump over the head of the lazy dog!
+            </Alert>
+            <Alert severity="success" variant="default" onClose={() => alert('close')}>
+                The Quick Brown fox jump over the head of the lazy dog!
+            </Alert>
             {
                 list && list.map(item => {
                     return <ListItem key={item.memberUID} remove={(memberUID) => remove(memberUID)} item={item} ministryUID={ministryUID} />
@@ -287,6 +307,8 @@ interface IFCList extends IStyledFC {
 }
 
 const FCListItem: React.FC<IFCList> = ({className, item, ministryUID, remove}) => {
+    const addSnackBar = useAddSnackBar();
+    const navigate = useNavigate();
     const {modal, confirm} = useConfirmModal();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [itemOnRemove, setItemOnRemove] = React.useState(false);
@@ -312,9 +334,10 @@ const FCListItem: React.FC<IFCList> = ({className, item, ministryUID, remove}) =
             })
             .then(response => {
                 remove(item.memberUID);
+                addSnackBar("Successfully removed a member from ministry", "default", 5);
             })
             .catch(err => {
-                console.log(err)
+                addSnackBar("Faild to removed a member from the ministry", "error", 5);
             })
         } else {
             itemComponentRef.current?.removeAttribute('ondelete');
@@ -337,7 +360,8 @@ const FCListItem: React.FC<IFCList> = ({className, item, ministryUID, remove}) =
             open={open} 
             onClose={handleClose}>
                 <MenuItem onClick={() => {
-                    handleClose()
+                    handleClose();
+                    navigate(`/app/information/members/view/${item.memberUID}`)
                 }}>
                     <MenuItemIcon>
                         <FontAwesomeIcon icon={["fas", "user"]} />

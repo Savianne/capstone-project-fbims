@@ -115,7 +115,7 @@ const Ministry: React.FC = () => {
         </RouteContentBase>
         { 
         (addMinistryModal == "open" || addMinistryModal == "ondisplay" || addMinistryModal == "close") && 
-        <Modal isLoading={modalIsLoading} state={addMinistryModal} title="Add New Ministry" onClose={() => updateAddMinistryModal("remove")} maxWidth="1000px"> 
+        <Modal isLoading={modalIsLoading} state={addMinistryModal} title="Add New Ministry" onClose={() => updateAddMinistryModal("remove")} maxWidth="550px"> 
             <AddMinistryForm onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
         </Modal>
     }

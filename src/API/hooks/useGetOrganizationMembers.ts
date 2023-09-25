@@ -73,7 +73,8 @@ function useGetOrganizatioMembers(orgUID: string) {
         isUpdating,
         isError,
         error,
-        data
+        data,
+        setData,
     }
 }
 

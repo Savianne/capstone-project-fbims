@@ -85,7 +85,7 @@ const SMembersTable = styled.table`
     }
 
     & .skeleton-row td[cell-name=action] {
-        width: 140px;
+        width: 120px;
     }
 
     & tr td[cell-name=fullname] {
@@ -118,7 +118,7 @@ const SMembersTable = styled.table`
     }
 
     & tr td[cell-name=action] {
-        width: 120px;
+        width: 100px;
 
         ${Button} {
             margin-left: auto;
@@ -128,7 +128,10 @@ const SMembersTable = styled.table`
 
     & tr td[cell-name=action] .action-button-group-container {
         display: flex;
-        flex: 0 1 100%;
+        /* flex: 0 1 100%; */
+        width: fit-content;
+        margin: 0 auto;
+        gap: 8px;
         height: 25px;
         justify-content: center;
         align-items: center;
@@ -136,6 +139,8 @@ const SMembersTable = styled.table`
     
     & tr td[cell-name=action] .action-button-group-container ${Button} {
         font-size: 11px;
+        flex-shrink: 0;
+        flex-grow: 0;
         height: 25px;
         width: 25px;
     }
@@ -174,7 +179,7 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                 <th cell-name="avatar">Avatar</th>
                 <th cell-name="created-by">Created By</th>
                 <th cell-name="date-created">Date Created</th>
-                <th>Action</th>
+                <th cell-name="action">Action</th>
             </tr>
             {
                 isLoading && expectedListLenVal? <>
@@ -186,9 +191,7 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                         <td cell-name="created-by"><SkeletonLoading height="45px" /></td>
                         <td cell-name="creation-time"><SkeletonLoading height="45px" /></td>
                         <td cell-name="action">
-                            <div className="action-button-group-container">
-                                <SkeletonLoading height="45px" />
-                            </div>
+                            <SkeletonLoading height="45px" />
                         </td>
                     </tr>
                     })
@@ -205,10 +208,10 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                                     <td cell-name="created-by">{item.added_by.toLocaleUpperCase()}</td>
                                     <td cell-name="creation-time">{new Date(item.creation_time).toDateString()}</td>
                                     <td cell-name="action">
-                                        {/* <div className="action-button-group-container">
-                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton onClick={(e) => alert('cliked')} />
-                                            <Devider $orientation="vertical" $variant="center" />
-                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton 
+                                        <div className="action-button-group-container">
+                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="bordered-btn" color="edit" iconButton onClick={() => navigate(`/app/information/members/edit/${item.member_uid}`)} />
+                                            {/* <Devider $orientation="vertical" $variant="center" /> */}
+                                            {/* <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "trash"]} />} variant="hidden-bg-btn" color="delete" iconButton 
                                             onClick={(e) => {
                                                 deleteModal(`Records of ${item.first_name.toLocaleUpperCase()} ${item.middle_name[0].toLocaleUpperCase()}. ${item.surname.toLocaleUpperCase()}`, () => {
                                                     return new Promise<{success: boolean}>((res, rej) => {
@@ -219,11 +222,11 @@ const MembersTable: React.FC<IMembersTable> = ({membersList, isLoading, expected
                                                         .catch(err => rej({success: false}))
                                                     })
                                                 })
-                                            }} />
-                                            <Devider $orientation="vertical" $variant="center"/>
-                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton onClick={() => navigate(`/app/information/members/view/${item.member_uid}`)} />
-                                        </div> */}
-                                        <Button label="View profile" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`/app/information/members/view/${item.member_uid}`)} />
+                                            }} /> */}
+                                            {/* <Devider $orientation="vertical" $variant="center" /> */}
+                                            <Button label="Add Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="bordered-btn" color="primary" iconButton onClick={() => navigate(`/app/information/members/view/${item.member_uid}`)} />
+                                        </div>
+                                        {/* <Button label="View profile" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`/app/information/members/view/${item.member_uid}`)} /> */}
                                     </td>
                                 </tr>
                                 )

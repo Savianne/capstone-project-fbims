@@ -12,6 +12,7 @@ interface IFCIconInput extends IStyledFC {
   placeholder: string,
   error?: IFormErrorFieldValues | null,
   value?: string,
+  viewOnly?: boolean,
   disabled?: boolean,
   onChange: (val: string) => void
 }
@@ -109,6 +110,7 @@ const PHCPNumberInput = styled(FCPHCPNumberInput)`
     }
 
     ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+    ${(props) => props.viewOnly && css`cursor: not-allowed; pointer-events: none`};
 `;
 
 

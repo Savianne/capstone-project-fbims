@@ -10,6 +10,7 @@ import { IStyledFC } from "../../IStyledFC";
 interface IFCIconInput extends IStyledFC {
     value?: string | number | readonly string[] | null,
     disabled?: boolean,
+    viewOnly?: boolean;
     icon: any,
     placeholder: string,
     type: TInputType,
@@ -72,6 +73,8 @@ const IconInput = styled(FCIconInput)`
     }
 
     ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+
+    ${(props) => props.viewOnly && css`cursor: not-allowed; pointer-events: none`};
 
     & input,
     & input:focus,

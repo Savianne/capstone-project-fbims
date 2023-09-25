@@ -18,7 +18,7 @@ const FCSnackBars: React.FC<ISnackBars> = ({className}) => {
         <div className={className}>
             {
                 snackBars.snackBars.map(snackbar => {
-                    return ( <SnackBar {...snackbar} closeCallBack={() => snackBars.removeSnackBar(snackbar.id)} /> );
+                    return ( <SnackBar key={snackbar.id} {...snackbar} closeCallBack={() => snackBars.removeSnackBar(snackbar.id)} /> );
                 })
             }
         </div> : null

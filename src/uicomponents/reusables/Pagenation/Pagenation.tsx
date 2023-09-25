@@ -1,9 +1,9 @@
 import React from "react";
 import styled, {css} from "styled-components";
 
-import UsePagenation from "./UsePagenation";
+import MakePagenation from "./MakePagenation";
 
-const Pagenation = styled(UsePagenation)`
+const Pagenation = styled(MakePagenation)`
     display: flex;
     align-items: center;
     justify-content: center;

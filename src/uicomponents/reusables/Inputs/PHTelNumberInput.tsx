@@ -13,6 +13,7 @@ interface IFCIconInput extends IStyledFC {
   error?: IFormErrorFieldValues | null,
   value?: string,
   disabled?: boolean,
+  viewOnly?: boolean,
   onChange: (val: string) => void
 }
 
@@ -124,6 +125,7 @@ const PHTelNumberInput = styled(FCPHTelNumberInput)`
     }
 
     ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+    ${(props) => props.viewOnly && css`cursor: not-allowed; pointer-events: none`};
 `;
 
 

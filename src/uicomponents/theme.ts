@@ -55,7 +55,7 @@ const darkTheme: DefaultTheme = {
         primary: '#15A9FD',
         secondary: '#D9D9D9',
         warning: '#FD9215',
-        edit: '#15FD56',
+        edit: '#00c13d',
         delete: '#FD1515',
         disabled: '#F1F1F1'
     },

@@ -77,7 +77,11 @@ import {
   faUserMinus,
   faExclamationTriangle,
   faInfoCircle,
-  faQuestionCircle
+  faQuestionCircle,
+  faImage,
+  faCircle,
+  faCertificate,
+  faMapMarkerAlt
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -143,6 +147,10 @@ library.add(faR, faUserMinus);
 library.add(faR, faExclamationTriangle);
 library.add(faR, faInfoCircle);
 library.add(faR, faQuestionCircle);
+library.add(faS, faImage);
+library.add(faS, faCircle);
+library.add(faS, faCertificate);
+library.add(faS, faMapMarkerAlt);
 
 
 const root = ReactDOM.createRoot(

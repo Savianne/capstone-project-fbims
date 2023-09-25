@@ -30,7 +30,7 @@ const FCButton: React.FC<IFCButton> = ({className, icon, label, iconButton, disa
                     iconButton? '' : isLoading && !icon? <SpinnerLoadingIndicator msSpeed={1000} /> : label
                 }
             </UseRipple>
-        </button>
+        </button>   
     )
 }
 

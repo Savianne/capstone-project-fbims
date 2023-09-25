@@ -9,7 +9,7 @@ interface IUsePagenation extends IStyledFC {
     disabled?: boolean
 }
 
-const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange}) => {
+const MakePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange}) => {
     
     const [currentPage, updateCurrentPage] = React.useState(1);
     const [midNumbers, updateMidNumbers] = React.useState<null | number[]>(null);
@@ -25,6 +25,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
     }
 
     React.useEffect(() => {
+        // console.log(currentPage)
         if(currentPage > totalPage) {
             updateCurrentPage(totalPage);
         } else {
@@ -54,8 +55,7 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
         if(totalPage == 5) updateMidNumbers([1, 2, 3, 4, 5]);
     }, [totalPage]);
 
-    return (
-        <div className={className}>
+    return ( <div className={className}>
             <UseRipple>
                 <span className={currentPage == 1? "btn btn-prev disabled" : "btn btn-prev"} onClick={prevPage}>
                     <FontAwesomeIcon icon={["fas", "angle-left"]} />
@@ -144,4 +144,4 @@ const UsePagenation: React.FC<IUsePagenation> = ({className, totalPage, onChange
     )
 }
 
-export default UsePagenation;
+export default MakePagenation;

@@ -3,11 +3,11 @@ import { createPortal } from "react-dom";
 import React, { ReactChildren, ReactElement, useContext } from "react";
 import { IStyledFC } from "../../IStyledFC";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { usePopper } from 'react-popper';
+import { usePopper } from "react-popper";
 
 // import { Scrollbars } from 'react-custom-scrollbars-2';
 
-//Types 
+//Types
 import { TInputVal } from "../../../utils/hooks/useFormControl(old)";
 import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)";
 
@@ -15,230 +15,303 @@ import { IFormErrorFieldValues } from "../../../utils/hooks/useFormControl(old)"
 import UseRipple from "../Ripple/UseRipple";
 import Scrollbar from "../ScrollBar";
 import InputErrorToltip from "./InputErrorToltip";
-import { JsxElement } from "typescript";
 
-export const SelectContext = React.createContext<{selected: string | null, select?: (option: string) => void}>({
-    selected: null,
+export const SelectContext = React.createContext<{
+  selected: string | null;
+  select?: (option: string) => void;
+}>({
+  selected: null,
 });
 
 export interface IFCSelect extends IStyledFC {
-    // children: ReactElement[],
-    children: any,
-    viewOnly?: boolean,
-    placeholder: string,
-    value?: string,
-    error?: IFormErrorFieldValues | null,
-    disabled?: boolean,
-    onValChange: (val: string) => void
+  // children: ReactElement[],
+  children: any;
+  viewOnly?: boolean;
+  placeholder: string;
+  value?: string;
+  error?: IFormErrorFieldValues | null;
+  disabled?: boolean;
+  onValChange: (val: string) => void;
 }
 
+const FCSelect: React.FC<IFCSelect> = ({
+  className,
+  children,
+  value,
+  placeholder,
+  error,
+  disabled,
+  onValChange,
+}) => {
+  const selectRef = React.useRef<HTMLDivElement | null>(null);
+  // const [options, updateOptions] = React.useState<string[]>([]);
+  const [options, updateOptions] = React.useState<{[key: string]: {label: string, selected: boolean}}>({});
+  const [optionsText, updateOptionsText] = React.useState<{
+    [key: string]: {label: string, selected: boolean};
+  }>({});
+  const [compState, updateCompState] = React.useState("onBlur");
+  const [selectedValue, updateSelectedValue] = React.useState<string>(
+    ""
+  );
+  const [valueInOptions, setValueInOptions] = React.useState(false);
 
-const FCSelect: React.FC<IFCSelect> = ({className, children, value, placeholder, error, disabled, onValChange}) => {
-    const selectRef = React.useRef<HTMLDivElement | null>(null);
-    const [options, updateOptions] = React.useState<string[]>([]);
-    const [optionsText, updateOptionsText] = React.useState<{[key: string]: string}>({});
-    const [compState, updateCompState] = React.useState('onBlur');
-    const [selectedValue, updateSelectedValue] = React.useState<null | string>(null);
+  const [referenceElement, setReferenceElement] =
+    React.useState<null | HTMLSpanElement>(null);
+  const [popperElement, setPopperElement] =
+    React.useState<null | HTMLDivElement>(null);
 
-    const [referenceElement, setReferenceElement] = React.useState<null | HTMLSpanElement>(null);
-    const [popperElement, setPopperElement] = React.useState<null | HTMLDivElement>(null);
+  const { styles, attributes } = usePopper(referenceElement, popperElement, {
+    // placement: "left-end",
+    modifiers: [
+      {
+        name: "preventOverflow",
+        options: {
+          altBoundary: true,
+        },
+      },
+    ],
+  });
 
-    const { styles, attributes } = usePopper(referenceElement, popperElement,
-        {
-            // placement: "left-end",
-            modifiers: [
-                {
-                    name: 'preventOverflow',
-                    options: {
-                        altBoundary: true,
-                    },
-                },
-            ],
-        });
+  React.useEffect(() => {
+    disabled
+      ? selectRef.current?.setAttribute("disabled", "true")
+      : selectRef.current?.setAttribute("disabled", "false");
+  }, [disabled]);
 
-    React.useEffect(() => {
-        disabled?  selectRef.current?.setAttribute('disabled', 'true') : selectRef.current?.setAttribute('disabled', 'false');
-    }, [disabled]);
+  React.useEffect(() => {
+    if (value !== undefined) updateSelectedValue(value);
+  },[value]);
 
-    React.useEffect(() => {
-        if(value !== undefined) updateSelectedValue(value);
-    }, [value])
 
-    React.useEffect(() => {
-        const childrenArray = React.Children.toArray(children);
-        // const optionList = childrenArray.map(item => {
-        //     const i = item as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
-        //     return {[i.props.value as string]: i.props.children as string}
-        // });
-        const optionList: {[key: string]: string} = childrenArray.reduce((P, C) => {
-            const i = C as React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactPortal;
-            return {...P, ...{[i.props.value as string]: i.props.children as string}}
-        }, {});
+  React.useEffect(() => {
+    const childrenArray = React.Children.toArray(children);
+    const optionList: { [key: string]: {label: string, selected: boolean} } = childrenArray.reduce(
+      (P, C) => {
+        const i = C as
+          | React.ReactElement<any, string | React.JSXElementConstructor<any>>
+          | React.ReactPortal;
+        return {
+          ...P,
+          ...{ [i.props.value as string]: {label: i.props.children as string, selected: i.props.selected? true : false}},
+        };
+      },
+      {}
+    );
 
-        updateOptions(Object.keys(optionList));
-        updateOptionsText(optionList);
-    }, [children]);
+    // updateOptions(Object.keys(optionList));
+    updateOptions(optionList)
+    // updateOptionsText(optionList);
+  }, [children]);
 
-    React.useEffect(() => {
-        if(!(selectedValue == null)) onValChange(selectedValue);
-        (selectedValue == null || selectedValue == '')? selectRef.current?.setAttribute('placeholder-state', 'vissible') : selectRef.current?.setAttribute('placeholder-state', 'hidden');
-    }, [selectedValue]);
+  React.useEffect(() => {
+    if (value !== undefined) onValChange(selectedValue);
+    // if (!(selectedValue == null)) onValChange(selectedValue);
+    selectedValue == null || selectedValue == ""
+      ? selectRef.current?.setAttribute("placeholder-state", "vissible")
+      : selectRef.current?.setAttribute("placeholder-state", "hidden");
+  }, [selectedValue]);
 
-    React.useEffect(() => {
-        selectRef.current?.setAttribute('state', compState);
-    }, [compState]);
+  React.useEffect(() => {
+    selectRef.current?.setAttribute("state", compState);
+  }, [compState]);
 
-    React.useEffect(() => {
-        function handleArrorKeyEvents(event: KeyboardEvent) {
-            const selectedOptionIndex = selectedValue !== null? options.indexOf(selectedValue) : null;
-            if(compState == 'onFocus') {
-                event.preventDefault();
-                switch (event.keyCode) {
-                    case 38:
-                        if(typeof selectedOptionIndex == 'number' && selectedOptionIndex > 0) updateSelectedValue(options[selectedOptionIndex - 1]);
-                        break;
-                    case 40:
-                        if(!(typeof selectedOptionIndex == 'number')) updateSelectedValue(options[0]);
-                        if(typeof selectedOptionIndex == 'number' && selectedOptionIndex < options.length - 1) updateSelectedValue(options[selectedOptionIndex + 1]);
-                        break;
-                    case 13:
-                        updateCompState('onBlur');
-                }
-            }
+  React.useEffect(() => {
+    function handleArrorKeyEvents(event: KeyboardEvent) {
+      const selectedOptionIndex =
+        selectedValue !== null ? Object.keys(options).indexOf(selectedValue) : null;
+      if (compState == "onFocus") {
+        event.preventDefault();
+        switch (event.keyCode) {
+          case 38:
+            if (
+              typeof selectedOptionIndex == "number" &&
+              selectedOptionIndex > 0
+            )
+              updateSelectedValue(Object.keys(options)[selectedOptionIndex - 1]);
+            break;
+          case 40:
+            if (!(typeof selectedOptionIndex == "number"))
+              updateSelectedValue(Object.keys(options)[0]);
+            if (
+              typeof selectedOptionIndex == "number" &&
+              selectedOptionIndex < Object.keys(options).length - 1
+            )
+              updateSelectedValue(Object.keys(options)[selectedOptionIndex + 1]);
+            break;
+          case 13:
+            updateCompState("onBlur");
         }
+      }
+    }
 
-        document.addEventListener('keydown', handleArrorKeyEvents);
+    document.addEventListener("keydown", handleArrorKeyEvents);
 
-        return function cleanup() {
-            document.removeEventListener('keydown', handleArrorKeyEvents);
-        }
-    }, [compState, selectedValue]);
+    return function cleanup() {
+      document.removeEventListener("keydown", handleArrorKeyEvents);
+    };
+  }, [compState, selectedValue]);
 
+  // React.useEffect(() => {
+  //   if (
+  //     !(
+  //       selectedValue !== null &&
+  //       selectedValue == Object.keys(options)[Object.keys(options).indexOf(selectedValue)]
+  //     )
+  //   )
+  //     updateSelectedValue(null);
+  // }, [options, selectedValue]);
 
-    React.useEffect(() => {
-        if(!(selectedValue !== null && selectedValue == options[options.indexOf(selectedValue)])) updateSelectedValue(null);
-    }, [options , selectedValue]);
+  // React.useEffect(() => {
+  //   console.log(optionsText)
+  //   for(let [k, v] of Object.entries(optionsText)) {
+  //       if(v.selected) updateSelectedValue(k)
+  //   }
+  // }, [optionsText])
+  React.useEffect(() => {
+    setValueInOptions(Object.keys(options).includes(selectedValue))
+  }, [options, selectedValue]);
+  return (
+    <SelectContext.Provider
+      value={{
+        selected: selectedValue,
+        select: (option) => {
+          setTimeout(() => {
+            updateSelectedValue(option);
+            updateCompState("onBlur");
+          }, 400);
+        },
+      }}
+    >
+      <div
+        className={className}
+        ref={selectRef}
+        onClick={(e) => {
+          if (!disabled) updateCompState("onFocus");
+        }}
+      >
+        <span className="placeholder">{placeholder}</span>
+        <span className="arrow-icon">
+          <FontAwesomeIcon icon={["fas", "caret-down"]} />
+        </span>
+        {compState == "onFocus" && (
+          <span
+            className="options-container-ref"
+            ref={setReferenceElement}
+          ></span>
+        )}
 
-    return (
-        <SelectContext.Provider value={{selected: selectedValue, select: (option) => {
-            setTimeout(() => {
-                updateSelectedValue(option);
-                updateCompState('onBlur');
-            }, 400);
-        }}}>
-            <div className={className} 
-            ref={selectRef} 
+        {selectedValue && Object.keys(options).includes(selectedValue) && <span className="value">{options[selectedValue].label}</span>}
+        {compState == "onFocus" && (
+          <SelectBackdrop
+            modalWidth={`${selectRef.current?.clientWidth}px`}
             onClick={(e) => {
-                if(!disabled) updateCompState('onFocus');
+              e.stopPropagation();
+              updateCompState("onBlur");
             }}
+          >
+            <div
+              className="options-container"
+              onClick={(e) => e.stopPropagation()}
+              id="modal"
+              ref={setPopperElement}
+              style={styles.popper}
+              {...attributes.popper}
             >
-                <span className="placeholder">{ placeholder }</span>
-                <span className="arrow-icon"><FontAwesomeIcon icon={["fas", "caret-down"]} /></span>
-                {
-                   compState == "onFocus" && <span className="options-container-ref" ref={setReferenceElement}></span>
-                }
+              <Scrollbar>{children}</Scrollbar>
+            </div>
+          </SelectBackdrop>
+        )}
 
-                {
-                    selectedValue? <span className="value">{ optionsText[selectedValue] }</span> : ''
-                }
-                {
-                    compState == "onFocus" && 
-                    <SelectBackdrop modalWidth={`${selectRef.current?.clientWidth}px`} onClick={(e) => {
-                        e.stopPropagation();
-                        updateCompState('onBlur');
-                    }}>
-                        <div className="options-container"
-                        onClick={(e) => e.stopPropagation()}
-                        id="modal" 
-                        ref={setPopperElement}
-                        style={styles.popper}
-                        {...attributes.popper}>
-                            <Scrollbar>
-                                { children }
-                            </Scrollbar>
-                        </div> 
-                    </SelectBackdrop>
-                }
-
-                {
-                    error? <>
-                        <p className="error-text">
-                            {
-                                error.errorText
-                            }
-                        </p>
-                        {/* <span className="error-toltip">
+        {error ? (
+          <>
+            <p className="error-text">{error.errorText}</p>
+            {/* <span className="error-toltip">
                             <InputErrorToltip error={error} />
                         </span> */}
-                    </> : ''
-                }
-            </div>
-        </SelectContext.Provider>
-    )
-}
+          </>
+        ) : (
+          ""
+        )}
+      </div>
+    </SelectContext.Provider>
+  );
+};
 
 interface IFCOption extends IStyledFC {
-    value: string,
-    selected?: boolean,
-    // callBackFC?: () => void
+  value: string;
+  selected?: boolean;
+  // callBackFC?: () => void
 }
 
-const FCOption: React.FC<IFCOption> = ({value, className, children, selected}) => {
-    const optionRef = React.useRef<HTMLSpanElement | null>(null)
-    const parentSelectContext = useContext(SelectContext);
+const FCOption: React.FC<IFCOption> = ({
+  value,
+  className,
+  children,
+  selected,
+}) => {
+  const optionRef = React.useRef<HTMLSpanElement | null>(null);
+  const parentSelectContext = useContext(SelectContext);
 
-    React.useEffect(() => {
-        const selectedVal = parentSelectContext.selected;
-        optionRef.current?.setAttribute('selected', selectedVal == value? 'true' : 'false');
-    }, [parentSelectContext]);
+  React.useEffect(() => {
+    const selectedVal = parentSelectContext.selected;
+    optionRef.current?.setAttribute(
+      "selected",
+      selectedVal == value ? "true" : "false"
+    );
+  }, [parentSelectContext.selected]);
 
-    React.useEffect(() => {
-        if(selected && parentSelectContext.select) parentSelectContext.select(value);
-    }, []);
-    return (
-        <span className={className} ref={optionRef} onClick={(e) => {
-            if(parentSelectContext.select) parentSelectContext.select(value)
-        }}>
-            <OptionLabel><p>{children}</p></OptionLabel>
-        </span>
-    )
-}
+//   React.useEffect(() => {
+//     if (selected && parentSelectContext.select)
+//       parentSelectContext.select(value);
+//   }, [selected]);
+  return (
+    <span
+      className={className}
+      ref={optionRef}
+      onClick={(e) => {
+        if (parentSelectContext.select) parentSelectContext.select(value);
+      }}
+    >
+      <OptionLabel>
+        <p>{children}</p>
+      </OptionLabel>
+    </span>
+  );
+};
 
 const OptionLabel = styled(UseRipple)`
-    display: flex;
-    flex: 0 1 100%;
-    /* font-size: 10px; */
-    height: 100%;
-    padding: 0 10px;
-    align-items: center;
-    cursor: pointer;
+  display: flex;
+  flex: 0 1 100%;
+  /* font-size: 10px; */
+  height: 100%;
+  padding: 0 10px;
+  align-items: center;
+  cursor: pointer;
+  min-width: 0;
+  & p {
+    flex: 1;
     min-width: 0;
-    & p {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 `;
 
-export const Option = styled(FCOption)`
-    
-`;
+export const Option = styled(FCOption)``;
 
-const SelectBackdrop = styled.div<{modalWidth: string}>`
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
-    z-index: 10000;
+const SelectBackdrop = styled.div<{ modalWidth: string }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  z-index: 10000;
 
-    #modal {
-        width: ${(prop => prop.modalWidth)}
-    }
+  #modal {
+    width: ${(prop) => prop.modalWidth};
+  }
 `;
 
 const Select = styled(FCSelect)`
@@ -249,18 +322,23 @@ const Select = styled(FCSelect)`
     height: 20px;
     align-items: center;
     border: 0;
-    border-bottom: ${(prop) => prop.error? `1px solid ${prop.theme.staticColor.delete}` : '1px solid #d2d2d2'};
+    border-bottom: ${(prop) =>
+      prop.error
+        ? `1px solid ${prop.theme.staticColor.delete}`
+        : "1px solid #d2d2d2"};
     font-size: 15px;
-    color: ${({theme}) => theme.textColor.strong};
+    color: ${({ theme }) => theme.textColor.strong};
     padding: 7px 3px;
     background: transparent;
     transition: border-color 0.2s;
 
     
     & .value {
-        width: 100%;
+        flex: 0 1 100%;
+        min-width: 0;
         overflow: hidden;
-        text-overflow: '...';
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     .options-container-ref {
@@ -279,12 +357,15 @@ const Select = styled(FCSelect)`
         /* width: 400px; */
         min-width: 0;
         overflow-x: hidden;
-        overflow-y: ${(props) => React.Children.toArray(props.children).length > 10? 'auto' : 'hidden' };
-        background-color: ${({theme}) => theme.background.primary};
-        color: ${({theme}) => theme.textColor.strong};
+        overflow-y: ${(props) =>
+          React.Children.toArray(props.children).length > 10
+            ? "auto"
+            : "hidden"};
+        background-color: ${({ theme }) => theme.background.primary};
+        color: ${({ theme }) => theme.textColor.strong};
         z-index: 1000;
         transition: height 0.1s linear, opacity 0.3s linear, top 0.3s linear, box-shadow 0.1s linear;
-        border: 1px solid ${({theme}) => theme.borderColor};
+        border: 1px solid ${({ theme }) => theme.borderColor};
         box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px;
     }
 
@@ -294,18 +375,23 @@ const Select = styled(FCSelect)`
     }
 
     &[disabled='true'] {
-        border-color: ${({theme}) => theme.textColor.disabled};
-        color: ${({theme}) => theme.textColor.disabled};
+        border-color: ${({ theme }) => theme.textColor.disabled};
+        color: ${({ theme }) => theme.textColor.disabled};
         cursor: not-allowed;
         opacity: 0.7;
     }
 
     &[disabled='true'] .placeholder {
-        color: ${({theme}) => theme.textColor.disabled};
+        color: ${({ theme }) => theme.textColor.disabled};
         opacity: 0.7;
     }
 
-    & ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};
+    ${(props) =>
+      props.disabled &&
+      css`
+        opacity: 0.5;
+        cursor: not-allowed;
+      `};
 
     &[state='onFocus'] .arrow-icon {
         transform: rotate(180deg);
@@ -321,7 +407,8 @@ const Select = styled(FCSelect)`
     }
 
     &[state='onFocus'] ${SelectBackdrop} .options-container {
-        height: calc(30px * ${(props) => React.Children.toArray(props.children).length});
+        height: calc(30px * ${(props) =>
+          React.Children.toArray(props.children).length});
         max-height: calc(30px * 10);
     }
 
@@ -332,7 +419,8 @@ const Select = styled(FCSelect)`
         top: 5px;
         left: 5px;
         z-index: 0;
-        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` :'#9b9b9b'}
+        color: ${(prop) =>
+          prop.error ? `${prop.theme.staticColor.delete}` : "#9b9b9b"}
     }
 
     &[state='onFocus'] .placeholder,
@@ -344,15 +432,22 @@ const Select = styled(FCSelect)`
         transition: 0.2s;
         font-size: 12px;
         /* color: #9b9b9b; */
-        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` :'#9b9b9b'}
+        color: ${(prop) =>
+          prop.error ? `${prop.theme.staticColor.delete}` : "#9b9b9b"}
     }
     &[state='onFocus'] .placeholder {
-        /* color: ${({theme}) => theme.staticColor.primary}; */
-        color: ${(prop) => prop.error? `${prop.theme.staticColor.delete}` : `${prop.theme.staticColor.primary}`}
+        /* color: ${({ theme }) => theme.staticColor.primary}; */
+        color: ${(prop) =>
+          prop.error
+            ? `${prop.theme.staticColor.delete}`
+            : `${prop.theme.staticColor.primary}`}
     }
     &[state='onFocus'] {
-        border-bottom: 2px solid ${({theme}) => theme.staticColor.primary};
-        border-bottom: ${(prop) => prop.error? `2px solid ${prop.theme.staticColor.delete}` : `2px solid ${prop.theme.staticColor.primary}`}
+        border-bottom: 2px solid ${({ theme }) => theme.staticColor.primary};
+        border-bottom: ${(prop) =>
+          prop.error
+            ? `2px solid ${prop.theme.staticColor.delete}`
+            : `2px solid ${prop.theme.staticColor.primary}`}
     }
 
     & ${SelectBackdrop} .options-container ${Option} {
@@ -366,7 +461,7 @@ const Select = styled(FCSelect)`
 
     & ${SelectBackdrop} .options-container ${Option}[selected='true'],
     & ${SelectBackdrop} .options-container ${Option}[selected='true']:hover {
-        background-color: ${({theme}) => theme.background.light};
+        background-color: ${({ theme }) => theme.background.light};
     }
     & ${SelectBackdrop} .options-container ${Option}:hover {
         background-color: #e4eff742;
@@ -375,20 +470,24 @@ const Select = styled(FCSelect)`
         position: absolute;
         top: calc(100% + 1px);
         font-size: 11px;
-        color: ${({theme}) => theme.staticColor.delete}
+        color: ${({ theme }) => theme.staticColor.delete}
     }
 
-    /* ${(props) => props.viewOnly? css`
-        border-color: ${({theme}) => theme.textColor.strong};
-        color: ${({theme}) => theme.textColor.strong};
-        cursor: not-allowed;
-    `: ""} */
+    ${(props) =>
+      props.viewOnly
+        ? css`
+            border-color: #d2d2d2;
+            color: ${({ theme }) => theme.textColor.strong};
+            cursor: not-allowed;
+            pointer-events: none;
+          `
+        : ""}
     /* & .error-toltip {
         position: absolute;
         top: calc(100% + 1px);
         width: 100%;
         font-size: 11px;
-        color: ${({theme}) => theme.staticColor.delete};
+        color: ${({ theme }) => theme.staticColor.delete};
         z-index: 100;
     } */
 `;

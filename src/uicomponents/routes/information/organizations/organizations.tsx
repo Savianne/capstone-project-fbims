@@ -119,7 +119,7 @@ const Organizations: React.FC = () => {
         </RouteContentBase>
         { 
             (addOrganizationModal == "open" || addOrganizationModal == "ondisplay" || addOrganizationModal == "close") && 
-            <Modal isLoading={modalIsLoading} state={addOrganizationModal} title="Add New Organization" onClose={() => updateAddOrganizationModal("remove")} maxWidth="1000px"> 
+            <Modal isLoading={modalIsLoading} state={addOrganizationModal} title="Add New Organization" onClose={() => updateAddOrganizationModal("remove")} maxWidth="550px"> 
                 <AddOrganizationForm onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
             </Modal>
         }
