@@ -19,6 +19,7 @@ import PHCPNumberInput from "../../../reusables/Inputs/PHCPNumberInput";
 import PHTelNumberInput from "../../../reusables/Inputs/PHTelNumberInput";
 import SimpleTab, { Tab } from "../../../reusables/SimpleTabs";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
+import transformDateToYYYYMMDD from "../../../../utils/helpers/transformDateToYYYY-MM-DD";
 import { IStyledFC } from "../../../IStyledFC";
 
 const ContentWraper = styled.div`
@@ -321,19 +322,7 @@ const ViewMember: React.FC = () => {
                                         </span>
                                         <Devider $orientation="vertical"  $css="margin: 0 5px" />
                                         <div className="input-category-group">
-                                            <Input viewOnly value={(() => {
-                                                // Create a new Date object representing the current date and time
-                                                const currentDate = memberInformation?.date_of_birth? new Date(memberInformation?.date_of_birth) : new Date();
-
-                                                // Convert the Date object to a string in ISO 8601 format
-                                                const isoDateStr = currentDate.toISOString();
-
-                                                // Use regex to extract the "YYYY-mm-dd" part
-                                                const regex = /^(\d{4}-\d{2}-\d{2})/;
-                                                const match = isoDateStr.match(regex);
-
-                                                return match? match[1] : "1998-08-0"
-                                            })()} name="date-of-birth" type="date" placeholder="Date of Birth" onValChange={() => {}} />
+                                            <Input viewOnly value={transformDateToYYYYMMDD(memberInformation.date_of_birth)} name="date-of-birth" type="date" placeholder="Date of Birth" onValChange={() => {}} />
                                         </div>
                                     </div>
                                     <div className="data-category gender-group">
@@ -437,7 +426,7 @@ const ViewMember: React.FC = () => {
                                         </span>
                                         <Devider $orientation="vertical" $css="margin: 0 5px" />
                                         <div className="input-category-group">
-                                            <Input viewOnly value={memberInformation?.date_of_baptism || ""} name="date-of-baptism" type="date" placeholder="Date of Baptism" onValChange={(val) => {}} />
+                                            <Input viewOnly value={memberInformation?.date_of_baptism? transformDateToYYYYMMDD(memberInformation?.date_of_baptism) : ""} name="date-of-baptism" type="date" placeholder="Date of Baptism" onValChange={(val) => {}} />
                                         </div>
                                     </div>
                                     </> : ""

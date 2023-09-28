@@ -20,14 +20,20 @@ const FCButton: React.FC<IFCButton> = ({className, icon, label, iconButton, disa
         <button className={className} onClick={disabled || isLoading? undefined : onClick}>
             <UseRipple>
                 {
-                    icon? <i className="btn-icon">
+                    icon && !(iconButton)? <i className="btn-icon">
                         {
                             isLoading? <SpinnerLoadingIndicator msSpeed={1000} /> : icon
                         }
                     </i> : ''
                 }
                 {
-                    iconButton? '' : isLoading && !icon? <SpinnerLoadingIndicator msSpeed={1000} /> : label
+                    iconButton? <>
+                        {
+                            isLoading? <SpinnerLoadingIndicator msSpeed={1000} /> : icon
+                        }
+                    </> : <>
+                        {isLoading && <SpinnerLoadingIndicator msSpeed={1000} />} <p className="label">{label}</p>
+                    </> 
                 }
             </UseRipple>
         </button>   
@@ -77,6 +83,10 @@ const Button = styled(FCButton)<IButton>`
 
     & ${UseRipple} #ripple {
         background-color: ${(props) => props.disabled || props.isLoading? 'transparent' : props.theme.ripple};
+    }
+
+    .label {
+        margin-left: ${(props) => props.isLoading? "5px" : 0};
     }
 
     ${(props) => {

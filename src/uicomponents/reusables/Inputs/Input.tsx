@@ -17,7 +17,7 @@ export interface IFCInput extends IStyledFC {
     value?: string | boolean | number | readonly string[],
     placeholder: string,
     type: TInputType,  
-    error?: IFormErrorFieldValues | null,
+    error?: IFormErrorFieldValues | string | null,
     disabled?: boolean,
     onValChange: (val: TInputVal) => void,
     label?: string,
@@ -148,11 +148,13 @@ const FCInput: React.FC<IFCInput> = ({className, onValChange, name, value, disab
                     />
                     <label onClick={(e) => inputRef.current?.focus()}>{ placeholder }</label>
                     {
-                        error? <>
-                            <span className="error-toltip">
+                        error && typeof error !== 'string' && <span className="error-toltip">
                                 <InputErrorToltip error={error as IFormErrorFieldValues} />
                             </span>
-                        </> : ''
+                    }
+
+                    {
+                        error && typeof error === 'string' && <span className="input-error-text">{error}</span>
                     }
         
                     {
@@ -249,13 +251,19 @@ const Input = styled(FCInput)`
     }
 
     /* & .error-text, */
-    & .error-toltip {
+    & .error-toltip, & .input-error-text {
         position: absolute;
         top: calc(100% + 1px);
         width: 100%;
         font-size: 11px;
         color: ${({theme}) => theme.staticColor.delete};
         z-index: 100;
+    }
+
+    & .input-error-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     & .error-field, & .error-field:focus {

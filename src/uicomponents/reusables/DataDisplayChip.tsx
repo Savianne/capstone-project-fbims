@@ -115,8 +115,12 @@ const DataDisplayChip = styled(DataDisplayChipFC)`
             props.severity == "info"? "#03a9f4" :
             props.severity == "warning"? "#ff9800" :
             props.severity == "success"? "#4caf50" :
-            props.severity == "error"? "#ef5350" : "#03a9f4"
+            props.severity == "error"? "#ef5350" : props.theme.borderColor
             };
+
+            ${
+                !(props.severity) && css`color: ${props.theme.textColor.light}`
+            }
         ` : ""
     }}
 

@@ -1,8 +1,10 @@
 import React from "react";
 import * as Yup from 'yup';
 import { debounce } from 'lodash';
+import areObjectsMatching from "../../../../utils/helpers/areObjectMatching";
+import doRequest from "../../../../API/doRequest";
 
-interface IBasicInfo {
+interface IBasicData {
     gender: string,
     date_of_birth: string,
     marital_status: string,
@@ -24,67 +26,78 @@ const validationSchema = Yup.object().shape({
     marital_status: Yup.string().oneOf([ "single", "married", "widowed", "divorced", "separated"]).required(),
 });
 
-function useUpdateBasicInfo(data: IBasicInfo): {
-    input: {
-        [K in keyof IBasicInfo]: (i: string) => void
-    },
-    errors: {
-        [K in keyof IBasicInfo]?: string
-    },
-    revertChange: () => void,
-    isModified: boolean;
-    dubmitable: boolean,
-    isUpdating: boolean,
-    isUpdateSuccess: boolean,
-    isUpdateError: boolean
-} {
-    const [baseData, setBaseData] = React.useState({...data});
-    const [editFormData, setEditFormData] = React.useState({...baseData});
-    const [errors, setErrors] = React.useState<{ [K in keyof typeof editFormData]?: string }>({});
-
-    const validateForm = debounce(async () => {
-        try {
-            await validationSchema.validate(editFormData, { abortEarly: false });
-            setErrors({});
-        } catch (error: any) {
-            if (error instanceof Yup.ValidationError) {
-                const validationErrors: { [K in keyof typeof editFormData]?: string } = {}; // Define the type of validationErrors
-                error.inner.forEach((err) => {
-                    if (err.path) {
-                        validationErrors[err.path as keyof typeof validationErrors] = err.message;
-                    }
-                });
-
-                setErrors(validationErrors);
-            }
-        }
-    }, 300);
-
+function useUpdateBasicInfo() {
+    const [baseData, setBaseData] = React.useState<IBasicData | null>(null);
+    const [editFormData, setEditFormData] = React.useState<IBasicData | null>(null);
+    const [errors, setErrors] = React.useState<{ [K in keyof IBasicData]?: string }>({});
+    const [onUpdate, setOnUpdate] = React.useState(false);
+    const [onUPdateSuccess, setOnUpdateSuccess] = React.useState(false);
+    const [onUpdateError, setOnUpdateError] = React.useState<null | string>(null)
 
     React.useEffect(() => {
-        validateForm();
+        editFormData && debounce(async () => {
+            try {
+                await validationSchema.validate(editFormData, { abortEarly: false });
+                setErrors({});
+            } catch (error: any) {
+                if (error instanceof Yup.ValidationError) {
+                    const validationErrors: { [K in keyof typeof editFormData]?: string } = {}; // Define the type of validationErrors
+                    error.inner.forEach((err) => {
+                        if (err.path) {
+                            validationErrors[err.path as keyof typeof validationErrors] = err.message;
+                        }
+                    });
+    
+                    setErrors(validationErrors);
+                }
+            }
+        }, 300)();
     }, [editFormData]);
 
-    const input = Object.keys(data).reduce((acc, key) => {
-        acc[key as keyof IBasicInfo] = (value: string) => {
-          setEditFormData((prevData) => ({
-            ...prevData,
-            [key]: value,
-          }));
-        };
-        return acc;
-      }, {} as Record<keyof IBasicInfo, (value: string) => void>);
+    React.useEffect(() => {
+        baseData && setEditFormData(baseData);
+    }, [baseData]);
 
-    return {
-        input,
-        errors,
-        revertChange: () => alert("revert"),
-        isModified,
-        dubmitable: false,
-        isUpdating: false,
-        isUpdateSuccess: false,
-        isUpdateError: false
-    }
+        return {
+            setBaseData: (data: IBasicData) => setBaseData(data),
+            input: editFormData? Object.keys(editFormData).reduce((acc, key) => {
+                acc[key as keyof typeof editFormData] = (value: string) => {
+                  setEditFormData({...editFormData, [key]: value})
+                };
+                return acc;
+              }, {} as Record<keyof typeof editFormData, (value: string) => void>) : null,
+            values: editFormData,
+            errors,
+            revertChange: baseData && editFormData? () => setEditFormData(baseData) : undefined,
+            isModified: baseData && editFormData? !areObjectsMatching({...baseData, ext_name: baseData.ext_name == ""? null : baseData.ext_name}, {...editFormData, ext_name: editFormData.ext_name == ""? null : editFormData.ext_name}) : undefined,
+            isUpdating: onUpdate,
+            isUpdateSuccess: false,
+            isUpdateError: onUpdateError? true : false,
+            updateError: onUpdateError,
+            submitUpdate: (baseData && editFormData && !areObjectsMatching(baseData, {...editFormData, ext_name: editFormData.ext_name == ""? null : editFormData.ext_name})) && (errors && Object.values(errors).length < 1)? 
+                (memberUID: string) => {
+                    setOnUpdate(true);
+                    doRequest({
+                        url: `/update-member-data/basic-info/${memberUID}`,
+                        method: "PATCH",
+                        data: editFormData
+                    })
+                    .then(response => {
+                        setOnUpdate(false);
+                        if(response.success) {
+                            onUpdateError && setOnUpdateError(null);
+                            setBaseData(editFormData);
+                            setOnUpdateSuccess(true)
+                        } else throw response.error;
+                    })
+                    .catch(err => {
+                        setOnUpdate(false);
+                        onUPdateSuccess && setOnUpdateSuccess(false);
+                        setOnUpdateError(err);
+                    })
+                } 
+            : null,
+        }
 }
 
 export default useUpdateBasicInfo;

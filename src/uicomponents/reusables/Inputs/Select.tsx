@@ -29,7 +29,7 @@ export interface IFCSelect extends IStyledFC {
   viewOnly?: boolean;
   placeholder: string;
   value?: string;
-  error?: IFormErrorFieldValues | null;
+  error?: IFormErrorFieldValues | string | null;
   disabled?: boolean;
   onValChange: (val: string) => void;
 }
@@ -44,11 +44,8 @@ const FCSelect: React.FC<IFCSelect> = ({
   onValChange,
 }) => {
   const selectRef = React.useRef<HTMLDivElement | null>(null);
-  // const [options, updateOptions] = React.useState<string[]>([]);
+  const [controlled, setControlled] = React.useState(value !== undefined)
   const [options, updateOptions] = React.useState<{[key: string]: {label: string, selected: boolean}}>({});
-  const [optionsText, updateOptionsText] = React.useState<{
-    [key: string]: {label: string, selected: boolean};
-  }>({});
   const [compState, updateCompState] = React.useState("onBlur");
   const [selectedValue, updateSelectedValue] = React.useState<string>(
     ""
@@ -79,11 +76,6 @@ const FCSelect: React.FC<IFCSelect> = ({
   }, [disabled]);
 
   React.useEffect(() => {
-    if (value !== undefined) updateSelectedValue(value);
-  },[value]);
-
-
-  React.useEffect(() => {
     const childrenArray = React.Children.toArray(children);
     const optionList: { [key: string]: {label: string, selected: boolean} } = childrenArray.reduce(
       (P, C) => {
@@ -97,19 +89,21 @@ const FCSelect: React.FC<IFCSelect> = ({
       },
       {}
     );
-
-    // updateOptions(Object.keys(optionList));
     updateOptions(optionList)
-    // updateOptionsText(optionList);
   }, [children]);
 
   React.useEffect(() => {
-    if (value !== undefined) onValChange(selectedValue);
-    // if (!(selectedValue == null)) onValChange(selectedValue);
-    selectedValue == null || selectedValue == ""
+    if(controlled) {
+      value == null || value == ""
       ? selectRef.current?.setAttribute("placeholder-state", "vissible")
       : selectRef.current?.setAttribute("placeholder-state", "hidden");
-  }, [selectedValue]);
+    } else {
+      onValChange(selectedValue);
+      selectedValue == null || selectedValue == ""
+        ? selectRef.current?.setAttribute("placeholder-state", "vissible")
+        : selectRef.current?.setAttribute("placeholder-state", "hidden");
+    }
+  }, [selectedValue, value]);
 
   React.useEffect(() => {
     selectRef.current?.setAttribute("state", compState);
@@ -117,8 +111,7 @@ const FCSelect: React.FC<IFCSelect> = ({
 
   React.useEffect(() => {
     function handleArrorKeyEvents(event: KeyboardEvent) {
-      const selectedOptionIndex =
-        selectedValue !== null ? Object.keys(options).indexOf(selectedValue) : null;
+      const selectedOptionIndex = controlled? (value !== null? Object.keys(options).indexOf(value as string) : null) : (selectedValue !== null ? Object.keys(options).indexOf(selectedValue) : null);
       if (compState == "onFocus") {
         event.preventDefault();
         switch (event.keyCode) {
@@ -127,16 +120,16 @@ const FCSelect: React.FC<IFCSelect> = ({
               typeof selectedOptionIndex == "number" &&
               selectedOptionIndex > 0
             )
-              updateSelectedValue(Object.keys(options)[selectedOptionIndex - 1]);
+              controlled? onValChange(Object.keys(options)[selectedOptionIndex - 1]) : updateSelectedValue(Object.keys(options)[selectedOptionIndex - 1]);
             break;
           case 40:
             if (!(typeof selectedOptionIndex == "number"))
-              updateSelectedValue(Object.keys(options)[0]);
+              controlled? onValChange(Object.keys(options)[0]) : updateSelectedValue(Object.keys(options)[0]);
             if (
               typeof selectedOptionIndex == "number" &&
               selectedOptionIndex < Object.keys(options).length - 1
             )
-              updateSelectedValue(Object.keys(options)[selectedOptionIndex + 1]);
+              controlled? onValChange(Object.keys(options)[selectedOptionIndex + 1]) : updateSelectedValue(Object.keys(options)[selectedOptionIndex + 1]);
             break;
           case 13:
             updateCompState("onBlur");
@@ -151,32 +144,20 @@ const FCSelect: React.FC<IFCSelect> = ({
     };
   }, [compState, selectedValue]);
 
-  // React.useEffect(() => {
-  //   if (
-  //     !(
-  //       selectedValue !== null &&
-  //       selectedValue == Object.keys(options)[Object.keys(options).indexOf(selectedValue)]
-  //     )
-  //   )
-  //     updateSelectedValue(null);
-  // }, [options, selectedValue]);
+  React.useEffect(() => {
+    controlled? setValueInOptions(Object.keys(options).includes(value as string)) : setValueInOptions(Object.keys(options).includes(selectedValue))
+  }, [options, selectedValue, value]);
 
   // React.useEffect(() => {
-  //   console.log(optionsText)
-  //   for(let [k, v] of Object.entries(optionsText)) {
-  //       if(v.selected) updateSelectedValue(k)
-  //   }
-  // }, [optionsText])
-  React.useEffect(() => {
-    setValueInOptions(Object.keys(options).includes(selectedValue))
-  }, [options, selectedValue]);
+  //   if(controlled) onValChange(value as string);
+  // }, [])
   return (
     <SelectContext.Provider
       value={{
-        selected: selectedValue,
+        selected: controlled? value as string : selectedValue,
         select: (option) => {
           setTimeout(() => {
-            updateSelectedValue(option);
+            controlled? onValChange(option) : updateSelectedValue(option);
             updateCompState("onBlur");
           }, 400);
         },
@@ -200,7 +181,14 @@ const FCSelect: React.FC<IFCSelect> = ({
           ></span>
         )}
 
-        {selectedValue && Object.keys(options).includes(selectedValue) && <span className="value">{options[selectedValue].label}</span>}
+        {
+          controlled? <>
+            { options && value && Object.keys(options).includes(value) && <span className="value">{options[value as string].label}</span> }
+          </> : <>
+            { options && selectedValue && Object.keys(options).includes(selectedValue) && <span className="value">{options[selectedValue].label}</span> }
+          </>
+        }
+        
         {compState == "onFocus" && (
           <SelectBackdrop
             modalWidth={`${selectRef.current?.clientWidth}px`}
@@ -222,16 +210,19 @@ const FCSelect: React.FC<IFCSelect> = ({
           </SelectBackdrop>
         )}
 
-        {error ? (
-          <>
-            <p className="error-text">{error.errorText}</p>
-            {/* <span className="error-toltip">
-                            <InputErrorToltip error={error} />
-                        </span> */}
-          </>
-        ) : (
-          ""
-        )}
+        {/* {
+          error && typeof error !== 'string' && <span className="error-toltip">
+            <InputErrorToltip error={error} />
+          </span>
+        } */
+        }
+        {
+          error && typeof error !== 'string' && <p className="error-text">{error.errorText}</p>
+        }
+        {
+          error && typeof error == 'string' && <p className="error-text">{error}</p>
+        }
+        
       </div>
     </SelectContext.Provider>
   );

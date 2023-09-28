@@ -16,7 +16,9 @@ const doRequest = <T>(config: AxiosRequestConfig) : Promise<TResponseFlag<T>> =>
         })
         .then(response => {
             const serverResponseFla = response.data as IServerResponseFlag;
-            serverResponseFla.success? res(serverResponseFla) : rej(serverResponseFla);
+            if(serverResponseFla.success) {
+                res(serverResponseFla) 
+            } else throw serverResponseFla;
         })
         .catch(error => {
             rej({success: false, error})
