@@ -81,7 +81,10 @@ import {
   faImage,
   faCircle,
   faCertificate,
-  faMapMarkerAlt
+  faMapMarkerAlt,
+  faQrcode,
+  faPrayingHands,
+  faAngleDown
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -151,7 +154,9 @@ library.add(faS, faImage);
 library.add(faS, faCircle);
 library.add(faS, faCertificate);
 library.add(faS, faMapMarkerAlt);
-
+library.add(faS, faQrcode);
+library.add(faS, faPrayingHands);
+library.add(faS, faAngleDown);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

@@ -276,21 +276,6 @@ const FCMembersList: React.FC<IFCMembersTable> = ({className, list, ministryUID,
 
     return (
         <div className={className}>
-            <Alert severity="warning" variant="default" action={<Button onClick={() => alert('hey')} label="View" variant="standard" color="primary" />}>
-                <AlertTitle>Warning</AlertTitle>
-                The Quick Brown fox jump over the head of the lazy dog!
-            </Alert>
-            <Alert>
-                <AlertTitle>Error</AlertTitle>
-                The Quick Brown fox jump over the head of the lazy dog!
-            </Alert>
-            <Alert severity="info" variant="default" onClose={() => alert('close')}>
-                <AlertTitle>Error</AlertTitle>
-                The Quick Brown fox jump over the head of the lazy dog!
-            </Alert>
-            <Alert severity="success" variant="default" onClose={() => alert('close')}>
-                The Quick Brown fox jump over the head of the lazy dog!
-            </Alert>
             {
                 list && list.map(item => {
                     return <ListItem key={item.memberUID} remove={(memberUID) => remove(memberUID)} item={item} ministryUID={ministryUID} />

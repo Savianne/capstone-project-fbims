@@ -27,6 +27,9 @@ import usePhilippinePlacesPickerSelect, { optionValue } from "../../../../utils/
 import useUpdateLocalAddressInfo from "./useUpdateLocalAddressInfo";
 import useUpdateOutsidePHAddress from "./useUpdateOutsidePHAddress";
 import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
+import useUpdateContactInfo from "./useEditContactInfo";
+import AvatarPicker from "../../../reusables/AvatarPicker/AvatarPicker";
+import doRequest from "../../../../API/doRequest";
 
 const ContentWraper = styled.div`
     display: flex;
@@ -80,12 +83,28 @@ const ContentWraper = styled.div`
         .btn-submit-area {
             display: flex;
             flex: 0 1 100%;
+            flex-wrap: wrap;
             justify-content: flex-end;
             gap: 10px
 
             /* ${Button} {
                 margin-left: auto;
             } */
+        }
+
+        .current-dp-area {
+            display: flex;
+            flex: 0 1 100%;
+            /* align-items: center; */
+            justify-content: center;
+            /* border-right: 1px solid ${({theme}) => theme.borderColor}; */
+        }
+
+        .picture-picker-area {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
         }
 
     }
@@ -101,6 +120,14 @@ const EditMember: React.FC = () => {
     const [outsidePHCurrentAddress, updateOutsidePHCurrentAddress] = React.useState(false);
     const [permanentAddressValue, setPermanentAddressValue] = React.useState("");
     const [currentAddressValue, setCurrentAddressValue] = React.useState("");
+    const [dp, setDp] = React.useState<null | string>(null);
+    const [onRemoveCurrentDp, setOnRemoveCurrentDp] = React.useState(false);
+    const [newSelectedDp, setNewSelectedDp] = React.useState<string | null>(null);
+    const [isUploadingDp, setIsUploadingDp] = React.useState(false);
+    const [errorUploadingDp, setErrorUploadingDp] = React.useState(false);
+    const [tempDpName, setTempDpName] = React.useState<null | string>(null); 
+    const [disablePictureInput, setDisablePictureInput] = React.useState(false);
+    const [resetDpInputValue, setResetDpInputValue] = React.useState(false);
 
     const {
         setBaseData,
@@ -111,10 +138,38 @@ const EditMember: React.FC = () => {
         isModified: basicDataIsModified,
         isUpdateError,
         isUpdateSuccess,
-        isUpdating,
+        isUpdating: isUpdatingBasicInfo,
         updateError,
         submitUpdate: submitBasicInfoUpdate,
     } = useUpdateBasicInfo();
+
+    const {
+        setBaseData: setPersonalContactInfoBaseData,
+        input: personalContactInfoInput,
+        values: personlaContactInfoValues,
+        errors: personalContactInfoInputErrors,
+        revertChange: revertPersonalContactInfoChanges,
+        isModified: personalContactInfoIsModified,
+        isUpdateError: isPersonalContactInfoUpdateError,
+        // isUpdateSuccess,
+        isUpdating: isUpdatingPersonalContactInfo,
+        // updateError,
+        submitUpdate: submitPersonalContactInfoUpdate,
+    } = useUpdateContactInfo("personal");
+
+    const {
+        setBaseData: setHomeContactInfoBaseData,
+        input: homeContactInfoInput,
+        values: homeContactInfoValues,
+        errors: homeContactInfoInputErrors,
+        revertChange: revertHomeContactInfoChanges,
+        isModified: homeContactInfoIsModified,
+        isUpdateError: isHomeContactInfoUpdateError,
+        // isUpdateSuccess,
+        isUpdating: isUpdatingHomeContactInfo,
+        // updateError,
+        submitUpdate: submitHomeContactInfoUpdate,
+    } = useUpdateContactInfo("home");
 
     const {
         input: localPermanentAddressInput,
@@ -183,18 +238,33 @@ const EditMember: React.FC = () => {
     }, [memberUID]);
 
     React.useEffect(() => {
-        memberInformation && setBaseData({
-            first_name: memberInformation.first_name,
-            middle_name: memberInformation.middle_name,
-            surname: memberInformation.surname,
-            ext_name: memberInformation.ext_name,
-            gender: memberInformation.gender,
-            marital_status: memberInformation.marital_status, 
-            date_of_birth: transformDateToYYYYMMDD(memberInformation.date_of_birth)
-        });
+        if(memberInformation) {
+            setBaseData({
+                first_name: memberInformation.first_name,
+                middle_name: memberInformation.middle_name,
+                surname: memberInformation.surname,
+                ext_name: memberInformation.ext_name,
+                gender: memberInformation.gender,
+                marital_status: memberInformation.marital_status, 
+                date_of_birth: transformDateToYYYYMMDD(memberInformation.date_of_birth)
+            });
+
+            setPersonalContactInfoBaseData({
+                email: memberInformation.personalEmail,
+                cpNumber: memberInformation.personalCPNumber,
+                telephoneNumber: memberInformation.personalTelNumber
+            });
+
+            setHomeContactInfoBaseData({
+                email: memberInformation.homeEmail,
+                cpNumber: memberInformation.homeCPNUmber,
+                telephoneNumber: memberInformation.homeTelNumber
+            });
+        }  
 
         memberInformation?.outsidePHpermanentAddress? setPermanentAddressValue(memberInformation.outsidePHpermanentAddress) : setPermanentAddressValue(`${memberInformation?.localPermanentAddressRegion}: ${memberInformation?.localPermanentAddressBarangay}, ${memberInformation?.localPermanentAddressMunCity}, ${memberInformation?.localPermanentAddressProvince}`);
-        memberInformation?.outsidePHCurrentAddress? setCurrentAddressValue(memberInformation.outsidePHCurrentAddress) : setCurrentAddressValue(`${memberInformation?.localCurrentAddressRegion}: ${memberInformation?.localCurrentAddressBarangay}, ${memberInformation?.localCurrentAddressMunCity}, ${memberInformation?.localCurrentAddressProvince}`)
+        memberInformation?.outsidePHCurrentAddress? setCurrentAddressValue(memberInformation.outsidePHCurrentAddress) : setCurrentAddressValue(`${memberInformation?.localCurrentAddressRegion}: ${memberInformation?.localCurrentAddressBarangay}, ${memberInformation?.localCurrentAddressMunCity}, ${memberInformation?.localCurrentAddressProvince}`);
+        setDp(memberInformation?.avatar as string | null)
     }, [memberInformation]);
 
     React.useEffect(() => {
@@ -229,23 +299,26 @@ const EditMember: React.FC = () => {
                                     {
                                         basicDataValues && basicDataInput? <>
                                             {
-                                                updateError && <Alert variant="outlined" severity="error">Error occurred! try again</Alert>
+                                                updateError && <Alert variant="filled" severity="error">
+                                                    <AlertTitle>Error</AlertTitle>
+                                                    Update failed! Try again.
+                                                </Alert>
                                             }
-                                            <Input error={basicInfoInputErrors.first_name} value={basicDataValues.first_name} name="first-name" type="text" placeholder="First Name" onValChange={(e) => basicDataInput.first_name(e as string)}/>
-                                            <Input error={basicInfoInputErrors.middle_name} value={basicDataValues.middle_name} name="middle-name" type="text" placeholder="Middle Name" onValChange={(e) => basicDataInput.middle_name(e as string)} />
-                                            <Input error={basicInfoInputErrors.surname} value={basicDataValues.surname} name="surname" type="text" placeholder="Surname" onValChange={(e) => basicDataInput.surname(e as string)}/>
-                                            <Select error={basicInfoInputErrors.ext_name} value={basicDataValues.ext_name as string} placeholder="Ext. name" onValChange={(e) => basicDataInput.ext_name(e)}>
+                                            <Input disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.first_name} value={basicDataValues.first_name} name="first-name" type="text" placeholder="First Name" onValChange={(e) => basicDataInput.first_name(e as string)}/>
+                                            <Input disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.middle_name} value={basicDataValues.middle_name} name="middle-name" type="text" placeholder="Middle Name" onValChange={(e) => basicDataInput.middle_name(e as string)} />
+                                            <Input disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.surname} value={basicDataValues.surname} name="surname" type="text" placeholder="Surname" onValChange={(e) => basicDataInput.surname(e as string)}/>
+                                            <Select disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.ext_name} value={basicDataValues.ext_name as string} placeholder="Ext. name" onValChange={(e) => basicDataInput.ext_name(e)}>
                                                 <Option value="">Select Ext. name</Option>
                                                 <Option value="jr">Jr.</Option>
                                                 <Option value="sr">Sr.</Option>
                                             </Select>
-                                            <Input error={basicInfoInputErrors.date_of_birth} value={basicDataValues.date_of_birth} name="date-of-birth" type="date" placeholder="Date of Birth" onValChange={(e) => basicDataInput.date_of_birth(e as string)} />
-                                            <Select error={basicInfoInputErrors.gender} value={basicDataValues.gender} placeholder="Gender" onValChange={(e) => basicDataInput.gender(e)}>
+                                            <Input disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.date_of_birth} value={basicDataValues.date_of_birth} name="date-of-birth" type="date" placeholder="Date of Birth" onValChange={(e) => basicDataInput.date_of_birth(e as string)} />
+                                            <Select disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.gender} value={basicDataValues.gender} placeholder="Gender" onValChange={(e) => basicDataInput.gender(e)}>
                                                 <Option value="">Please select</Option>
                                                 <Option value="male">Male</Option>
                                                 <Option value="female">Female</Option>
                                             </Select>
-                                            <Select error={basicInfoInputErrors.marital_status} value={basicDataValues.marital_status} placeholder="Marital Status" onValChange={(e) => basicDataInput.marital_status(e)}>
+                                            <Select disabled={isUpdatingBasicInfo} error={basicInfoInputErrors.marital_status} value={basicDataValues.marital_status} placeholder="Marital Status" onValChange={(e) => basicDataInput.marital_status(e)}>
                                                 <Option value="">Please select</Option>
                                                 <Option value="single">Single</Option>
                                                 <Option value="married">Married</Option>
@@ -255,8 +328,8 @@ const EditMember: React.FC = () => {
                                             </Select>
                                             <Alert variant="outlined" severity="info">Please note that clicking the 'Update changes' button will immediately update the data to the database. To revert any changes, you can click the 'Revert' button.</Alert>
                                             <div className="btn-submit-area">
-                                                <Button disabled={!basicDataIsModified} label="Revert changes" onClick={revertChange}/>
-                                                <Button disabled={!(basicDataIsModified) || (basicDataIsModified && Object.values(basicInfoInputErrors).length > 0)} label="Update changes" color="edit" isLoading={isUpdating} onClick={() => submitBasicInfoUpdate && submitBasicInfoUpdate(memberInformation.member_uid)} />
+                                                <Button disabled={!(basicDataIsModified) || isUpdatingBasicInfo} label="Revert changes" onClick={revertChange}/>
+                                                <Button disabled={!(basicDataIsModified) || (basicDataIsModified && Object.values(basicInfoInputErrors).length > 0)} label="Update changes" color="edit" isLoading={isUpdatingBasicInfo} onClick={() => submitBasicInfoUpdate && submitBasicInfoUpdate(memberInformation.member_uid, () => addSnackBar("Update success", "success", 5))} />
                                             </div>
                                         </> : "Loading..."
                                     }
@@ -272,6 +345,14 @@ const EditMember: React.FC = () => {
                                 <div className="row">
                                     <DataDisplayChip variant="outlined" icon={<FontAwesomeIcon icon={["fas", "map-marker-alt"]} />}>{permanentAddressValue}</DataDisplayChip>
                                 </div>
+                                {
+                                    (outsidePHPermanetAddress && isOutsdePermanentUpdateError) || (outsidePHPermanetAddress == false && isLocalPermanentUpdateError)? <div className="row">
+                                        <Alert variant="filled" severity="error">
+                                            <AlertTitle>Error</AlertTitle>
+                                            Update failed! Try again.
+                                        </Alert>
+                                    </div> : ""
+                                }
                                 <div className="row">
                                     <Input disabled={isUpdatingLocalPermanentAddress} checked={outsidePHPermanetAddress} type="checkbox" placeholder="Outside Philippines" label="Outside Philippines?" onValChange={(val) => {
                                         const v = val as boolean;
@@ -376,6 +457,14 @@ const EditMember: React.FC = () => {
                                 <div className="row">
                                     <DataDisplayChip variant="outlined" icon={<FontAwesomeIcon icon={["fas", "map-marker-alt"]} />}>{currentAddressValue}</DataDisplayChip>
                                 </div>
+                                {
+                                    (outsidePHCurrentAddress && isOutsdeCurrentUpdateError) || (outsidePHCurrentAddress == false && isLocalCurrentUpdateError)? <div className="row">
+                                        <Alert variant="filled" severity="error">
+                                            <AlertTitle>Error</AlertTitle>
+                                            Update failed! Try again.
+                                        </Alert>
+                                    </div> : ""
+                                }
                                 <div className="row">
                                     <Input disabled={isUpdatingLocalCurrentAddress} checked={outsidePHCurrentAddress} type="checkbox" placeholder="Outside Philippines" label="Outside Philippines?" onValChange={(val) => {
                                         const v = val as boolean;
@@ -451,7 +540,7 @@ const EditMember: React.FC = () => {
                                     <div className="btn-submit-area">
                                         <Button 
                                         disabled={!(isReadyLocalCurrentAddress) || isUpdatingLocalCurrentAddress} 
-                                        label="Update permanent Address" color="edit" 
+                                        label="Update Current Address" color="edit" 
                                         onClick={() => submitLocalCurrentAddressUpdate? submitLocalCurrentAddressUpdate(memberInformation.member_uid, 
                                             (data) => {
                                                 addSnackBar("Update success", "success", 5);
@@ -465,7 +554,7 @@ const EditMember: React.FC = () => {
                                         <div className="btn-submit-area">
                                             <Button 
                                             disabled={!(isReadyOutsideCurrentAddress) || isUpdatingOutsideCurrentAddress} 
-                                            label="Update permanent Address" 
+                                            label="Update Current Address" 
                                             color="edit" 
                                             onClick={() => submitOutsideCurrentAddressUpdate? submitOutsideCurrentAddressUpdate(memberInformation.member_uid, (data) => {
                                                 addSnackBar("Update success", "success", 5);
@@ -475,7 +564,123 @@ const EditMember: React.FC = () => {
                                     </>
                                 }
                                 </>
+                            }
+                            {
+                                tab == "contact" && <>
+                                    <h1>Contact Info ( Personal )</h1>
+                                    {
+                                        isPersonalContactInfoUpdateError && <div className="row">
+                                            <Alert variant="filled" severity="error">
+                                                <AlertTitle>Error</AlertTitle>
+                                                Update failed! Try again.
+                                            </Alert>
+                                        </div>
+                                    }
+                                    <IconInput disabled={isUpdatingPersonalContactInfo} value={personlaContactInfoValues?.email} type="email" placeholder="Email Address" error={personalContactInfoInputErrors.email} onValChange={(e) => personalContactInfoInput?.email(e as string)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                                    <PHCPNumberInput disabled={isUpdatingPersonalContactInfo} value={personlaContactInfoValues?.cpNumber? personlaContactInfoValues?.cpNumber as string : ""} placeholder="Mobile Number" error={personalContactInfoInputErrors.cpNumber} onChange={(e) => personalContactInfoInput?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                                    <PHTelNumberInput disabled={isUpdatingPersonalContactInfo} value={personlaContactInfoValues?.telephoneNumber? personlaContactInfoValues?.telephoneNumber as string : ""} placeholder="Telephone Number" error={personalContactInfoInputErrors.telephoneNumber} onChange={(e) => personalContactInfoInput?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                                    <div className="btn-submit-area">
+                                        <Button disabled={!(personalContactInfoIsModified) || isUpdatingPersonalContactInfo} label="Revert changes" onClick={revertPersonalContactInfoChanges}/>
+                                        <Button 
+                                        disabled={!(personalContactInfoIsModified) || (personalContactInfoIsModified && Object.values(personalContactInfoInputErrors).length > 0) || isUpdatingPersonalContactInfo} 
+                                        label="Update changes" 
+                                        color="edit" 
+                                        isLoading={isUpdatingPersonalContactInfo}
+                                        onClick={() => submitPersonalContactInfoUpdate && submitPersonalContactInfoUpdate(memberInformation.member_uid, () => addSnackBar("Update success", 'success', 5))} />
+                                    </div>
+                                    <Devider $orientation="horizontal" $flexItem $css="flex: 0 1 100%" />
+                                    <h1>Contact Info ( Home )</h1>
+                                    {
+                                        isHomeContactInfoUpdateError && <div className="row">
+                                            <Alert variant="filled" severity="error">
+                                                <AlertTitle>Error</AlertTitle>
+                                                Update failed! Try again.
+                                            </Alert>
+                                        </div>
+                                    }
+                                    <IconInput disabled={isUpdatingHomeContactInfo} value={homeContactInfoValues?.email} type="email" placeholder="Email Address" error={homeContactInfoInputErrors.email} onValChange={(e) => homeContactInfoInput?.email(e as string)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                                    <PHCPNumberInput disabled={isUpdatingHomeContactInfo} value={homeContactInfoValues?.cpNumber? homeContactInfoValues?.cpNumber as string : ""} placeholder="Mobile Number" error={homeContactInfoInputErrors.cpNumber} onChange={(e) => homeContactInfoInput?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                                    <PHTelNumberInput disabled={isUpdatingHomeContactInfo} value={homeContactInfoValues?.telephoneNumber? homeContactInfoValues?.telephoneNumber as string : ""} placeholder="Telephone Number" error={homeContactInfoInputErrors.telephoneNumber} onChange={(e) => homeContactInfoInput?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                                    <div className="btn-submit-area">
+                                        <Button disabled={!(homeContactInfoIsModified) || isUpdatingHomeContactInfo} label="Revert changes" onClick={revertHomeContactInfoChanges}/>
+                                        <Button 
+                                        disabled={!(homeContactInfoIsModified) || (homeContactInfoIsModified && Object.values(homeContactInfoInputErrors).length > 0) || isUpdatingHomeContactInfo} 
+                                        label="Update changes" 
+                                        color="edit" 
+                                        isLoading={isUpdatingHomeContactInfo}
+                                        onClick={() => submitHomeContactInfoUpdate && submitHomeContactInfoUpdate(memberInformation.member_uid, () => addSnackBar("Update success", 'success', 5))} />
+                                    </div>
+                                </>
                             }     
+
+                            {
+                                tab == "picture" && <>
+                                <Alert severity="info" variant="default">
+                                    Uploading a formal display picture for the member's profile is optional but recommended for a professional appearance.
+                                </Alert>
+                                {
+                                    dp && <>
+                                    <div className="current-dp-area">
+                                        <Avatar size="180px" alt={memberInformation.first_name} src={dp} />
+                                    </div>
+                                    <div className="row" style={{display: "flex", justifyContent: "center", gap: '10px', padding: '25px 0 0 0'}}>
+                                        <Button isLoading={onRemoveCurrentDp} icon={<FontAwesomeIcon icon={["fas", "times"]} />} label="Remove picture" 
+                                        onClick={() => {
+                                            setOnRemoveCurrentDp(true);
+                                            doRequest({
+                                                url: `/update-display-picture/remove/${memberInformation.member_uid}/${dp}`,
+                                                method: "PATCH"
+                                            })
+                                            .then(response => {
+                                                if(response.success) {
+                                                    setDp(null);
+                                                } else throw response.error;
+                                                setOnRemoveCurrentDp(false)
+                                            })
+                                            .catch(error => {
+                                                addSnackBar("Faild to delete picture, try again", "error", 5);
+                                                setOnRemoveCurrentDp(false)
+                                            })
+                                        }} />
+                                    </div>
+                                    <div className="row">
+                                        <h1 style={{display: "flex", justifyContent: "center", fontSize: '17px', marginBottom: '5px'}}>or upload new</h1>
+                                    </div>
+                                    </>
+                                }
+                                <div className="picture-picker-area">
+                                    <AvatarPicker 
+                                    onChange={(avatar) => {
+                                        errorUploadingDp && setErrorUploadingDp(false);
+                                        isUploadingDp && setIsUploadingDp(false);
+                                        resetDpInputValue && setResetDpInputValue(false)
+                                        setNewSelectedDp(avatar);
+                                    }}
+                                    onErrorUpload={() => setErrorUploadingDp(true)} 
+                                    onUpload={() => setIsUploadingDp(true)} 
+                                    disabledPicker={disablePictureInput} 
+                                    doReset={resetDpInputValue} />
+                                </div>
+                                <div className="row" style={{display: "flex", justifyContent: "center", gap: '10px', padding: '10px 0 0 0'}}>
+                                    <Button disabled={newSelectedDp == null} isLoading={isUploadingDp} color="edit" label="Update" 
+                                    onClick={() => {
+                                        doRequest({
+                                            url: `/update-display-picture/update/${memberInformation.member_uid}/${newSelectedDp}`,
+                                            method: "PATCH"
+                                        })
+                                        .then(response => {
+                                            if(response.success) {
+                                                setDp(newSelectedDp);
+                                                setResetDpInputValue(true)
+                                            } else throw response.error;
+                                        })
+                                        .catch(error => {
+                                            addSnackBar("Faild to delete picture, try again", "error", 5);
+                                        })
+                                    }} />
+                                </div>
+                                </>
+                            }
                             </>
                         }
                     </div>

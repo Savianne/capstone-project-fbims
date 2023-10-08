@@ -32,7 +32,7 @@ const FCButton: React.FC<IFCButton> = ({className, icon, label, iconButton, disa
                             isLoading? <SpinnerLoadingIndicator msSpeed={1000} /> : icon
                         }
                     </> : <>
-                        {isLoading && <SpinnerLoadingIndicator msSpeed={1000} />} <p className="label">{label}</p>
+                        {isLoading && !icon && <SpinnerLoadingIndicator msSpeed={1000} />} <p className="label">{label}</p>
                     </> 
                 }
             </UseRipple>
@@ -86,7 +86,7 @@ const Button = styled(FCButton)<IButton>`
     }
 
     .label {
-        margin-left: ${(props) => props.isLoading? "5px" : 0};
+        margin-left: ${(props) => props.isLoading && !(props.icon)? "10px" : 0};
     }
 
     ${(props) => {

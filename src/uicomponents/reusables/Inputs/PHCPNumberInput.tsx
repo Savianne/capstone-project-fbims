@@ -10,7 +10,7 @@ import { IStyledFC } from "../../IStyledFC";
 interface IFCIconInput extends IStyledFC {
   icon: any,
   placeholder: string,
-  error?: IFormErrorFieldValues | null,
+  error?: IFormErrorFieldValues | null | string,
   value?: string,
   viewOnly?: boolean,
   disabled?: boolean,
@@ -51,11 +51,12 @@ const FCPHCPNumberInput: React.FC<IFCIconInput> = ({value, icon, placeholder, er
       </span>
       <input type="tel" value={formattedValue? formattedValue : ""} onChange={handleChange} maxLength={13} placeholder={placeholder} disabled={disabled} />
       {
-          error? <>
-              <span className="error-toltip">
-                  <InputErrorToltip error={error} />
-              </span>
-          </> : ''
+        error && typeof error !== 'string' && <span className="error-toltip">
+            <InputErrorToltip error={error as IFormErrorFieldValues} />
+        </span>
+      }
+      {
+        error && typeof error === 'string' && <span className="input-error-text">{error}</span>
       }
     </div>
   )
@@ -100,13 +101,19 @@ const PHCPNumberInput = styled(FCPHCPNumberInput)`
         ${(props) => props.disabled && css`cursor: not-allowed;`};
     }
 
-    & .error-toltip {
+    & .error-toltip, & .input-error-text  {
         position: absolute;
         top: calc(100% + 2px);
         width: 100%;
         font-size: 11px;
         color: ${({theme}) => theme.staticColor.delete};
         z-index: 100;
+    }
+
+    & .input-error-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     ${(props) => props.disabled && css`opacity: 0.5; cursor: not-allowed;`};

@@ -1,6 +1,6 @@
-import { ReactElement } from "react";
+import { ReactElement, ReactNode } from "react";
 
 export interface IStyledFC {
     className?: string,
-    children?: React.ReactChild | React.ReactChild[],
+    children?: React.ReactChild | React.ReactChild[] | ReactNode,
 }

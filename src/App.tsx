@@ -76,8 +76,8 @@ function App() {
           <AppHeader>
             <NavBarToggle />
             <SystemLogo>
-              <img className="desktop-logo" src='/fbims-logo.png' />
-              <img className='mobile-logo' src='/fbims-logo-mobile.png' />
+              <img className="desktop-logo" src='/faith-buddy.png' />
+              <img className='mobile-logo' src='/faith-buddy-mob.png' />
               <span className="cover"></span>
             </SystemLogo>
             <ThemeModeToggle />

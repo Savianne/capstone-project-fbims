@@ -53,8 +53,15 @@ const NavBar: React.FC<INavBar> = ({className}) => {
             currentPath={currentPath}
             />
             <SNavBarLink 
+            title="Worship Service" 
+            icon={<FontAwesomeIcon icon={["fas", "praying-hands"]} />} 
+            path="/app/worship-service" 
+            switchPath={(path) => updateCurrentPath(path)}
+            currentPath={currentPath}
+            />
+            <SNavBarLink 
             title="Attendance" 
-            icon={<FontAwesomeIcon icon={["fas", "clipboard-list"]} />} 
+            icon={<FontAwesomeIcon icon={["fas", "qrcode"]} />} 
             path="/app/attendance" 
             switchPath={(path) => updateCurrentPath(path)}
             currentPath={currentPath}
@@ -324,7 +331,7 @@ const NavLinkLoadingContainer = styled.div`
     .nav-link-container .nav-link-text {
         flex: 1;
         margin-left: 5px;
-        height: height: 35px;
+        height: 35px;
     }
 `;
 

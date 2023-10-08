@@ -197,9 +197,9 @@ const Information: React.FC = () => {
                     <FolderBase>
                         <Folder isError={organizations.isError} isLoading={organizations.isLoading} name='Organizations' icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} records={organizations.count} path="organizations" />
                     </FolderBase>
-                    {/* <FolderBase>
-                        <Folder name='Families' icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={0} path="families" />
-                    </FolderBase> */}
+                    <FolderBase>
+                        <Folder isError={false} name='Families' isLoading={organizations.isLoading} icon={<FontAwesomeIcon icon={["fas", "people-roof"]} />} records={0} path="families" />
+                    </FolderBase>
                 </FolderContainer>
             </RouteContentBaseBody>
         </RouteContentBase>

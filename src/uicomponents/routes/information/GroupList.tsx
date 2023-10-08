@@ -76,7 +76,7 @@ export const MinistryListItem: React.FC<IFCGroupListItem> = ({className, avatar,
                     {/* <AvatarGroup size="20px" limit={5} avatars={membersAvatar} /> */}
                 </span>
             </span>
-            <Button label="Manage" icon={<FontAwesomeIcon icon={["fas", "arrow-circle-right"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`${groupUID}`)} />
+            <Button label="Manage" icon={<FontAwesomeIcon icon={["fas", "arrow-circle-right"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`/app/information/ministry/${groupUID}`)} />
         </GroupListItem>
     )
 }
@@ -111,7 +111,7 @@ export const OrgaizationListItem: React.FC<IFCGroupListItem> = ({className, avat
                     {/* <AvatarGroup size="20px" limit={5} avatars={membersAvatar} /> */}
                 </span>
             </span>
-            <Button label="Manage" icon={<FontAwesomeIcon icon={["fas", "arrow-circle-right"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`${groupUID}`)} />
+            <Button label="Manage" icon={<FontAwesomeIcon icon={["fas", "arrow-circle-right"]} />} variant="hidden-bg-btn" color="primary" onClick={() => navigate(`/app/information/organizations/${groupUID}`)} />
         </GroupListItem>
     )
 }

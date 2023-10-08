@@ -71,11 +71,11 @@ function useUpdateBasicInfo() {
             revertChange: baseData && editFormData? () => setEditFormData(baseData) : undefined,
             isModified: baseData && editFormData? !areObjectsMatching({...baseData, ext_name: baseData.ext_name == ""? null : baseData.ext_name}, {...editFormData, ext_name: editFormData.ext_name == ""? null : editFormData.ext_name}) : undefined,
             isUpdating: onUpdate,
-            isUpdateSuccess: false,
+            isUpdateSuccess: onUPdateSuccess,
             isUpdateError: onUpdateError? true : false,
             updateError: onUpdateError,
             submitUpdate: (baseData && editFormData && !areObjectsMatching(baseData, {...editFormData, ext_name: editFormData.ext_name == ""? null : editFormData.ext_name})) && (errors && Object.values(errors).length < 1)? 
-                (memberUID: string) => {
+                (memberUID: string, onSuccess?: () => void) => {
                     setOnUpdate(true);
                     doRequest({
                         url: `/update-member-data/basic-info/${memberUID}`,
@@ -87,7 +87,8 @@ function useUpdateBasicInfo() {
                         if(response.success) {
                             onUpdateError && setOnUpdateError(null);
                             setBaseData(editFormData);
-                            setOnUpdateSuccess(true)
+                            setOnUpdateSuccess(true);
+                            onSuccess && onSuccess();
                         } else throw response.error;
                     })
                     .catch(err => {

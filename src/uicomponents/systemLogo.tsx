@@ -7,7 +7,7 @@ const SystemLogo = styled.span`
         align-items: center;
         height: 65px;
         width: fit-content;
-        padding: 0 30px;
+        padding: 0 10px;
         border-left: 1px solid ${({theme}) => theme.borderColor};
         /* border-right: 1px solid ${({theme}) => theme.borderColor}; */
     }

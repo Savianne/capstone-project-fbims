@@ -33,7 +33,7 @@ const FCEventHarness: React.FC<IEventHarness> = ({className, harness}) => {
             <div className="harness">
                 {
                     harness.isContinuation && <span className="continuation-indicator">
-                        <img src="assets/images/square.png" />
+                        <img src="/assets/images/square.png" />
                         <span className="arrow"></span>
                     </span>
                 }
@@ -47,7 +47,7 @@ const FCEventHarness: React.FC<IEventHarness> = ({className, harness}) => {
                 </span>
                 {
                     harness.forContinuation && <span className="for-continuation-indicator">
-                        <img src="assets/images/square.png" />
+                        <img src="/assets/images/square.png" />
                         <span className="arrow"></span>
                     </span>
                 }
@@ -117,6 +117,14 @@ const EventHarness = styled(FCEventHarness)`
     .harness .for-continuation-indicator {
         margin-left: auto;
         background-color: ${({theme}) => theme.background.primary};
+        /* width: 11px;
+        box-sizing: border-box;
+        top: 0;
+        bottom: 2px;
+        border-style: solid;
+        border-top-width: 11px;
+        border-bottom-width: 11px;
+        border-color: ${({theme}) => theme.background.primary}; */
     }
 
     .harness .for-continuation-indicator .arrow {

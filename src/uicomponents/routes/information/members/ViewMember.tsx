@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import React from "react";
+import React, { ReactNode } from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
@@ -21,6 +21,10 @@ import SimpleTab, { Tab } from "../../../reusables/SimpleTabs";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import transformDateToYYYYMMDD from "../../../../utils/helpers/transformDateToYYYY-MM-DD";
 import { IStyledFC } from "../../../IStyledFC";
+import { MinistryListItem, OrgaizationListItem } from "../GroupList";
+import UseRipple from "../../../reusables/Ripple/UseRipple";
+import doRequest from "../../../../API/doRequest";
+
 
 const ContentWraper = styled.div`
     display: flex;
@@ -62,7 +66,7 @@ const ContentWraper = styled.div`
 
     header .group-info h1 {
         width: 100%;
-        font-size: 35px;
+        font-size: 25px;
         font-weight: 600;
     }
 
@@ -78,7 +82,7 @@ const ContentWraper = styled.div`
         flex: 0 1 100%;
         padding: 15px;
         height: fit-content;
-        background-color:  ${({theme}) => theme.background.lighter};
+        /* background-color:  ${({theme}) => theme.background.lighter}; */
         /* box-shadow: 3px 3px 5px 1px rgb(0 0 0 / 5%); */
         min-width: 0;
         border-radius: 4px;
@@ -241,6 +245,17 @@ const ContentWraper = styled.div`
                 display: flex;
                 flex: 1;
             }
+
+            .involvements-img {
+                display: flex;
+                width: fit-content;
+                margin-left: auto;
+
+                img {
+                    width: 600px;
+                }
+            }
+
         }  
     }
 `;
@@ -250,10 +265,50 @@ const ViewMember: React.FC = () => {
     const [tab, setTab] = React.useState("information");
     const { memberUID } = useParams();
     const {getMemberRecord, data: memberInformation, isLoading} = useGetMemberInfoByUID();
+    const [revealMinistryList, setRevealMinistryList] = React.useState(false);
+    const [revealOrgList, setRevealOrgList] = React.useState(false);
+    const [orgs, setOrgs] = React.useState<{
+        avatar: null | string,
+        description: string,
+        organizationName: string,
+        organizationUID: string
+    }[] | null>(null);
+
+    const [ministries, setMinistries] = React.useState<{
+        avatar: null | string,
+        description: string,
+        ministryName: string,
+        ministryUID: string
+    }[] | null>(null);
 
     React.useEffect(() => {
         if(memberUID) {
             getMemberRecord(memberUID);
+
+            doRequest<{
+                ministries: {
+                    avatar: null | string,
+                    description: string,
+                    ministryName: string,
+                    ministryUID: string
+                }[] | null,
+                orgs: {
+                    avatar: null | string,
+                    description: string,
+                    organizationName: string,
+                    organizationUID: string
+                }[] | null
+            }>({
+                method: "GET",
+                url: `/get-member-involvements/${memberUID}`
+            })
+            .then(response => {
+                if(response.success && response.data)  {
+                    setMinistries(response.data.ministries);
+                    setOrgs(response.data.orgs)
+                }
+            })
+            .catch(err => console.log(err))
         }
     }, [memberUID]);
 
@@ -284,20 +339,20 @@ const ViewMember: React.FC = () => {
                             <div className="group-info">
                                 <h1>{`${memberInformation?.first_name} ${memberInformation?.middle_name[0]}. ${memberInformation?.surname} ${memberInformation?.ext_name || ""}`}</h1>
                                 <p><FontAwesomeIcon icon={["fas", "user"]} style={{marginRight: "5px", fontSize: '13px'}}/> {memberInformation?.member_uid}</p>
-                                <WorshipServiceAttendanceBadge remark="Active Member" />
+                                <WorshipServiceAttendanceBadge remark="Inactive" />
                             </div>
                         </header>
                         <div className="members-info-data-container">
                             
                             <SimpleTab value={tab} onChange={(tab) => setTab(tab)}>
                                 <Tab value="information" label="Information"/>
-                                <Tab value="organization" label="Organizations & Ministries"/>
+                                <Tab value="involvements" label="Involvements"/>
                                 <Tab value="engagement" label="Engagements"/>
                                 <Tab value="badges" label="Badges"/>
                             </SimpleTab>
                             <div className="tab-content">
                                 {
-                                    tab == "information"? <>
+                                    tab == "information" && <>
                                     <div className="data-category full-name-group">
                                         <span className="data-category-title-container">
                                             <FontAwesomeIcon icon={["fas", "user"]} />
@@ -429,7 +484,27 @@ const ViewMember: React.FC = () => {
                                             <Input viewOnly value={memberInformation?.date_of_baptism? transformDateToYYYYMMDD(memberInformation?.date_of_baptism) : ""} name="date-of-baptism" type="date" placeholder="Date of Baptism" onValChange={(val) => {}} />
                                         </div>
                                     </div>
-                                    </> : ""
+                                    </> 
+                                }
+                                {
+                                    tab == "involvements" && <>
+                                        <InvoleveMementsListReveal involvements={ministries? ministries.length : 0} group="Ministries" icon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />} reveal={revealMinistryList} onClick={() => setRevealMinistryList(!revealMinistryList)}/>
+                                        <Revealer reveal={revealMinistryList}>
+                                            {
+                                                ministries && ministries.map(ministry => (
+                                                    <MinistryListItem key={ministry.ministryUID} avatar={ministry.avatar} groupName={ministry.ministryName} groupUID={ministry.ministryUID} />
+                                                ))
+                                            }
+                                        </Revealer>
+                                        <InvoleveMementsListReveal involvements={orgs? orgs.length : 0} group="Organizations" icon={<FontAwesomeIcon icon={["fas", "people-group"]} />} reveal={revealOrgList} onClick={() => setRevealOrgList(!revealOrgList)} />
+                                        <Revealer reveal={revealOrgList}>
+                                            {
+                                                orgs && orgs.map(org => (
+                                                    <OrgaizationListItem key={org.organizationUID} avatar={org.avatar} groupName={org.organizationName} groupUID={org.organizationUID} />
+                                                ))
+                                            }
+                                        </Revealer>
+                                    </>
                                 }
                             </div>
                             
@@ -442,8 +517,102 @@ const ViewMember: React.FC = () => {
     )
 }
 
+interface IInvoleveMementsListReveal extends IStyledFC {
+    icon: ReactNode;
+    group: string,
+    involvements: number,
+    reveal?: boolean,
+    onClick?: () => void
+}
+
+const InvoleveMementsListRevealFC:React.FC<IInvoleveMementsListReveal> = ({className, icon, group, involvements, reveal, onClick}) => {
+
+    return(
+    <div className={className}>
+        <span className="icon">
+            {icon}
+        </span>
+        <span className="row">
+            <h1>{group}</h1>
+            <p>{involvements} involvements</p>
+        </span>
+        {
+            involvements? <span className="arrow">
+                <UseRipple onClick={() => onClick && onClick()}>
+                    <FontAwesomeIcon icon={["fas", "angle-down"]} />
+                </UseRipple>
+            </span> : ''
+        }
+        
+    </div>
+    ) 
+}
+
+const InvoleveMementsListReveal = styled(InvoleveMementsListRevealFC)`
+    display: flex;
+    flex: 0 1 100%;
+    padding: 10px 0;
+    align-items: center;
+    border-radius: 5px;
+    /* background-color: ${({theme}) => theme.background.light}; */
+    margin-bottom: 10px;
+
+    .icon {
+        display: inline-flex;
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        color: white;
+        background-color: #081b9a;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .row {
+        display: flex;
+        flex: 1;
+        flex-wrap: wrap;
+        margin-left: 10px;
+
+        h1 {
+            padding: 0;
+            margin: 0;
+            flex: 0 1 100%;
+            font-size: 25px;
+            font-weight: 600;
+            color: ${({theme}) => theme.textColor.strong};
+        }
+
+        p {
+            font-size: 15px;
+            color: ${({theme}) => theme.textColor.light};
+        }
+    }
+
+    .arrow {
+        height: 40px;
+        width: 40px;
+        background-color: ${({theme}) => theme.background.lighter};;
+        border-radius: 50%;
+        margin-left: auto;
+        
+        ${UseRipple} {
+            display: inline-flex;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            color: ${({theme}) => theme.textColor.strong};
+            rotate: ${(props) => props.reveal? "180deg" : 0};
+            transition:  rotate 300ms ease-in-out;
+            cursor: pointer;
+        }
+    }
+`
+
 interface IWorshipServiceAttendanceBadge extends IStyledFC {
-    remark: "Regular Attendee" | "Active Member" | "Less Engaged"
+    remark: "Regular Attendee" | "Active Member" | "Less Engaged" | "Inactive"
 }
 
 const WorshipServiceAttendanceBadgeFC: React.FC<IWorshipServiceAttendanceBadge> = ({className, remark}) => {
@@ -472,6 +641,8 @@ const WorshipServiceAttendanceBadge = styled(WorshipServiceAttendanceBadgeFC)`
     margin-top: 8px;
     
     && .remark {
+        display: flex;
+        align-items: center;
         color:  ${({theme}) => theme.textColor.light};
     }
 
@@ -480,7 +651,7 @@ const WorshipServiceAttendanceBadge = styled(WorshipServiceAttendanceBadgeFC)`
         width: fit-content;
         height: fit-content;
         margin-right: 5px;
-        color: ${(props) => props.remark == "Less Engaged"? props.theme.textColor.disabled : props.theme.staticColor.primary};
+        color: ${(props) => props.remark == "Less Engaged" || props.remark == "Inactive"? props.theme.textColor.disabled : props.theme.staticColor.primary};
     }
 `
 
