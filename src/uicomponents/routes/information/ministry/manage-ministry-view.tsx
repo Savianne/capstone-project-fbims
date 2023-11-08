@@ -22,8 +22,11 @@ import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
 import useGetMinistryInfo from "../../../../API/hooks/useGetMinistryInfo";
 import useGetMinistryMembers from "../../../../API/hooks/useGetMinistryMembers";
 import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
+import EditMinistryForm from "./EditMinistryModal";
 import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
-import Alert, { AlertTitle } from "../../../reusables/Alert";
+import UpdateMinistryDP from "./updateMinistryDp";
+import Modal from "../../../reusables/Modal";
+import Error404 from "../../../Error404";
 
 interface IMember {
     name: string,
@@ -137,8 +140,18 @@ const ManageMinistryView: React.FC = () => {
     const deleteModal = useDeleteModal();
     const {data:ministryMembers, isLoading: iseLoadingMembers, isError: isErrorLoadingMembers, isUpdating: isUpdatingMembersList, setData} = useGetMinistryMembers(ministryUID as string);
     const {data, isLoading, isError, isUpdating, error} = useGetMinistryInfo(ministryUID as string);
-
+    const [baseData, setBaseData] = React.useState<{
+        ministryName: string,
+        description: string,
+        avatar: string | null
+    } | null>(null);
     const [addMemberState, setAddMemberState] = React.useState(false);
+
+    const [editMinistryModal, updateEditMinistryModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
+    const [modalIsLoading, updateModalIsLoading] = React.useState(false);
+
+    const [updateMinistryDPModal, setUpdateMinistryDPModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
+    const [updateMinistryDPmodalIsLoading, setUpdateMinistryDPModalIsLoading] = React.useState(false);
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -150,117 +163,150 @@ const ManageMinistryView: React.FC = () => {
         setAnchorEl(null);
     };
 
+    React.useEffect(() => {
+        data && setBaseData({ministryName: data.ministryName, description: data.description, avatar: data.avatar});
+    }, [data])
+
     return (
-        !isError?
-        <RouteContentBase>
-            {
-                addMemberState && <AddMinistryMemberSearchComp close={() => setAddMemberState(!addMemberState)} ministryUID={ministryUID as string} />
-            }
-            <RouteContentBaseHeader>
-                <strong>Manage {data?.ministryName} </strong>
-                <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
-                <SiteMap>
-                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> ministry</Link> / <Link to='./'>{ministryUID}</Link>
-                </SiteMap>
-                <GoBackBtn />
-            </RouteContentBaseHeader>
-            <RouteContentBaseBody>
-                <ContentWraper>
-                    <header>
-                        <div className="avatar-area">
-                            <Avatar size="140px " src={data?.avatar} alt="A" />
-                        </div>
-                        <div className="group-info">
-                            <h1>{data?.ministryName}</h1>
-                            <p>{data?.description}</p>
-                        </div>
-                        <div className="data-total">
-                            <h1>{ministryMembers?.length}</h1>
-                            <p>{ministryMembers && ministryMembers.length > 1? "Members" : "Member"}</p>
-                        </div>
-                        <MenuBtn onClick={handleClick}><FontAwesomeIcon icon={["fas", "ellipsis-h"]} /></MenuBtn>
-                        <Menu
-                        placement="left"
-                        anchorEl={anchorEl} 
-                        open={open} 
-                        onClose={handleClose}>
-                            <MenuItem onClick={() => {
-                                handleClose();
-                                setTimeout(() => {
-                                    setAddMemberState(true);
-                                }, 400)
-                            }}>
-                                <MenuItemIcon>
-                                    <FontAwesomeIcon icon={["fas", "plus"]} />
-                                </MenuItemIcon>
-                                <MenuItemLabel>Add Member</MenuItemLabel>
-                            </MenuItem>
-                            <MenuItem onClick={() => {
-                                handleClose();
-                                setTimeout(() => {
-                                    deleteModal(
-                                        data?.ministryName as string, 
-                                        `Successfully deleted ${data?.ministryName}`,
-                                        () => new Promise((res, rej) => {
-                                            doRequest<null>({
-                                                method: "delete",
-                                                url: `/delete-ministry/${data?.ministryUID}`
-                                            })
-                                            .then(response => {
-                                                res({success: true});
-                                                navigate("/app/information/ministry")
-                                            })
-                                            .catch(err => {
-                                                addSnackBar("Deletion Faild!", "error", 5);
-                                            })
-                                    }))
-                                }, 400)
-                            }}>
-                                <MenuItemIcon>
-                                    <FontAwesomeIcon icon={["fas", "trash"]} />
-                                </MenuItemIcon>
-                                <MenuItemLabel>Delete this Ministry</MenuItemLabel>
-                            </MenuItem>
-                            <MenuItem onClick={handleClose}>
-                                <MenuItemIcon>
-                                    <FontAwesomeIcon icon={["fas", "edit"]} />
-                                </MenuItemIcon>
-                                <MenuItemLabel>Edit Ministry Name</MenuItemLabel>
-                            </MenuItem>
-                            <MenuItem onClick={handleClose}>
-                                <MenuItemIcon>
-                                    <FontAwesomeIcon icon={["fas", "edit"]} />
-                                </MenuItemIcon>
-                                <MenuItemLabel>Edit Ministry Description</MenuItemLabel>
-                            </MenuItem>
-                        </Menu>
-                    </header>
-                    <div className="list-container">
-                        {
-                            ministryMembers && data?.ministryUID && 
-                            <MembersList 
-                            remove={(memberUID) => {
-                                setData(ministryMembers.filter(item => item.memberUID !== memberUID))
-                            }} 
-                            ministryUID={data.ministryUID} 
-                            list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
-                        }
-                        {
-                            iseLoadingMembers && <>
-                            <div className="skeleton-item">
-                                <SkeletonLoading height="85px" />
-                                <SkeletonLoading height="85px" />
-                                <SkeletonLoading height="85px" />
-                                <SkeletonLoading height="85px" />
-                                <SkeletonLoading height="85px" />
+        isLoading? <SkeletonLoading height="500px" /> : <>
+        {
+            !isError && baseData?
+            <RouteContentBase>
+                {
+                    addMemberState && <AddMinistryMemberSearchComp close={() => setAddMemberState(!addMemberState)} ministryUID={ministryUID as string} />
+                }
+                <RouteContentBaseHeader>
+                    <strong>Manage {data?.ministryName} </strong>
+                    <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
+                    <SiteMap>
+                        / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> ministry</Link> / <Link to='./'>{ministryUID}</Link>
+                    </SiteMap>
+                    <GoBackBtn />
+                </RouteContentBaseHeader>
+                <RouteContentBaseBody>
+                    <ContentWraper>
+                        <header>
+                            <div className="avatar-area">
+                                <Avatar size="140px " src={baseData?.avatar} alt={baseData.ministryName} />
                             </div>
-                            </>
-                        }
-                    </div>
-                </ContentWraper>
-            </RouteContentBaseBody>
-        </RouteContentBase>
-        : <h1>{error}</h1>
+                            <div className="group-info">
+                                <h1>{baseData?.ministryName}</h1>
+                                <p>{baseData?.description}</p>
+                            </div>
+                            <div className="data-total">
+                                <h1>{ministryMembers?.length}</h1>
+                                <p>{ministryMembers && ministryMembers.length > 1? "Members" : "Member"}</p>
+                            </div>
+                            <MenuBtn onClick={handleClick}><FontAwesomeIcon icon={["fas", "ellipsis-h"]} /></MenuBtn>
+                            <Menu
+                            placement="left"
+                            anchorEl={anchorEl} 
+                            open={open} 
+                            onClose={handleClose}>
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setTimeout(() => {
+                                        setAddMemberState(true);
+                                    }, 400)
+                                }}>
+                                    <MenuItemIcon>
+                                        <FontAwesomeIcon icon={["fas", "plus"]} />
+                                    </MenuItemIcon>
+                                    <MenuItemLabel>Add Member</MenuItemLabel>
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setTimeout(() => {
+                                        deleteModal(
+                                            data?.ministryName as string, 
+                                            `Successfully deleted ${data?.ministryName}`,
+                                            () => new Promise((res, rej) => {
+                                                doRequest<null>({
+                                                    method: "delete",
+                                                    url: `/delete-ministry/${data?.ministryUID}`
+                                                })
+                                                .then(response => {
+                                                    if(response.success) {
+                                                        res({success: true});
+                                                        navigate("/app/information/ministry")
+                                                    } else throw response.error
+                                                })
+                                                .catch(err => {
+                                                    addSnackBar("Deletion Faild!", "error", 5);
+                                                })
+                                        }))
+                                    }, 400)
+                                }}>
+                                    <MenuItemIcon>
+                                        <FontAwesomeIcon icon={["fas", "trash"]} />
+                                    </MenuItemIcon>
+                                    <MenuItemLabel>Delete this Ministry</MenuItemLabel>
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setTimeout(() => {
+                                        updateEditMinistryModal('ondisplay')
+                                    }, 400)
+                                }}>
+                                    <MenuItemIcon>
+                                        <FontAwesomeIcon icon={["fas", "edit"]} />
+                                    </MenuItemIcon>
+                                    <MenuItemLabel>Edit Ministry</MenuItemLabel>
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setTimeout(() => {
+                                        setUpdateMinistryDPModal('ondisplay')
+                                    }, 400)
+                                }}>
+                                    <MenuItemIcon>
+                                        <FontAwesomeIcon icon={["fas", "image"]} />
+                                    </MenuItemIcon>
+                                    <MenuItemLabel>Update Display Picture</MenuItemLabel>
+                                </MenuItem>
+                            </Menu>
+                            { 
+                                data && baseData && (editMinistryModal == "open" || editMinistryModal == "ondisplay" || editMinistryModal == "close") && 
+                                <Modal isLoading={modalIsLoading} state={editMinistryModal} title="Edit Ministry" onClose={() => updateEditMinistryModal("remove")} maxWidth="550px"> 
+                                    <EditMinistryForm update={(data) => setBaseData({...baseData, ministryName: data.ministryName, description: data.description})} data={{...baseData, ministryUID: data.ministryUID}} onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
+                                </Modal>
+    
+                            }
+                            {
+                                data && baseData && (updateMinistryDPModal == "open" || updateMinistryDPModal == "ondisplay" || updateMinistryDPModal == "close") &&
+                                <Modal isLoading={updateMinistryDPmodalIsLoading} state={updateMinistryDPModal} title="Update Display Picture" onClose={() => setUpdateMinistryDPModal('remove')} maxWidth="550px">
+                                    <UpdateMinistryDP update={(data) => setBaseData({...baseData, avatar: data})} data={{ministryName: baseData.ministryName, ministryUID: data?.ministryUID, picture: baseData.avatar}} onLoading={(isLoading) => setUpdateMinistryDPModalIsLoading(isLoading)}/>
+                                </Modal>
+                            }
+                        </header>
+                        <div className="list-container">
+                            {
+                                ministryMembers && data?.ministryUID && 
+                                <MembersList 
+                                remove={(memberUID) => {
+                                    setData(ministryMembers.filter(item => item.memberUID !== memberUID))
+                                }} 
+                                ministryUID={data.ministryUID} 
+                                list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                            }
+                            {
+                                iseLoadingMembers && <>
+                                <div className="skeleton-item">
+                                    <SkeletonLoading height="85px" />
+                                    <SkeletonLoading height="85px" />
+                                    <SkeletonLoading height="85px" />
+                                    <SkeletonLoading height="85px" />
+                                    <SkeletonLoading height="85px" />
+                                </div>
+                                </>
+                            }
+                        </div>
+                    </ContentWraper>
+                </RouteContentBaseBody>
+            </RouteContentBase>
+            : <Error404 />
+        }
+        </>
     )
 }
 

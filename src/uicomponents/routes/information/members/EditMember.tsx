@@ -267,9 +267,6 @@ const EditMember: React.FC = () => {
         setDp(memberInformation?.avatar as string | null)
     }, [memberInformation]);
 
-    React.useEffect(() => {
-
-    }, [])
     return (
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -633,6 +630,7 @@ const EditMember: React.FC = () => {
                                             })
                                             .then(response => {
                                                 if(response.success) {
+                                                    addSnackBar('Removed display picture', "default", 5);
                                                     setDp(null);
                                                 } else throw response.error;
                                                 setOnRemoveCurrentDp(false)
@@ -671,7 +669,8 @@ const EditMember: React.FC = () => {
                                         .then(response => {
                                             if(response.success) {
                                                 setDp(newSelectedDp);
-                                                setResetDpInputValue(true)
+                                                setResetDpInputValue(true);
+                                                addSnackBar('Change display picture success', "success", 5)
                                             } else throw response.error;
                                         })
                                         .catch(error => {

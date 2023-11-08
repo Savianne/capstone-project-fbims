@@ -3,7 +3,10 @@ import io  from "socket.io-client";
 import getOrganizations from "../getOrganizations";
 import { IOrganizationMember } from "../getOrganizations";
 import { SOCKETIO_URL } from "../BASE_URL";
+import { useAppSelector } from "../../global-state/hooks";
+
 function useGetOrganizations() {
+    const admin = useAppSelector(state => state.setAdmin.admin);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isError, setIsError] = React.useState(false);
     const [error, setError] = React.useState<null | any>(null);
@@ -27,7 +30,7 @@ function useGetOrganizations() {
         
         const socket = io(SOCKETIO_URL);
 
-        socket.on('ADDED_NEW_ORGANIZATION', () => {
+        socket.on(`${admin?.congregation}-ADDED_NEW_ORGANIZATION`, () => {
             setIsUpdating(true);
             getOrganizations()
             .then(response => {
@@ -44,7 +47,7 @@ function useGetOrganizations() {
             });
         });
 
-        socket.on('DELETED_ORGANIZATION', () => {
+        socket.on(`${admin?.congregation}-DELETED_ORGANIZATION`, () => {
             setIsUpdating(true);
             getOrganizations()
             .then(response => {

@@ -17,6 +17,8 @@ import GroupList from "../GroupList";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import { AVATAR_BASE_URL, SOCKETIO_URL } from "../../../../API/BASE_URL";
 import { OrgaizationListItem } from "../GroupList";
+import { useAppSelector } from "../../../../global-state/hooks";
+import NoRecordFound from "../../../NoRecordFound";
 
 const ContentWraper = styled.div`
     display: flex;
@@ -27,6 +29,7 @@ const ContentWraper = styled.div`
 `;
 
 const Organizations: React.FC = () => {
+    const admin = useAppSelector(state => state.setAdmin.admin);
     const [addOrganizationModal, updateAddOrganizationModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
     const [modalIsLoading, updateModalIsLoading] = React.useState(false);
     const [organizationCountTotal, setorganizationCountTotal] = React.useState<"isLoading" | "isLoadError" | number>("isLoading");
@@ -44,7 +47,7 @@ const Organizations: React.FC = () => {
 
         const socket = io(SOCKETIO_URL);
 
-        socket.on(`ADDED_NEW_ORGANIZATION`, () => {
+        socket.on(`${admin?.congregation}-ADDED_NEW_ORGANIZATION`, () => {
             doRequest<{total_count: number}>({
                 method: "POST",
                 url: "/get-records-count/organizations" 
@@ -55,7 +58,7 @@ const Organizations: React.FC = () => {
             .catch(err => setorganizationCountTotal("isLoadError"));
         });
 
-        socket.on(`DELETED_ORGANIZATION`, () => {
+        socket.on(`${admin?.congregation}-DELETED_ORGANIZATION`, () => {
             doRequest<{total_count: number}>({
                 method: "POST",
                 url: "/get-records-count/organizations" 
@@ -98,11 +101,15 @@ const Organizations: React.FC = () => {
                     addRecordFN={() => updateAddOrganizationModal("ondisplay")}/>
                     <GroupList>
                         {
-                           data && data.length && data.map(group => {
-                                return (
-                                    <OrgaizationListItem key={group.organizationUID} avatar={group.avatar} groupName={group.organizationName} groupUID={group.organizationUID} />
-                                )
-                            })
+                           data && data.length? <>
+                           {
+                                data.map(group => {
+                                    return (
+                                        <OrgaizationListItem key={group.organizationUID} avatar={group.avatar} groupName={group.organizationName} groupUID={group.organizationUID} />
+                                    )
+                                })
+                           }
+                           </> : ""
                         }
                         {
                             isLoading && <>
@@ -112,6 +119,9 @@ const Organizations: React.FC = () => {
                                 <SkeletonLoading height="85px" />
                                 <SkeletonLoading height="85px" />
                             </>
+                        }
+                        {
+                            data && data.length == 0 && <NoRecordFound />
                         }
                     </GroupList>
                 </ContentWraper>

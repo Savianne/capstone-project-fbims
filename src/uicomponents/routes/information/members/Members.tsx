@@ -1,11 +1,20 @@
 import { Link, useNavigate } from "react-router-dom";
 import React from "react";
-import styled, { css } from "styled-components";
+import { useAppSelector } from "../../../../global-state/hooks";
+import styled, { ThemeConsumer, css } from "styled-components";
+import { debounce } from 'lodash';
+import axios from "axios";
+import ScaleLoader from "react-spinners/ScaleLoader";
+import { CancelTokenSource } from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 import { IStyledFC } from "../../../IStyledFC";
-
+import Avatar from "../../../reusables/Avatar";
 import { io } from 'socket.io-client';
+import { SOCKETIO_URL } from "../../../../API/BASE_URL";
+import { API_BASE_URL } from "../../../../API/BASE_URL";
+import { TResponseFlag } from "../../../../API/TResponseFlag";
+import ResizableContainer from "../../../reusables/ResizableContainer";
 
 //API
 import { useGetRecordCountQuery } from "../../../../global-state/api/api";
@@ -169,17 +178,142 @@ const ContentWraper = styled.div`
     & .table-control {
         display: flex;
         flex: 0 1 100%;
-        align-items: center;
         height: fit-content;
+        align-items: center;
         padding: 20px 5px 0 5px;
+        overflow: hidden;
+        
+        .left-group {
+            display: inline-flex;
+            height: fit-content;
+            align-items: center;
+            transition: margin 400ms;            
+        }
+
+        .left-group[show='true'] {
+            margin-left: 0;
+        }
+
+        .left-group[show='false'] {
+            margin-left: -230px;
+        }
+
+        .input-area {
+            display: flex;
+            align-items: center;
+            flex: 0 1 100%;
+            padding-right: 10px;
+            height: 50px;
+            background-color: ${({theme}) => theme.background.lighter};
+            border-radius: 5px;
+
+            input,
+            input:active,
+            input:focus,
+            input:hover {
+                display: flex;
+                flex: 0 1 100%;
+                border: 0;
+                outline: 0;
+                height: 100%;
+                /* font-size: 20px; */
+                padding: 0;
+                background-color:  transparent;
+                color:  ${({theme}) => theme.textColor.strong};
+            }
+
+            .search-icon {
+                /* font-size: 20px; */
+                margin: 0 20px;
+                color: ${({theme}) => theme.textColor.strong}
+            }
+        }
     }
 
     & .table-control ${Pagination} {
         margin-left: auto;
     }
+
+    & .result-area {
+        display: flex;
+        flex-wrap: wrap;
+        flex: 0 1 100%;
+        height: fit-content;
+        max-height: CALC(100vh - 35vh);
+        margin-top: 10px;
+        padding-bottom: 15px;
+        overflow-x: auto;
+
+        h1 {
+            display: flex;
+            flex: 0 1 100%;
+            height: 300px;
+            font-size: 30px;
+            align-items: center;
+            justify-content: center;
+            color: ${({theme}) => theme.textColor.disabled}
+            
+        }
+
+        .no-result {
+            display: flex;
+            flex: 0 1 100%;
+            flex-wrap: wrap;
+            height: 300px;
+            align-items: center;
+            align-content: center;
+            justify-content: center;
+
+            h1, .icon {
+                display: flex;
+                flex: 0 1 100%;
+                height: fit-content;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .icon {
+                font-size: 50px;
+                margin-bottom: 10px;
+                color: ${({theme}) => theme.textColor.disabled}; 
+            }
+        }
+
+        .result-item {
+            display: flex;
+            height: fit-content;
+            flex: 0 1 100%;
+            padding: 5px;
+            align-items: center;
+            margin: 1px 5px;
+            /* background-color: ${({theme}) => theme.background.light}; */
+
+            ${Avatar} {
+                margin-right: 8px;
+            }
+
+            .name {
+                flex: 1;
+                font-size: 12px;
+                color: ${({theme}) => theme.textColor.strong};
+            }
+
+            .btn-area {
+                display: inline-flex;
+            }
+        }
+    }
 `;
 
+interface ISearchResult {
+    name: string,
+    avatar: string,
+    memberUID: string,
+}
+
 const Members: React.FC = () => {
+    const admin = useAppSelector(state => state.setAdmin.admin);
+    const navigate = useNavigate();
     const addSnackBar = useAddSnackBar()
     const {data: membersCount, isLoading: isLoadingMembersCount, isError: isErrorMembersCount, isSuccess: isSuccessMembersCount, refetch: refetchMembersCount} = useGetRecordCountQuery('members');
     const [getMembersList, { data: membersListData, isLoading: isLoadingMembersList, isError: isErrorMembersList}] = useGetMembersListMutation();
@@ -191,6 +325,68 @@ const Members: React.FC = () => {
     const [sorting, setSorting] = React.useState<"A-Z" | "Z-A">("A-Z");
     const [listLimit, setListLimit] = React.useState<null | number>(null);
     const [currentTablePage, updateCurrentTablePage] = React.useState<null | number>(1);
+
+    const [searchActive, setSearchActive] = React.useState(false);
+    const [searchTerm, setSearchTerm] = React.useState('');
+
+    const leftGroupToggleRef = React.useRef<null | HTMLDivElement>(null);
+
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [result, setResults] = React.useState<null | ISearchResult[]>(null)
+
+    let cancelTokenSource: CancelTokenSource | null = null;
+
+    const performSearch = async (searchQuery: string) => {
+        if(searchQuery) {
+            setIsLoading(true);
+    
+            if (cancelTokenSource) {
+                cancelTokenSource.cancel('Operation canceled by the user.');
+            }
+    
+            cancelTokenSource = axios.CancelToken.source();
+    
+            try {
+                const response = await axios({
+                    url: "/search-member",
+                    baseURL: API_BASE_URL,
+                    method: "POST",
+                    data: {
+                        searchTerm: searchQuery
+                    },
+                    cancelToken: cancelTokenSource.token,
+                });
+    
+                const responseFlag = response.data as TResponseFlag<ISearchResult[]>
+                if(responseFlag.success) {
+                    setResults(responseFlag.data as ISearchResult[] | null);
+                } else throw responseFlag
+            } catch (error: any) {
+                if (axios.isCancel(error)) {
+                    console.log('Request canceled:', error);
+                } else {
+                    console.log('Error:', error);
+                }
+            }
+    
+            setIsLoading(false);
+        } else {
+            isLoading && setIsLoading(false);
+            if (cancelTokenSource) {
+                cancelTokenSource.cancel('Operation canceled by the user.');
+            }
+            setResults(null)
+        }
+    };
+
+    const debouncedSearch = debounce(performSearch, 300);
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+        setSearchTerm(value);
+
+        debouncedSearch(value);
+    };
 
     React.useEffect(() => {
         isErrorMembersCount && addSnackBar("Failed to Load Members Count", "error", 5)
@@ -215,13 +411,13 @@ const Members: React.FC = () => {
     }, [isErrorMembersList]);
 
     React.useEffect(() => {
-        const socket = io('http://localhost:3008');
+        const socket = io(SOCKETIO_URL);
 
-        socket.on('NEW_MEMBERS_RECORD_ADDED', () => {
+        socket.on(`${admin?.congregation}-NEW_MEMBERS_RECORD_ADDED`, () => {
             refetchMembersCount();
         });
 
-        socket.on('DELETED_MEMBER_RECORD', () => {
+        socket.on(`${admin?.congregation}-DELETED_MEMBER_RECORD`, () => {
             refetchMembersCount();
         });
 
@@ -230,6 +426,9 @@ const Members: React.FC = () => {
         }
     }, []);
 
+    React.useEffect(() => {
+        leftGroupToggleRef.current?.setAttribute('show', searchActive? "false" : "true");
+    }, [searchActive])
     return (<>
     <RouteContentBase>
         <RouteContentBaseHeader>
@@ -251,21 +450,71 @@ const Members: React.FC = () => {
                 addRecordFormUrl="./new-member"
                 addRecordFN={() => updateAddMemberRecordModal("ondisplay")} />
                 <div className="table-control">
-                    <ShowEntriesCounter disabled={isLoadingMembersCount || isLoadingMembersList} onChange={(val) => setListLimit(val)} max={membersCount && membersCount.success && membersCount.data.total_count? membersCount.data.total_count : 100} />
-                    <Devider $orientation="vertical" $css="height: 30px"/>
-                    <SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "A-Z"} onClick={(e) => setSorting("A-Z")}><FontAwesomeIcon icon={["fas", "sort-alpha-down"]} /></SortToggle><SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "Z-A"} onClick={(e) => setSorting("Z-A")}><FontAwesomeIcon icon={["fas", "sort-alpha-down-alt"]} /></SortToggle>
-                    <Devider $orientation="vertical" $css="height: 30px"/>
-                    <Button iconButton icon={<FontAwesomeIcon icon={["fas", "search"]} />} label="Search Button" variant="hidden-bg-btn" />
-                    { totalPage !== null && <Pagination disabled={isLoadingMembersCount || isLoadingMembersList} totalPage={totalPage} onChange={(value) => updateCurrentTablePage(value)} /> }
+                    <div className="left-group" ref={leftGroupToggleRef}>
+                        <ShowEntriesCounter disabled={isLoadingMembersCount || isLoadingMembersList} onChange={(val) => setListLimit(val)} max={membersCount && membersCount.success && membersCount.data.total_count? membersCount.data.total_count : 100} />
+                        <Devider $orientation="vertical" $css="height: 30px"/>
+                        <SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "A-Z"} onClick={(e) => setSorting("A-Z")}><FontAwesomeIcon icon={["fas", "sort-alpha-down"]} /></SortToggle><SortToggle disabled={isLoadingMembersCount || isLoadingMembersList} active={sorting == "Z-A"} onClick={(e) => setSorting("Z-A")}><FontAwesomeIcon icon={["fas", "sort-alpha-down-alt"]} /></SortToggle>
+                        <Devider $orientation="vertical" $css="height: 30px"/>
+                    </div>
+                    {
+                        searchActive == false && <Button iconButton icon={<FontAwesomeIcon icon={["fas", "search"]} />} label="Search Button" variant="hidden-bg-btn" onClick={() => setSearchActive(true)} />
+                    }
+                    {
+                        searchActive && 
+                        <div className="input-area">
+                            <span className="search-icon">
+                                <FontAwesomeIcon icon={["fas", "search"]} />
+                            </span>
+                            <input autoFocus value={searchTerm} placeholder="Search for members" onChange={handleInputChange} />
+                                {
+                                    isLoading && <ScaleLoader color="#36d7b7" height={"10px"} style={{marginRight: "5px", width: '60px'}}/>
+                                }
+                            <Button 
+                            onClick={() => {
+                                setSearchTerm("");
+                                isLoading && setIsLoading(false);
+                                if (cancelTokenSource) {
+                                    cancelTokenSource.cancel('Operation canceled by the user.');
+                                }
+                                setResults(null);
+                            }} label="" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "times"]} />} />
+                            <Devider $variant="center" $orientation="vertical" $flexItem $css="margin-left: 10px;margin-right: 10px;height: 60%"/>
+                            <Button onClick={() => setSearchActive(false)} label="Close" variant="hidden-bg-btn" />
+                        </div>
+                    }
+                    { searchActive == false && totalPage !== null && <Pagination disabled={isLoadingMembersCount || isLoadingMembersList} totalPage={totalPage} onChange={(value) => updateCurrentTablePage(value)} /> }
                 </div>
-                <MembersTable
-                expectedListLen={listLimit? listLimit : 0}
-                isLoading={isLoadingMembersList || isLoadingMembersList}
-                membersList={
-                    membersListData && membersListData.querySuccess && membersListData.result? membersListData.result : []
-                } />
-                <div className="table-control">
-                </div>
+                {
+                    searchActive? <div className="result-area">
+                    {
+                        result == null && <h1>Type the name of the member to search...</h1>
+                    }
+                    {
+                        result != null && result.length == 0 && <span className="no-result">
+                            <span className="icon"><FontAwesomeIcon icon={["fas", "tired"]} /></span>
+                            <h1>No result found!</h1>
+                        </span>
+                    }
+                    {
+                        result != null && result.length != 0 && result.map(item => (
+                            <div className="result-item">
+                                <Avatar src={item.avatar} alt={item.name} size="30px" />
+                                <p className="name">{ item.name }</p>
+                                <div className="btn-area">
+                                    <Button label="Edit Info" icon={<FontAwesomeIcon icon={["fas", "user-pen"]} />} variant="hidden-bg-btn" color="edit" iconButton onClick={() => navigate(`/app/information/members/edit/${item.memberUID}`)} />
+                                    <Button label="View Member" icon={<FontAwesomeIcon icon={["fas", "user"]} />} variant="hidden-bg-btn" color="primary" iconButton onClick={() => navigate(`/app/information/members/view/${item.memberUID}`)} />
+                                </div>
+                            </div>
+                        ))
+                    }
+                    </div> : 
+                    <MembersTable
+                    expectedListLen={listLimit? listLimit : 0}
+                    isLoading={isLoadingMembersList || isLoadingMembersList}
+                    membersList={
+                        membersListData && membersListData.querySuccess && membersListData.result? membersListData.result : []
+                    } />
+                }
             </ContentWraper>                
         </RouteContentBaseBody>
     </RouteContentBase>

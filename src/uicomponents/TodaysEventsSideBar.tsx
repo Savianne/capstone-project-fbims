@@ -235,11 +235,15 @@ const FCTodaysEventsSideBar: React.FC<IStyledFC> = ({className}) => {
 const TodaysEventsSideBar = styled(FCTodaysEventsSideBar)`
     position: relative;
     display: flex;
-    height: 100%;
-    transition: width 400ms ease-in-out;
+    height: calc(100% - 20px);
+    transition: margin-left 400ms linear, width 400ms ease-in-out;
     overflow-x: hidden;
     flex-direction: column;
-
+    border: 1px solid ${({theme}) => theme.borderColor};
+    border-radius: 5px;
+    margin: 10px 10px 10px 0;
+    background-color: ${({theme}) => theme.background.primary};
+    
     .sidebar-header {
         position: relative;
         display: flex;
@@ -270,6 +274,7 @@ const TodaysEventsSideBar = styled(FCTodaysEventsSideBar)`
         align-items: center;
         justify-content: center;
         z-index: 2;
+        /* width: 350px; */
     }
 
     .sidebar-header .expand-toggle {
@@ -277,11 +282,22 @@ const TodaysEventsSideBar = styled(FCTodaysEventsSideBar)`
         /* width: 40px; */
     }
 
-    &[state="open"] {
+    /* &[state="open"] {
         width: 340px;
     }
 
     &[state="close"] {
+        width: 0;
+    } */
+
+    &[state="open"] {
+        margin-left: 0;
+        width: 340px;
+    }
+
+    &[state="close"] {
+        margin-left: 100%;
+        margin-right: 0;
         width: 0;
     }
 

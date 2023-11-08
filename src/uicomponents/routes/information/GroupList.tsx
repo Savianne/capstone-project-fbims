@@ -153,6 +153,10 @@ export const GroupListItem = styled.div`
         /* font-family: Sen-Regular; */
     }
 
+    & .vertical-items .group-member-avatar-list {
+        flex: 1;
+    }
+
     & .vertical-items .group-member-avatar-list ${Avatar} {
         font-size: 11px;
         margin-left: -6px;

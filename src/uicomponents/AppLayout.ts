@@ -57,6 +57,9 @@ const AppLayout = styled.div`
     }
 
     & > ${SideBar} {
+        /* top: 75px;
+        height: calc(100vh - 75px);
+        margin-right: 10px; */
         /* flex: 0 1 350px; */
         /* flex: 0 1 65px; */
     }

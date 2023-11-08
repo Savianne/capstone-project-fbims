@@ -3,8 +3,10 @@ import io  from "socket.io-client";
 import getMinistryMembers from "../getMinistryMembers";
 import { TMinistryMembersData } from "../getMinistryMembers";
 import { SOCKETIO_URL } from "../BASE_URL";
+import { useAppSelector } from "../../global-state/hooks";
 
 function useGetMinistryMembers(ministryUID: string) {
+    const admin = useAppSelector(state => state.setAdmin.admin);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isError, setIsError] = React.useState(false);
     const [error, setError] = React.useState<null | any>(null);
@@ -28,7 +30,7 @@ function useGetMinistryMembers(ministryUID: string) {
         
         const socket = io(SOCKETIO_URL);
 
-        socket.on(`ADDED_NEW_MINISTRY_MEMBER_TO${ministryUID}`, () => {
+        socket.on(`${admin?.congregation}-ADDED_NEW_MINISTRY_MEMBER_TO${ministryUID}`, () => {
             setIsUpdating(true);
             getMinistryMembers(ministryUID)
             .then(response => {
@@ -45,7 +47,7 @@ function useGetMinistryMembers(ministryUID: string) {
             });
         });
 
-        socket.on(`DELETED_MINISTRY_MEMBER_FROM_${ministryUID}`, () => {
+        socket.on(`${admin?.congregation}-DELETED_MINISTRY_MEMBER_FROM_${ministryUID}`, () => {
             setIsUpdating(true);
             getMinistryMembers(ministryUID)
             .then(response => {

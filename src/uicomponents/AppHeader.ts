@@ -6,7 +6,6 @@ const AppHeader = styled.header`
     background-color: ${({theme}) => theme.background.primary};
     border-bottom: 0.5px solid ${({theme}) => theme.borderColor};
     min-width: 0;
-
 `;
 
 export default AppHeader;

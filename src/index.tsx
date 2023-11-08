@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 //React Router
 import { BrowserRouter } from 'react-router-dom';
@@ -84,7 +85,10 @@ import {
   faMapMarkerAlt,
   faQrcode,
   faPrayingHands,
-  faAngleDown
+  faAngleDown,
+  faPrint,
+  faFire,
+  faFilePdf
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -157,10 +161,15 @@ library.add(faS, faMapMarkerAlt);
 library.add(faS, faQrcode);
 library.add(faS, faPrayingHands);
 library.add(faS, faAngleDown);
+library.add(faS, faPrint);
+library.add(faS, faFire);
+library.add(faS, faFilePdf);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 root.render(
   <React.StrictMode>

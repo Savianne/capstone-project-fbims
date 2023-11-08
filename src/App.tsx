@@ -52,13 +52,17 @@ import ManageOrganizationView from './uicomponents/routes/information/organizati
 import ViewMember from './uicomponents/routes/information/members/ViewMember';
 import EditMember from './uicomponents/routes/information/members/EditMember';
 import DeleteModal from './uicomponents/reusables/DeleteModal/DeleteModal';
+import MemberProfile from './uicomponents/routes/information/members/MemberProfile';
+import Attendance from './uicomponents/routes/attendance/attendance';
+import WorshipService from './uicomponents/routes/worship-service/WorshipService';
 
 function App() {
   const admin = useAppSelector(state => state.setAdmin.admin);
   const theme = useAppSelector(state => state.switchThemeModeReducer.theme);
   const {data: adminInfo, isLoading, isError} = useGetAdminInfoQuery({});
 
-  const dispatcher = useAppDispatch()
+  const dispatcher = useAppDispatch();
+  
   React.useEffect(() => {
     if(!isError) dispatcher(setAdmin(adminInfo));
   }, [adminInfo, isError]);
@@ -80,8 +84,8 @@ function App() {
               <img className='mobile-logo' src='/faith-buddy-mob.png' />
               <span className="cover"></span>
             </SystemLogo>
-            <ThemeModeToggle />
             <AdminDropdown />
+            <ThemeModeToggle />
             {/* <UserAvatar /> */}
           </AppHeader>
           <AppNavBar />
@@ -94,7 +98,7 @@ function App() {
                     <Route index element={<Information />} />
                     <Route path='members'>
                       <Route index element={<Members />} />
-                      <Route path='view/:memberUID' element={<ViewMember />} />
+                      <Route path='view/:memberUID' element={<MemberProfile />} />
                       <Route path='edit/:memberUID' element={<EditMember />} />
                       <Route path='new-member' element={<MembershipForm />} />
                     </Route>
@@ -108,8 +112,11 @@ function App() {
                       <Route path="/app/information/organizations/:orgUID" element={<ManageOrganizationView />} />
                     </Route>
                   </Route>
+                  <Route path='worship-service'>
+                    <Route index element={<WorshipService />} />
+                  </Route>
                   <Route path='attendance'>
-                    {/* <Route index element={<QRScanner />} /> */}
+                    <Route index element={<Attendance />} />
                   </Route>
                   <Route path='calendar' element={<Calendar />} />
                 </Route>

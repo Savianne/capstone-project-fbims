@@ -57,6 +57,10 @@ const FCModal: React.FC<IModal> = ({className, children, title, onClose, state, 
                     <div className="modal-header">
                         { showBlinker && <span className="blinker-warning"></span> }
                         {/* { formState == "isloading" && <ScaleLoader color="#36d7b7" height={"20px"} style={{marginLeft: "20px"}}/>} */}
+                        <span className="title">
+                            <h1>{ title }</h1>
+                            { isLoading && <ScaleLoader color="#36d7b7" height={"20px"}/>}
+                        </span>
                         <Button 
                         label="close" 
                         icon={<FontAwesomeIcon icon={["fas", "times"]} />} 
@@ -64,10 +68,6 @@ const FCModal: React.FC<IModal> = ({className, children, title, onClose, state, 
                         onClick={(e) => updateModalState("close")} 
                         iconButton />
                     </div>
-                    <span className="title">
-                        <h1>{ title }</h1>
-                        { isLoading && <ScaleLoader color="#36d7b7" height={"20px"}/>}
-                    </span>
                     <Scrollbars 
                     autoHide 
                     autoHeight
@@ -130,30 +130,31 @@ const ModalContent = styled.div<{ maxWidth?: string }>`
     overflow: hidden;
     padding-bottom: 10px;
 
-    .title {
-        display: flex;
-        padding: 0 25px;
-        flex: 0 1 100%;
-        z-index: 1;
-        align-items: center;
-    }
-
-    .title h1 {
-        font-size: 30px;
-        font-weight: 600;
-        color: ${({theme}) => theme.textColor.strong};
-        margin-right: 10px;
-    }
-
     .modal-header {
         position: relative;
         display: flex;
         flex: 0 1 100%;
         height: fit-content;
-        padding: 5px;
+        padding: 10px 5px;
         /* border-bottom: 0.5px solid ${({theme}) => theme.borderColor}; */
         background-color: ${({theme}) => theme.background.lighter};
         z-index: 1;
+
+        .title {
+            display: flex;
+            padding: 0 10px;
+            flex: 0 1 100%;
+            z-index: 1;
+            align-items: center;
+        }
+
+        .title h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: ${({theme}) => theme.textColor.strong};
+            margin-right: 10px;
+        }
+
     }
 
     .modal-header ${Button} {
@@ -174,7 +175,7 @@ const ModalContent = styled.div<{ maxWidth?: string }>`
     .modal-body {
         display: flex;
         flex-wrap: wrap;
-        width: fit-content
+        flex: 0 1 100%;
         height: fit-content;
         padding: 10px 25px;
     }

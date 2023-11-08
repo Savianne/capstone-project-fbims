@@ -38,7 +38,7 @@ const FCAvatar: React.FC<IFCAvatar> = ({src, alt, className, size}) => {
 }
 
 
-const Avatar = styled(FCAvatar)`
+const Avatar = styled(FCAvatar)<{round?: boolean}>`
     display: flex;
     align-items: center;
     justify-content: center;
@@ -47,7 +47,7 @@ const Avatar = styled(FCAvatar)`
     width:  ${({size}) => size};
     flex: 0 0 ${({size}) => size};
     border: 2px solid ${({theme}) => theme.borderColor};
-    border-radius: 50%;
+    border-radius: ${(props) => props.round? "50%" : "5px"};
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -57,6 +57,10 @@ const Avatar = styled(FCAvatar)`
         return src? css`background-image: url(${AVATAR_BASE_URL}/${src});` : css`background-color: #15A9FD;`
     }}
 `;
+
+Avatar.defaultProps = {
+    round: true
+}
 
 export default Avatar;
 

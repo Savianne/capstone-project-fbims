@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAppSelector } from "../../../../global-state/hooks";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
 import doRequest from "../../../../API/doRequest";
 import Devider from "../../../reusables/devider";
@@ -14,7 +15,7 @@ import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
 import GoBackBtn from "../../../GoBackBtn";
 import AddMinistryForm from "./addMinistryModalView";
-
+import NoRecordFound from "../../../NoRecordFound";
 import useGetMinistries from "../../../../API/hooks/useGetMinistries";
 
 import { SOCKETIO_URL } from "../../../../API/BASE_URL";
@@ -28,6 +29,7 @@ const ContentWraper = styled.div`
 `;
 
 const Ministry: React.FC = () => {
+    const admin = useAppSelector(state => state.setAdmin.admin);
     const [addMinistryModal, updateAddMinistryModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
     const [modalIsLoading, updateModalIsLoading] = React.useState(false);
     const [ministryCountTotal, setMinistryCountTotal] = React.useState<"isLoading" | "isLoadError" | number>("isLoading");
@@ -45,7 +47,7 @@ const Ministry: React.FC = () => {
 
         const socket = io(SOCKETIO_URL);
 
-        socket.on(`ADDED_NEW_MINISTRY`, () => {
+        socket.on(`${admin?.congregation}-ADDED_NEW_MINISTRY`, () => {
             doRequest<{total_count: number}>({
                 method: "POST",
                 url: "/get-records-count/ministry" 
@@ -56,7 +58,7 @@ const Ministry: React.FC = () => {
             .catch(err => setMinistryCountTotal("isLoadError"));
         });
 
-        socket.on(`DELETED_MINISTRY`, () => {
+        socket.on(`${admin?.congregation}-DELETED_MINISTRY`, () => {
             doRequest<{total_count: number}>({
                 method: "POST",
                 url: "/get-records-count/ministry" 
@@ -94,11 +96,15 @@ const Ministry: React.FC = () => {
                     addRecordFN={() => updateAddMinistryModal("ondisplay")}/>
                     <GroupList>
                         {
-                           data && data.length && data.map(group => {
-                                return (
-                                    <MinistryListItem key={group.ministryUID} avatar={group.avatar} groupName={group.ministryName} groupUID={group.ministryUID} />
-                                )
-                            })
+                           data && data.length? <>
+                           {
+                                data.map(group => {
+                                    return (
+                                        <MinistryListItem key={group.ministryUID} avatar={group.avatar} groupName={group.ministryName} groupUID={group.ministryUID} />
+                                    )
+                                })
+                           }
+                           </> : ""
                         }
                         {
                             isLoading && <>
@@ -109,16 +115,19 @@ const Ministry: React.FC = () => {
                                 <SkeletonLoading height="85px" />
                             </>
                         }
+                        {
+                            data && data.length == 0 && <NoRecordFound />
+                        }
                     </GroupList>
                 </ContentWraper>
             </RouteContentBaseBody>
         </RouteContentBase>
         { 
-        (addMinistryModal == "open" || addMinistryModal == "ondisplay" || addMinistryModal == "close") && 
-        <Modal isLoading={modalIsLoading} state={addMinistryModal} title="Add New Ministry" onClose={() => updateAddMinistryModal("remove")} maxWidth="550px"> 
-            <AddMinistryForm onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
-        </Modal>
-    }
+            (addMinistryModal == "open" || addMinistryModal == "ondisplay" || addMinistryModal == "close") && 
+            <Modal isLoading={modalIsLoading} state={addMinistryModal} title="Add New Ministry" onClose={() => updateAddMinistryModal("remove")} maxWidth="550px"> 
+                <AddMinistryForm onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
+            </Modal>
+        }
     </>)
 };
 

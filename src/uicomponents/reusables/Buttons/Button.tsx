@@ -11,6 +11,7 @@ interface IFCButton extends IStyledFC {
     iconButton?: boolean,
     disabled?: boolean,
     isLoading?: boolean,
+    fullWidth?: boolean,
     onClick?: React.MouseEventHandler<HTMLButtonElement>
 }
 
@@ -48,7 +49,7 @@ interface IButton {
 const Button = styled(FCButton)<IButton>`
     position: relative;
     display: flex;
-    width:  ${(props) => props.iconButton? '30px' : 'fit-content'};
+    width:  ${(props) => props.iconButton? '30px' : props.fullWidth? '100%' : 'fit-content'};
     height: ${(props) => props.iconButton? '30px' : 'fit-content'};
     padding: 0;
     outline: 0;

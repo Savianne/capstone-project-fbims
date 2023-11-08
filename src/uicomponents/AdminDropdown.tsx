@@ -35,6 +35,7 @@ const AdminDropdown = styled(FCAdminDropdown)`
     font-size: 11px;
     color: ${({theme}) => theme.textColor.strong};
     min-width: 0;
+    margin-left: auto;
 
     & ${UseRipple} {
         padding: 0 15px;

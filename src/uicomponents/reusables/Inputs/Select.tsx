@@ -44,8 +44,8 @@ const FCSelect: React.FC<IFCSelect> = ({
   onValChange,
 }) => {
   const selectRef = React.useRef<HTMLDivElement | null>(null);
-  const [controlled, setControlled] = React.useState(value !== undefined)
-  const [options, updateOptions] = React.useState<{[key: string]: {label: string, selected: boolean}}>({});
+  const [controlled, setControlled] = React.useState(value !== undefined? true : false)
+  const [options, updateOptions] = React.useState<{[key: string]: {label: string, index: number, selected: boolean}}>({});
   const [compState, updateCompState] = React.useState("onBlur");
   const [selectedValue, updateSelectedValue] = React.useState<string>(
     ""
@@ -69,6 +69,7 @@ const FCSelect: React.FC<IFCSelect> = ({
     ],
   });
 
+
   React.useEffect(() => {
     disabled
       ? selectRef.current?.setAttribute("disabled", "true")
@@ -77,14 +78,14 @@ const FCSelect: React.FC<IFCSelect> = ({
 
   React.useEffect(() => {
     const childrenArray = React.Children.toArray(children);
-    const optionList: { [key: string]: {label: string, selected: boolean} } = childrenArray.reduce(
-      (P, C) => {
+    const optionList: { [key: string]: {label: string, index: number, selected: boolean} } = childrenArray.reduce(
+      (P, C, I) => {
         const i = C as
           | React.ReactElement<any, string | React.JSXElementConstructor<any>>
           | React.ReactPortal;
         return {
           ...P,
-          ...{ [i.props.value as string]: {label: i.props.children as string, selected: i.props.selected? true : false}},
+          ...{ [i.props.value as string]: {label: i.props.children as string, index: I, selected: i.props.selected? true : false}},
         };
       },
       {}
@@ -111,16 +112,18 @@ const FCSelect: React.FC<IFCSelect> = ({
 
   React.useEffect(() => {
     function handleArrorKeyEvents(event: KeyboardEvent) {
-      const selectedOptionIndex = controlled? (value !== null? Object.keys(options).indexOf(value as string) : null) : (selectedValue !== null ? Object.keys(options).indexOf(selectedValue) : null);
       if (compState == "onFocus") {
+        const selectedOptionIndex = controlled? (value !== null? options[value as string].index : null) : (selectedValue !== null ? options[selectedValue as string].index : null);
         event.preventDefault();
         switch (event.keyCode) {
           case 38:
             if (
               typeof selectedOptionIndex == "number" &&
               selectedOptionIndex > 0
-            )
-              controlled? onValChange(Object.keys(options)[selectedOptionIndex - 1]) : updateSelectedValue(Object.keys(options)[selectedOptionIndex - 1]);
+            ) {
+              console.log(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex - 1)[0][0])
+              controlled? onValChange(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex - 1)[0][0]) : updateSelectedValue(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex - 1)[0][0]);
+            } 
             break;
           case 40:
             if (!(typeof selectedOptionIndex == "number"))
@@ -129,20 +132,19 @@ const FCSelect: React.FC<IFCSelect> = ({
               typeof selectedOptionIndex == "number" &&
               selectedOptionIndex < Object.keys(options).length - 1
             )
-              controlled? onValChange(Object.keys(options)[selectedOptionIndex + 1]) : updateSelectedValue(Object.keys(options)[selectedOptionIndex + 1]);
+              controlled? onValChange(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex + 1)[0][0]) : updateSelectedValue(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex + 1)[0][0]);
             break;
           case 13:
             updateCompState("onBlur");
         }
       }
     }
-
     document.addEventListener("keydown", handleArrorKeyEvents);
 
     return function cleanup() {
       document.removeEventListener("keydown", handleArrorKeyEvents);
     };
-  }, [compState, selectedValue]);
+  }, [compState, selectedValue, value, options]);
 
   React.useEffect(() => {
     controlled? setValueInOptions(Object.keys(options).includes(value as string)) : setValueInOptions(Object.keys(options).includes(selectedValue))

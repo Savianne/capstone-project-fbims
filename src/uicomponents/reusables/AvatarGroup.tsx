@@ -47,10 +47,13 @@ const FCAvatarGroup: React.FC<IFCAvatarGroup> = ({className, size, limit, avatar
 }
 
 const AvatarGroup = styled(FCAvatarGroup)`
-    display: flex;
-    width: fit-content;
-    height: fit-content;
-    align-items: center;
+    display: grid;
+    flex: 1;
+    /* width: fit-content;
+    height: fit-content; */
+    /* align-items: center; */
+    grid-template-columns: repeat(auto-fill, ${({size}) => size});
+    grid-gap: 1px;
 
     & .avatar-wraper,
     & p  {

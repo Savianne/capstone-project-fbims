@@ -42,7 +42,7 @@ const SThemeModeToggleWithRipple = styled(UseRipple)`
     display: flex;
     width: 65px;
     height: 65px;
-    margin-left: auto;
+    /* margin-left: auto; */
     border-left: 1px solid ${({theme}) => theme.borderColor};
     align-items: center;
     justify-content: center;

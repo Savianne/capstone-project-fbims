@@ -48,10 +48,6 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
         }
     });
 
-    // React.useEffect(() => {
-    //     addMinistryFormDispatchers?.avatar(imageTmpUploaded as string | null);
-    // }, [imageTmpUploaded]);
-
     React.useEffect(() => {
         onLoading(isLoading)
     }, [isLoading])

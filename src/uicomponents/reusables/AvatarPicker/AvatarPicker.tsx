@@ -467,7 +467,7 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
   return (
     <div className={className}>
       <DropzoneContainer {...getRootProps({active: isDragActive})}>
-        <input {...getInputProps()} />
+        <input disabled={disabled} {...getInputProps()} />
         {
           selectedImage? <PreviewAvatar file={selectedImage}>
             <div className="middle-backdrop"></div>
@@ -518,7 +518,7 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
       </DropzoneContainer>
       {
         selectedImage && !isUploading && <span className='remove-selected-image-btn-container'>
-          <Button isLoading={isDeletingTmpImage} variant='hidden-bg-btn' label='Remove picture' icon={<FontAwesomeIcon icon={["fas", "times"]}  />} 
+          <Button disabled={disabled} isLoading={isDeletingTmpImage} variant='hidden-bg-btn' label='Remove picture' icon={<FontAwesomeIcon icon={["fas", "times"]}  />} 
           onClick={() => {
             reset()
           }}/>
