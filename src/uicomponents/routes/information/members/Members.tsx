@@ -435,7 +435,7 @@ const Members: React.FC = () => {
             <strong>Members</strong>
             <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
             <SiteMap>
-                / <Link to='/information'> information</Link>  / <Link to='/information/members'> members</Link>
+                / <Link to='/app/information'> information</Link>  / <Link to='/app/information/members'> members</Link>
             </SiteMap>
             <GoBackBtn />
         </RouteContentBaseHeader>

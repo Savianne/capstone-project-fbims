@@ -37,6 +37,11 @@ const SiteMap = styled(FCSiteMap)`
         color: inherit;
     }
 
+    & a:hover {
+        text-decoration: underline;
+        color: inherit;
+    }
+
 `
 
 export default SiteMap;

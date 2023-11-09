@@ -27,6 +27,7 @@ import useDeleteModal from "../../../reusables/DeleteModal/useDeleteModal";
 import UpdateMinistryDP from "./updateMinistryDp";
 import Modal from "../../../reusables/Modal";
 import Error404 from "../../../Error404";
+import NoRecordFound from "../../../NoRecordFound";
 
 interface IMember {
     name: string,
@@ -69,6 +70,7 @@ const ContentWraper = styled.div`
         align-items: center;
         flex: 0 1 100%;
         min-height: 200px;
+        border-radius: 5px;
         background-color: ${({theme}) => theme.background.light};
         padding: 10px 15px;
     }
@@ -127,7 +129,7 @@ const ContentWraper = styled.div`
             display: flex;
             flex: 0 1 100%;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 5px;
         }
 
     }
@@ -168,23 +170,23 @@ const ManageMinistryView: React.FC = () => {
     }, [data])
 
     return (
-        isLoading? <SkeletonLoading height="500px" /> : <>
-        {
-            !isError && baseData?
-            <RouteContentBase>
-                {
-                    addMemberState && <AddMinistryMemberSearchComp close={() => setAddMemberState(!addMemberState)} ministryUID={ministryUID as string} />
-                }
-                <RouteContentBaseHeader>
-                    <strong>Manage {data?.ministryName} </strong>
-                    <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
-                    <SiteMap>
-                        / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> ministry</Link> / <Link to='./'>{ministryUID}</Link>
-                    </SiteMap>
-                    <GoBackBtn />
-                </RouteContentBaseHeader>
-                <RouteContentBaseBody>
-                    <ContentWraper>
+        !isError?
+        <RouteContentBase>
+            {
+                addMemberState && <AddMinistryMemberSearchComp close={() => setAddMemberState(!addMemberState)} ministryUID={ministryUID as string} />
+            }
+            <RouteContentBaseHeader>
+                <strong>{isLoading? "Loading..." : `Manage ${data?.ministryName}`}</strong>
+                <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
+                <SiteMap>
+                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> ministry</Link> / <Link to='./'>{ministryUID}</Link>
+                </SiteMap>
+                <GoBackBtn />
+            </RouteContentBaseHeader>
+            <RouteContentBaseBody>
+                <ContentWraper>
+                    {
+                        !isLoading && baseData? <>
                         <header>
                             <div className="avatar-area">
                                 <Avatar size="140px " src={baseData?.avatar} alt={baseData.ministryName} />
@@ -270,7 +272,7 @@ const ManageMinistryView: React.FC = () => {
                                 <Modal isLoading={modalIsLoading} state={editMinistryModal} title="Edit Ministry" onClose={() => updateEditMinistryModal("remove")} maxWidth="550px"> 
                                     <EditMinistryForm update={(data) => setBaseData({...baseData, ministryName: data.ministryName, description: data.description})} data={{...baseData, ministryUID: data.ministryUID}} onLoading={(isLoading) => updateModalIsLoading(isLoading)} />
                                 </Modal>
-    
+
                             }
                             {
                                 data && baseData && (updateMinistryDPModal == "open" || updateMinistryDPModal == "ondisplay" || updateMinistryDPModal == "close") &&
@@ -279,34 +281,38 @@ const ManageMinistryView: React.FC = () => {
                                 </Modal>
                             }
                         </header>
-                        <div className="list-container">
-                            {
-                                ministryMembers && data?.ministryUID && 
-                                <MembersList 
-                                remove={(memberUID) => {
-                                    setData(ministryMembers.filter(item => item.memberUID !== memberUID))
-                                }} 
-                                ministryUID={data.ministryUID} 
-                                list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
-                            }
-                            {
-                                iseLoadingMembers && <>
-                                <div className="skeleton-item">
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                </div>
-                                </>
-                            }
-                        </div>
-                    </ContentWraper>
-                </RouteContentBaseBody>
-            </RouteContentBase>
-            : <Error404 />
-        }
-        </>
+                        </> : <SkeletonLoading height="200px" />
+                    }
+                    
+                    <div className="list-container">
+                        {
+                            ministryMembers && data?.ministryUID && 
+                            <MembersList 
+                            remove={(memberUID) => {
+                                setData(ministryMembers.filter(item => item.memberUID !== memberUID))
+                            }} 
+                            ministryUID={data.ministryUID} 
+                            list={[...ministryMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                        }
+                        {
+                            iseLoadingMembers && <>
+                            <div className="skeleton-item">
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                            </div>
+                            </>
+                        }
+                    </div>
+                    {
+                        !iseLoadingMembers && ministryMembers && ministryMembers.length == 0? <NoRecordFound text="No member found!" actionBtn={<Button label="Add Members" variant="hidden-bg-btn" color="primary" icon={<FontAwesomeIcon icon={['fas', 'plus']} />} onClick={() => setAddMemberState(true)}/> } /> : ""
+                    }
+                </ContentWraper>
+            </RouteContentBaseBody>
+        </RouteContentBase>
+        : <Error404 /> 
     )
 }
 
@@ -474,7 +480,7 @@ const MembersList = styled(FCMembersList)`
     display: flex;
     flex: 0 1 100%;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 5px;
 `;
 
 

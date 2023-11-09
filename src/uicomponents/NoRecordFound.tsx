@@ -1,11 +1,29 @@
 import styled from "styled-components";
+import React from "react"
+
 import { IStyledFC } from "./IStyledFC";
 
-const NoRecordFoundFC: React.FC<IStyledFC> = ({className}) => {
+interface INoRecordFound extends IStyledFC {
+    text?: string,
+    secondaryText?: string,
+    actionBtn?: React.ReactNode
+}
+
+const NoRecordFoundFC: React.FC<INoRecordFound> = ({className, text, secondaryText, actionBtn}) => {
     return(
         <div className={className}>
-            <img src="/assets/images/no-record.png" alt="no-record" />
-            <div className="primary-text">No Record Found!</div>
+            <img loading="lazy" src="/assets/images/no-record.png" alt="no-record" />
+            <div className="primary-text">{text? text : 'No Record Found!'}</div>
+            {
+                secondaryText? <p className="secondary-text">{secondaryText}</p> : ""
+            }
+            {
+                actionBtn?  
+                <div className="action-btn-area">
+                    {actionBtn}
+                </div> : ""
+            }
+           
         </div>
     )
 }
@@ -25,16 +43,31 @@ const NoRecordFound = styled(NoRecordFoundFC)`
         max-width: 290px;
     }
 
-    && .primary-text {
+    && .primary-text, && .secondary-text {
         display: flex;
         flex: 0 1 100%;
         text-align: center;
         line-height: 1;
-        color: #f71e1e;
         justify-content: center;
         font-size: 40px;
         /* font-variant: all-small-caps; */
         font-weight: bolder;
+        margin-top: 20px;
+        color: ${({theme}) => theme.textColor.disabled}
+    }
+
+    && .secondary-text {
+        font-size: 20px;
+        margin-top: 5px;
+        font-weight: 600;
+    }
+
+    .action-btn-area {
+        display: flex;
+        flex: 0 1 100%;
+        margin-top: 20px;
+        justify-content: center;
+        height: fit-content;
     }
 `;
 

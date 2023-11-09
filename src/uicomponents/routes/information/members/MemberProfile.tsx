@@ -122,10 +122,10 @@ const MemberProfile: React.FC = () => {
     return (
         <RouteContentBase>
             <RouteContentBaseHeader>
-                <strong>{`${memberInformation?.first_name} ${memberInformation?.middle_name[0]} ${memberInformation?.surname} ${memberInformation?.ext_name || ""}`}</strong>
+                <strong>{isLoading? "Loading.." : `${memberInformation?.first_name} ${memberInformation?.middle_name[0]} ${memberInformation?.surname} ${memberInformation?.ext_name || ""}`}</strong>
                 <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                 <SiteMap>
-                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> members</Link> / <Link to='./'>{memberInformation?.member_uid}</Link>
+                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/members'> members</Link> / <Link to='./'>view/{memberInformation?.member_uid}</Link>
                 </SiteMap>
                 <GoBackBtn />
             </RouteContentBaseHeader>

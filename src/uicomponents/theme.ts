@@ -46,7 +46,7 @@ const darkTheme: DefaultTheme = {
     textColor: {
         strong: '#fff',
         light: '#E2E1E1',
-        disabled: '#504f4f'
+        disabled: '#9e9e9e45'
     },
     // borderColor: '#34354100',
     borderColor: '#37414b',

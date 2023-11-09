@@ -9,7 +9,7 @@ import doRequest from "../../../../API/doRequest";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import Modal from "../../../reusables/Modal";
-import AvatarUploader from "../../../reusables/AvatarUploader/AvatarUploader";
+import Button from "../../../reusables/Buttons/Button";
 import GroupList, { GroupListItem, MinistryListItem } from "../GroupList";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import InformationRouteMainBoard from "../../InformationRouteMainBoard";
@@ -35,44 +35,44 @@ const Ministry: React.FC = () => {
     const [ministryCountTotal, setMinistryCountTotal] = React.useState<"isLoading" | "isLoadError" | number>("isLoading");
     const {data, isLoading, isError, isUpdating, error} = useGetMinistries();
    
-    React.useEffect(() => {
-        doRequest<{total_count: number}>({
-          method: "POST",
-          url: "/get-records-count/ministry" 
-        })
-        .then(response => {
-            setMinistryCountTotal(response.data?.total_count as number);
-        })
-        .catch(err => setMinistryCountTotal("isLoadError"));
+    // React.useEffect(() => {
+    //     doRequest<{total_count: number}>({
+    //       method: "POST",
+    //       url: "/get-records-count/ministry" 
+    //     })
+    //     .then(response => {
+    //         setMinistryCountTotal(response.data?.total_count as number);
+    //     })
+    //     .catch(err => setMinistryCountTotal("isLoadError"));
 
-        const socket = io(SOCKETIO_URL);
+    //     const socket = io(SOCKETIO_URL);
 
-        socket.on(`${admin?.congregation}-ADDED_NEW_MINISTRY`, () => {
-            doRequest<{total_count: number}>({
-                method: "POST",
-                url: "/get-records-count/ministry" 
-            })
-            .then(response => {
-                setMinistryCountTotal(response.data?.total_count as number);
-            })
-            .catch(err => setMinistryCountTotal("isLoadError"));
-        });
+    //     socket.on(`${admin?.congregation}-ADDED_NEW_MINISTRY`, () => {
+    //         doRequest<{total_count: number}>({
+    //             method: "POST",
+    //             url: "/get-records-count/ministry" 
+    //         })
+    //         .then(response => {
+    //             setMinistryCountTotal(response.data?.total_count as number);
+    //         })
+    //         .catch(err => setMinistryCountTotal("isLoadError"));
+    //     });
 
-        socket.on(`${admin?.congregation}-DELETED_MINISTRY`, () => {
-            doRequest<{total_count: number}>({
-                method: "POST",
-                url: "/get-records-count/ministry" 
-            })
-            .then(response => {
-                setMinistryCountTotal(response.data?.total_count as number);
-            })
-            .catch(err => setMinistryCountTotal("isLoadError"));
-        });
+    //     socket.on(`${admin?.congregation}-DELETED_MINISTRY`, () => {
+    //         doRequest<{total_count: number}>({
+    //             method: "POST",
+    //             url: "/get-records-count/ministry" 
+    //         })
+    //         .then(response => {
+    //             setMinistryCountTotal(response.data?.total_count as number);
+    //         })
+    //         .catch(err => setMinistryCountTotal("isLoadError"));
+    //     });
 
-        return function () {
-            socket.disconnect();
-        }
-    }, []);
+    //     return function () {
+    //         socket.disconnect();
+    //     }
+    // }, []);
 
     return (<>
         <RouteContentBase>
@@ -80,7 +80,7 @@ const Ministry: React.FC = () => {
                 <strong>Ministry</strong>
                 <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
                 <SiteMap>
-                    / <Link to='/information'> information</Link>  / <Link to='/information/ministry'> ministry</Link>
+                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/ministry'> ministry</Link>
                 </SiteMap>
                 <GoBackBtn />
             </RouteContentBaseHeader>
@@ -91,7 +91,7 @@ const Ministry: React.FC = () => {
                     verseText={{verse: 'Matthew 28:19-20 (NIV)', content: 'Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,  and teaching them to obey everything I have commanded you. And surely I am with you always, to the very end of the age.”'}}
                     dataFolderIcon={<FontAwesomeIcon icon={["fas", "hand-holding-heart"]} />}
                     dataFolderTitle="Ministries"
-                    dataFolderTotal={ministryCountTotal}
+                    dataFolderTotal={data?.length as number}
                     addRecordFormUrl="./add-ministry" 
                     addRecordFN={() => updateAddMinistryModal("ondisplay")}/>
                     <GroupList>
@@ -116,7 +116,7 @@ const Ministry: React.FC = () => {
                             </>
                         }
                         {
-                            data && data.length == 0 && <NoRecordFound />
+                            data && data.length == 0 && <NoRecordFound secondaryText="Please Add Ministry" actionBtn={<Button label="Add Ministry" variant="hidden-bg-btn" color="primary" icon={<FontAwesomeIcon icon={['fas', 'plus']} />} onClick={() => updateAddMinistryModal("ondisplay")}/>} />
                         }
                     </GroupList>
                 </ContentWraper>

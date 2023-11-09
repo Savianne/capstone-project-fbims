@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import ScaleLoader from "react-spinners/ScaleLoader";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
@@ -27,6 +27,7 @@ import EditOrganizationForm from "./editOrganizationInfoModal";
 import UpdateOrgDP from "./updateOrganizationDP";
 import { IStyledFC } from "../../../IStyledFC";
 import Error404 from "../../../Error404";
+import NoRecordFound from "../../../NoRecordFound";
 
 interface IMember {
     name: string,
@@ -63,12 +64,20 @@ const ContentWraper = styled.div`
     align-items: center;
     justify-content: center;
 
+    && ${NoRecordFound} {
+        .primary-text {
+            margin-top: 20px;
+            color: ${({theme}) => theme.textColor.disabled}
+        }
+    }
+
     header {
         position: relative;
         display: flex;
         align-items: center;
         flex: 0 1 100%;
         min-height: 200px;
+        border-radius: 5px;
         background-color: ${({theme}) => theme.background.light};
         padding: 10px 15px;
     }
@@ -127,7 +136,7 @@ const ContentWraper = styled.div`
             display: flex;
             flex: 0 1 100%;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 5px;
         }
     }
 `;
@@ -167,23 +176,23 @@ const ManageOrganizationView: React.FC = () => {
     }, [data])
 
     return (
-        isLoading? <SkeletonLoading height="500px" /> : <>
-        {
-            !isError && baseData?
-            <RouteContentBase>
-                {
-                    addMemberState && <AddOrganizationMemberSearchComp close={() => setAddMemberState(!addMemberState)} organizationUID={orgUID as string} />
-                }
-                <RouteContentBaseHeader>
-                    <strong>Manage {data?.organizationName} </strong>
-                    <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
-                    <SiteMap>
-                        /information/organization/ {orgUID as string}
-                    </SiteMap>
-                    <GoBackBtn />
-                </RouteContentBaseHeader>
-                <RouteContentBaseBody>
-                    <ContentWraper>
+        !isError?
+        <RouteContentBase>
+            {
+                addMemberState && <AddOrganizationMemberSearchComp close={() => setAddMemberState(!addMemberState)} organizationUID={orgUID as string} />
+            }
+            <RouteContentBaseHeader>
+                <strong>{isLoading? "Loading..." : `Manage ${data?.organizationName}`}</strong>
+                <Devider $orientation="vertical" $variant="center" $css="margin: 0 5px" />
+                <SiteMap>
+                    / <Link to='/app/information'> information</Link>  / <Link to='/app/information/organizations'> organizations</Link> / <Link to='./'>{orgUID}</Link>
+                </SiteMap>
+                <GoBackBtn />
+            </RouteContentBaseHeader>
+            <RouteContentBaseBody>
+                <ContentWraper>
+                    {
+                        !isLoading && baseData? <>
                         <header>
                             <div className="avatar-area">
                                 <Avatar size="140px " src={baseData?.avatar} alt={baseData?.organizationName} />
@@ -240,10 +249,10 @@ const ManageOrganizationView: React.FC = () => {
                                     <MenuItemLabel>Delete this Organization</MenuItemLabel>
                                 </MenuItem>
                                 <MenuItem onClick={() => {
-                                     handleClose();
-                                     setTimeout(() => {
-                                         updateEditOrganizationModal('ondisplay')
-                                     }, 400)
+                                        handleClose();
+                                        setTimeout(() => {
+                                            updateEditOrganizationModal('ondisplay')
+                                        }, 400)
                                 }}>
                                     <MenuItemIcon>
                                         <FontAwesomeIcon icon={["fas", "edit"]} />
@@ -275,34 +284,38 @@ const ManageOrganizationView: React.FC = () => {
                                 </Modal>
                             }
                         </header>
-                        <div className="list-container">
-                            {
-                                organizationMembers && data?.organizationUID && 
-                                <MembersList 
-                                remove={(memberUID) => {
-                                    setData(organizationMembers.filter(item => item.memberUID !== memberUID))
-                                }} 
-                                organizationUID={data.organizationUID}
-                                list={[...organizationMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
-                            }
-                            {
-                                iseLoadingMembers && <>
-                                <div className="skeleton-item">
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                    <SkeletonLoading height="85px" />
-                                </div>
-                                </>
-                            }
-                        </div>
-                    </ContentWraper>
-                </RouteContentBaseBody>
-            </RouteContentBase>
-            : <Error404 />
-        }
-        </>
+                        
+                        </> : <SkeletonLoading height="200px" />
+                    }
+                    <div className="list-container">
+                        {
+                            organizationMembers && data?.organizationUID && 
+                            <MembersList 
+                            remove={(memberUID) => {
+                                setData(organizationMembers.filter(item => item.memberUID !== memberUID))
+                            }} 
+                            organizationUID={data.organizationUID}
+                            list={[...organizationMembers.map(item => ({...item, age: (new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()), name: `${item.firstName} ${item.middleName[0]}. ${item.surname} ${item.extName? item.extName : ""}`.toUpperCase()}))] as IMember[]} />
+                        }
+                        {
+                            iseLoadingMembers && <>
+                            <div className="skeleton-item">
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                                <SkeletonLoading height="85px" />
+                            </div>
+                            </>
+                        }
+                    </div>
+                    {
+                        !iseLoadingMembers && organizationMembers && organizationMembers.length == 0? <NoRecordFound text="No member found!"  actionBtn={<Button label="Add Members" variant="hidden-bg-btn" color="primary" icon={<FontAwesomeIcon icon={['fas', 'plus']} />} onClick={() => setAddMemberState(true)}/> } /> : ""
+                    }
+                </ContentWraper>
+            </RouteContentBaseBody>
+        </RouteContentBase> 
+        : <Error404 />
     )
 }
 
@@ -470,7 +483,7 @@ const MembersList = styled(FCMembersList)`
     display: flex;
     flex: 0 1 100%;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 5px;
 `;
 
 export default ManageOrganizationView;
