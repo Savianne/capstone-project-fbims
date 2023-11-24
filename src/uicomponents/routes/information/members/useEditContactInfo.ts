@@ -163,7 +163,8 @@ function useUpdateContactInfo(label: 'personal' | 'home') {
                 method: "PATCH",
                 data: {
                     label,
-                    ...editData
+                    ...editData,
+                    email: editData.email?.trim()
                 }
             })
             .then(response => {

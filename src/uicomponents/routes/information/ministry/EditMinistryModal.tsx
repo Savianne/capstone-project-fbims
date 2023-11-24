@@ -21,8 +21,8 @@ interface IEditMinistryForm extends IStyledFC {
 }
 
 const validationSchema = Yup.object().shape({
-    ministryName: Yup.string().required(),
-    description: Yup.string().required(),
+    ministryName: Yup.string().trim().required(),
+    description: Yup.string().trim().required(),
 });
 
 const EditMinistryFC: React.FC<IEditMinistryForm> = ({className, onLoading, data, update}) => {
@@ -94,7 +94,7 @@ const EditMinistryFC: React.FC<IEditMinistryForm> = ({className, onLoading, data
                     doRequest({
                         url: `/update-ministry-info/${data.ministryUID}`,
                         method: "PATCH",
-                        data: editData
+                        data: {ministryName: editData?.ministryName, description: editData?.description}
                     })
                     .then(response => {
                         addSnackbar("Update success", 'default', 5);

@@ -55,6 +55,8 @@ import DeleteModal from './uicomponents/reusables/DeleteModal/DeleteModal';
 import MemberProfile from './uicomponents/routes/information/members/MemberProfile';
 import Attendance from './uicomponents/routes/attendance/attendance';
 import WorshipService from './uicomponents/routes/worship-service/WorshipService';
+import AttendanceCategory from './uicomponents/routes/attendance/category/AttendanceCategory';
+import Error404 from './uicomponents/Error404';
 
 function App() {
   const admin = useAppSelector(state => state.setAdmin.admin);
@@ -117,8 +119,10 @@ function App() {
                   </Route>
                   <Route path='attendance'>
                     <Route index element={<Attendance />} />
+                    <Route path='/app/attendance/category/:categoryUID' element={<AttendanceCategory />} />
                   </Route>
                   <Route path='calendar' element={<Calendar />} />
+                  <Route path='*' element={<Error404 />} />
                 </Route>
               </Routes>
               </> : <>

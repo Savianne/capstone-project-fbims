@@ -72,7 +72,7 @@ const SMembersTable = styled.table`
         padding: 0;
     }
 
-    & .skeleton-row td[cell-name=avatar] {
+    /* & .skeleton-row td[cell-name=avatar] {
         width: 95px;
     }
 
@@ -82,7 +82,7 @@ const SMembersTable = styled.table`
 
     & .skeleton-row td[cell-name=creation-time] {
         width: 170px;
-    }
+    } */
 
     & .skeleton-row td[cell-name=action] {
         width: 120px;
@@ -100,7 +100,7 @@ const SMembersTable = styled.table`
         padding-left: 4px;
     }
 
-    & tr td[cell-name=avatar] {
+    /* & tr td[cell-name=avatar] {
         width: 75px;
     }
 
@@ -110,7 +110,7 @@ const SMembersTable = styled.table`
 
     & tr td[cell-name=creation-time] {
         width: 150px;
-    }
+    } */
 
     & tr td[cell-name=avatar] ${Avatar},  & tr td[cell-name=ministry] ${AvatarGroup} {
         margin-left: auto;

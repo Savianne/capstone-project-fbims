@@ -26,7 +26,7 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
     const [resetDpInputValue, setResetDpInputValue] = React.useState(false);
 
     const [isLoading, setIsLoading] = React.useState(false);
-    const [addMinistryForm, addMinistryFormDispatchers] = useFormControl({
+    const [addMinistryForm, addMinistryFormValues, addMinistryFormDispatchers] = useFormControl({
         title: {
             validateAs: "text",
             minValLen: 5,
@@ -54,15 +54,15 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
     return(
         <div className={className}>
             <div className="input-group">
-                <Input disabled={isLoading} value={addMinistryForm.values.title as string} error={addMinistryForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addMinistryFormDispatchers?.title(val)} />
-                <Input disabled={isLoading} value={addMinistryForm.values.description as string} error={addMinistryForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addMinistryFormDispatchers?.description(val)}/>
+                <Input disabled={isLoading} value={addMinistryFormValues.title as string} error={addMinistryForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addMinistryFormDispatchers({...addMinistryFormValues, title: val})} />
+                <Input disabled={isLoading} value={addMinistryFormValues.description as string} error={addMinistryForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addMinistryFormDispatchers({...addMinistryFormValues, description: val})}/>
             </div>
             <Alert severity="info" variant="default">
             While it is not mandatory, you have the option to upload a display picture or logo for the ministry if you wish to do so.
             </Alert>
             <AvatarUploaderArea>
                 <AvatarPicker onChange={(avatar) => {
-                    addMinistryFormDispatchers?.avatar(avatar);
+                    addMinistryFormDispatchers({...addMinistryFormValues, avatar: avatar});
                     errorUploadingDp && setErrorUploadingDp(false);
                     isUploadingDp && setIsUploadingDp(false);
                     resetDpInputValue && setResetDpInputValue(false)
@@ -77,7 +77,7 @@ const FCAddMinistryForm: React.FC<IAddMinistryForm> = ({className, onLoading}) =
                 <Button isLoading={isLoading || isUploadingDp} disabled={isLoading || !addMinistryForm.isReady || errorUploadingDp as boolean || isUploadingDp as boolean} label="Add Mnistry" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} color="primary" onClick={() => {
                 setIsLoading(true);
                 setDisablePictureInput(true);
-                addMinistry({name: addMinistryForm.values.title as string, description: addMinistryForm.values.description as string, avatar: addMinistryForm.values.avatar as string | null})
+                addMinistry({name: (addMinistryFormValues.title as string).trim(), description: (addMinistryFormValues.description as string).trim(), avatar: addMinistryFormValues.avatar as string | null})
                 .then(response => {
                     if(response.success) {
                         setIsLoading(false);

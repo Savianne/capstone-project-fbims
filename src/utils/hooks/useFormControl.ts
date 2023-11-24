@@ -1,4 +1,5 @@
 import React from "react";
+import { debounce, reject } from "lodash";
 
 //validators
 import hasError from "../inputValidators/hasError";
@@ -28,10 +29,6 @@ export interface IFormErrorFieldValues {
 };
 
 type TFormErrorFieldsValues<K> = Record<keyof K, IFormErrorFieldValues | null>;
-
-type TValDispatcher = (newVal: TInputVal | null) => void;
-
-type TFormDispatchers<K> = Record<keyof K, TValDispatcher>;
 
 export type TValidatorFunction = (val: TInputVal) => IValidationResult
 
@@ -94,40 +91,86 @@ function createFormInitialErrorValues<K extends unknown>(fields: TParam<K>) {
     return initialErrorValues as TFormErrorFieldsValues<K>;
 }
 
-function formHasError(fields: IFormErrorFieldValues[]) {
-    return fields.filter(item => {
-        return item.validationResult.filter(inner => !inner.passed).length > 0
-    }).length > 0? true : false;
-}
-
 function useFormControl<T extends unknown>(fields: TParam<T>) {
     // const [formState, updateFormState] = React.useState<'init' | 'ready' | 'incomplete' | 'onsubmit' | 'onerror' | 'validating'>('init');
     const [formValues, updateFormValues] = React.useState<TFormFieldsValues<T>>(createFormInitialValues(fields));
-    const [activeFromField, updateActiveFromField] = React.useState<null | TFormFieldsValues<T>>(null);
     const [formErrors, updateFormErrors] = React.useState<TFormErrorFieldsValues<T>>(createFormInitialErrorValues(fields));
-    const [formDispatchers, updateFormDispatchers] = React.useState<null | TFormDispatchers<T>>(null);
     const [isReady, updateIsReadyState] = React.useState(false);
     const [isValidating, startValidating] = React.useTransition();
 
-
     React.useEffect(() => {
-
-        const formDispatchersInitialState = Object.keys(fields).reduce((P, C) => {
-            const key = C as keyof typeof fields;
-            const dispatcherFunction: TValDispatcher = (newValue) => {
-                const obj = {[C]: newValue} as TFormFieldsValues<T>;
-                updateActiveFromField(obj);
-            }
-
-            const objMutable = {
-                [key]: dispatcherFunction
-            } as TFormDispatchers<T>
-
-            return {...P, ...objMutable }
-        }, {});
-
-        updateFormDispatchers(formDispatchersInitialState as TFormDispatchers<T>);
-    }, []);
+        console.log(formValues)
+        debounce(async () => {
+            const errorResult = createFormInitialErrorValues(fields);
+            await (async () => {
+                Object.entries(formValues).forEach(([key, val], i) => {
+                    if(val == null) {
+                        const obj = {
+                            [key]: null
+                        } as TFormErrorFieldsValues<T>;
+            
+                        updateFormErrors({...formErrors, ...obj});
+                    }
+                    else if(fields[key as keyof typeof fields].required && val == '') 
+                    {
+                        errorResult[key as keyof TFormErrorFieldsValues<T>] = {
+                            errorText: 'Required Input!',
+                            validationResult: [{caption: 'Field must have a value', passed: false}]
+                        };
+                    }
+                    else if(!(fields[key as keyof typeof fields].required) && val == '')
+                    {
+                        errorResult[key as keyof TFormErrorFieldsValues<T>] = null;
+                    } 
+                    else 
+                    {
+                        const validationResultContainer: IValidationResult[] = [];
+        
+                        switch(fields[key as keyof typeof fields].validateAs as string) {
+                            case 'email':
+                                validationResultContainer.push(validateEmailFormat(val as string));
+                            break;
+                            case 'text': 
+                                const currentField = fields[key as keyof typeof fields] as IValidateAsTextInput;
+                                if(currentField.minValLen) validationResultContainer.push(validateTextMinValLen(currentField.minValLen, (val as string).trim()));
+                                if(currentField.maxValLen) validationResultContainer.push(validateTextMaxValLen(currentField.maxValLen, (val as string).trim()));
+                            break;
+                            case 'date':
+                                const currentDateField = fields[key as keyof typeof fields] as IValidateAsDateInput;
+                                if(currentDateField.min) validationResultContainer.push(validateMinDateInput(currentDateField.min, val as string));
+                                if(currentDateField.max) validationResultContainer.push(validateMaxDateInput(currentDateField.max, val as string));
+                            break;
+                            case 'select':
+                                const currentSelectField = fields[key as keyof typeof fields] as IValidateAsSelectInput;
+                                if(currentSelectField.validValues) validationResultContainer.push(validateSelectField(val as string, currentSelectField.validValues));
+                        }
+        
+                        //Write a Logic to run validator functions if there is any
+                        if(fields[key as keyof typeof fields].validators && fields[key as keyof typeof fields].validators?.length) {
+                            fields[key as keyof typeof fields].validators?.every(validator => {
+                                const validationResult = validator(val as TInputVal);
+                                validationResultContainer.push(validationResult);
+                            })
+                        }   
+        
+                        if(hasError(validationResultContainer)) 
+                        {
+                            errorResult[key as keyof TFormErrorFieldsValues<T>] = {
+                                errorText: fields[key as keyof typeof fields].errorText,
+                                validationResult: [...validationResultContainer]
+                            };
+                        } 
+                        else 
+                        {
+                            errorResult[key as keyof TFormErrorFieldsValues<T>] = null;
+                        }
+                    } 
+                })
+                
+            })()
+            updateFormErrors(errorResult)
+        }, 300)();
+    }, [formValues]);
 
     React.useEffect(() => {
         Object.entries(formErrors).filter(item => {
@@ -145,133 +188,47 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
 
     }, [formErrors]);
 
-    React.useEffect(() => {
-        if(activeFromField) {
-            const newFormValues: TFormFieldsValues<T> = {
-                ...formValues,
-                ...activeFromField
-            }
-            
-            updateFormValues(newFormValues);
-            
-           // startValidating(() => {
-                const key = Object.keys(activeFromField)[0] as keyof typeof fields;
-                const newValue = Object.values(activeFromField)[0] as TInputVal;
-                
-                if(newValue == null) {
-                    const obj = {
-                        [key]: null
-                    } as TFormErrorFieldsValues<T>;
-    
-                    updateFormErrors({...formErrors, ...obj});
-                }
-                else if(fields[key].required && newValue == '') 
-                {
-                    const mutableObj: IFormErrorFieldValues = {
-                        errorText: 'Required Input!',
-                        validationResult: [{caption: 'Field must have a value', passed: false}]
-                    }
-    
-                    const obj = {
-                        [key]: {...mutableObj}
-                    } as TFormErrorFieldsValues<T>;
-    
-                    updateFormErrors({...formErrors, ...obj});
-                }
-                else if(!(fields[key].required) && newValue == '')
-                {
-                    const obj = {
-                        [key]: null
-                    } as TFormErrorFieldsValues<T>;
-    
-                    updateFormErrors({...formErrors, ...obj});
-                } 
-                else 
-                {
-                    const validationResultContainer: IValidationResult[] = [];
-
-                    switch(fields[key].validateAs as string) {
-                        case 'email':
-                            validationResultContainer.push(validateEmailFormat(newValue));
-                        break;
-                        case 'text': 
-                            const currentField = fields[key] as IValidateAsTextInput;
-                            if(currentField.minValLen) validationResultContainer.push(validateTextMinValLen(currentField.minValLen, newValue as string));
-                            if(currentField.maxValLen) validationResultContainer.push(validateTextMaxValLen(currentField.maxValLen, newValue as string));
-                        break;
-                        case 'date':
-                            const currentDateField = fields[key] as IValidateAsDateInput;
-                            if(currentDateField.min) validationResultContainer.push(validateMinDateInput(currentDateField.min, newValue as string));
-                            if(currentDateField.max) validationResultContainer.push(validateMaxDateInput(currentDateField.max, newValue as string));
-                        break;
-                        case 'select':
-                            const currentSelectField = fields[key] as IValidateAsSelectInput;
-                            if(currentSelectField.validValues) validationResultContainer.push(validateSelectField(newValue as string, currentSelectField.validValues));
-                    }
-
-                    //Write a Logic to run validator functions if there is any
-                    if(fields[key].validators && fields[key].validators?.length) {
-                        fields[key].validators?.every(validator => {
-                            const validationResult = validator(newValue);
-                            validationResultContainer.push(validationResult);
-                        })
-                    }   
-
-                    if(hasError(validationResultContainer)) 
-                    {
-                        const mutableObj: IFormErrorFieldValues = {
-                            errorText: fields[key].errorText,
-                            validationResult: [...validationResultContainer]
-                        }
-    
-                        const obj = {
-                            [key]: {...mutableObj}
-                        } as TFormErrorFieldsValues<T>;
-    
-                        updateFormErrors({...formErrors, ...obj});
-                    } 
-                    else 
-                    {
-                        const obj = {
-                            [key]: null
-                        } as TFormErrorFieldsValues<T>;
-    
-                        updateFormErrors({...formErrors, ...obj});
-                    }
-                }
-    
-            //})
-
-        }
-    }, [activeFromField]);
-    
-    React.useEffect(() => {
-
-    }, [isValidating]);
-
     interface IForm {
         isReady: typeof isReady,
         isValidating: typeof isValidating,
-        values: typeof formValues,
         errors: typeof formErrors,
         clear: () => void
     }
 
-    const retVal: [IForm, typeof formDispatchers] = [{isReady, isValidating, values: formValues, errors: formErrors, clear() {
-        const clearedForm = Object.keys(fields).reduce((P, C) => {
-            const obj = {[C]: null} as TFormFieldsValues<T>;
-            return {...P, ...obj }
-        }, {});
-        updateFormValues(clearedForm as TFormFieldsValues<T>);
+    type TInput = (val: TFormFieldsValues<T>) => void;
 
-        const clearedErrors = Object.keys(fields).reduce((P, C) => {
-            const obj = {[C]: null} as TFormErrorFieldsValues<T>;
-            return {...P, ...obj }
-        }, {});
-        updateFormErrors(clearedErrors as TFormErrorFieldsValues<T>)
+    const retVal: [IForm, typeof formValues, TInput] = [
+        {
+            isReady, 
+            isValidating, 
+            errors: formErrors, 
+            async clear() {
+                const clearedForm = await (async () => {
+                    return Object.keys(fields).reduce((P, C) => {
+                        const obj = {[C]: null} as TFormFieldsValues<T>;
+                        return {...P, ...obj }
+                    }, {});
+                })();
+                
+                updateFormValues(clearedForm as TFormFieldsValues<T>);
 
-        updateIsReadyState(false);
-    },}, formDispatchers];
+                const clearedErrors = await (async () => {
+                    return Object.keys(fields).reduce((P, C) => {
+                        const obj = {[C]: null} as TFormErrorFieldsValues<T>;
+                        return {...P, ...obj }
+                    }, {});
+                })();
+
+                updateFormErrors(clearedErrors as TFormErrorFieldsValues<T>)
+
+                updateIsReadyState(false);
+            }
+        }, 
+        formValues, 
+        (values) => {
+            updateFormValues(values)
+        }
+    ];
     
     return retVal;
 }

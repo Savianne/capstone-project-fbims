@@ -15,9 +15,9 @@ interface IBasicData {
 }
 
 const validationSchema = Yup.object().shape({
-    first_name: Yup.string().required(),
-    middle_name: Yup.string().required(),
-    surname: Yup.string().required(),
+    first_name: Yup.string().trim().required(),
+    middle_name: Yup.string().trim().required(),
+    surname: Yup.string().trim().required(),
     ext_name: Yup.string().nullable().notRequired(),
     dateOfBirth: Yup.date()
     .min(new Date('1903-01-01'), 'Date must be after or equal to 1903-01-01')
@@ -80,7 +80,15 @@ function useUpdateBasicInfo() {
                     doRequest({
                         url: `/update-member-data/basic-info/${memberUID}`,
                         method: "PATCH",
-                        data: editFormData
+                        data: {
+                            gender: editFormData.gender,
+                            date_of_birth: editFormData.date_of_birth,
+                            marital_status: editFormData.marital_status,
+                            first_name: (editFormData.first_name as string).trim(),
+                            middle_name: (editFormData.middle_name as string).trim(),
+                            surname: (editFormData.surname as string).trim(),
+                            ext_name: editFormData.ext_name,
+                        }
                     })
                     .then(response => {
                         setOnUpdate(false);

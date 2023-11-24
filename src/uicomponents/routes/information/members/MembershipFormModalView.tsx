@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { TInputVal } from "../../../../utils/hooks/useFormControl";
 
 //API import 
 import { useAddMemberRecordMutation } from "../../../../global-state/api/api";
@@ -95,13 +96,14 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
     const [doBap, setDoBap] = React.useState<null | string>(null);
     const [isBaptised, updateIsBaptised] = React.useState(true);
     const [formIsReadyState, updateFormIsReadyState] = React.useState(false);
+    const [formOnClear, setFormOnClear] = React.useState(false);
     
     const [sameAsCurrentAddress, updateSameAsCurrentAddress] = React.useState(false);
     const [sameAsPermanetAddress, updateSameAsPermanentAddress] = React.useState(false);
     const [outsidePHPermanetAddress, updateOutsidePHPermanetAddress] = React.useState(false);
     const [outsidePHCurrentAddress, updateOutsidePHCurrentAddress] = React.useState(false);
 
-    const [form, formDispatcher] = useFormControl({
+    const [form, formValues, formDispatcher] = useFormControl({
         firstName: {
             required: true,
             minValLen: 3,
@@ -171,7 +173,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         }
     });
 
-    const [homeContactInfoForm, homeContactInfoFormDispatchers] = useFormControl({
+    const [homeContactInfoForm, homeContactInfoFormValues, homeContactInfoFormDispatchers] = useFormControl({
         email: {
             required: false,
             errorText: 'Invalid Entry',
@@ -191,7 +193,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         },
     })
 
-    const [permanentAddressForm, permanentAddressFormValueDispatchers] = useFormControl({
+    const [permanentAddressForm, permanentAddressFormValues, permanentAddressFormValueDispatchers] = useFormControl({
         region: {
             required: true,
             errorText: 'Invalid Entry',
@@ -214,7 +216,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         }
     });
     
-    const [currentAddressForm, currentAddressFormValueDispatcher] = useFormControl({
+    const [currentAddressForm, currentAddressFormValues, currentAddressFormValueDispatcher] = useFormControl({
         region: {
             required: true,
             errorText: 'Invalid Entry',
@@ -237,7 +239,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         },
     });
 
-    const [dateOfBaptismForm, dateOfBaptismFormDispatcher] = useFormControl({
+    const [dateOfBaptismForm, dateOfBaptismFormValues, dateOfBaptismFormDispatcher] = useFormControl({
         dateOfBaptism: {
             required: true,
             errorText: 'Invalid Date',
@@ -245,7 +247,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         },
     });
 
-    const [outsidePHPermanentAdressForm, updateOutsidePHPermanentAdressForm] = useFormControl({
+    const [outsidePHPermanentAdressForm, outsidePHPermanentAdressFormValues, updateOutsidePHPermanentAdressForm] = useFormControl({
         outsidePHPermanentAddress: {
             required: true,
             minValLen: 5,
@@ -255,7 +257,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         }
     });
 
-    const [outsidePHCurrentAdressForm, updateOutsidePHCurrentAdressForm] = useFormControl({
+    const [outsidePHCurrentAdressForm, outsidePHCurrentAdressFormValues, updateOutsidePHCurrentAdressForm] = useFormControl({
         outsidePHCurrentAddress: {
             required: true,
             minValLen: 5,
@@ -266,17 +268,17 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
     })
 
     const permanentAddress = usePhilippinePlacesPickerSelect(
-        (region) => permanentAddressFormValueDispatchers?.region(region),
-        (province) => permanentAddressFormValueDispatchers?.province(province),
-        (cityMun) => permanentAddressFormValueDispatchers?.cityOrMunicipality(cityMun),
-        (barangay) => permanentAddressFormValueDispatchers?.barangay(barangay)
+        (region) => permanentAddressFormValueDispatchers({...permanentAddressFormValues, region}),
+        (province) => permanentAddressFormValueDispatchers({...permanentAddressFormValues, province}),
+        (cityMun) => permanentAddressFormValueDispatchers({...permanentAddressFormValues, cityOrMunicipality: cityMun}),
+        (barangay) => permanentAddressFormValueDispatchers({...permanentAddressFormValues, barangay}),
     );
 
     const currentAddress = usePhilippinePlacesPickerSelect(
-        (region) => currentAddressFormValueDispatcher?.region(region),
-        (province) => currentAddressFormValueDispatcher?.province(province),
-        (cityMun) => currentAddressFormValueDispatcher?.cityOrMunicipality(cityMun),
-        (barangay) => currentAddressFormValueDispatcher?.barangay(barangay)
+        (region) => currentAddressFormValueDispatcher({...currentAddressFormValues, region}),
+        (province) => currentAddressFormValueDispatcher({...currentAddressFormValues, province}),
+        (cityMun) => currentAddressFormValueDispatcher({...currentAddressFormValues, cityOrMunicipality: cityMun}),
+        (barangay) => currentAddressFormValueDispatcher({...currentAddressFormValues, barangay}),
     );
 
 
@@ -311,11 +313,11 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
     }, [isLoading, isError, isSuccess])
 
     React.useEffect(() => {
-        formDispatcher?.dateOfBirth(dob)
+        formDispatcher({...formValues, dateOfBirth: dob})
     }, [dob]);
     
     React.useEffect(() => {
-        dateOfBaptismFormDispatcher?.dateOfBaptism(doBap)
+        dateOfBaptismFormDispatcher({...dateOfBaptismFormValues, dateOfBaptism: doBap})
     }, [doBap]);
 
     React.useEffect(() => {
@@ -340,21 +342,23 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
 
     React.useEffect(() => {
         if(addRecordTransactionFlag) {
-            addRecordTransactionFlag.querySuccess? (() => {
-                form.clear();
-                homeContactInfoForm.clear();
+            addRecordTransactionFlag.querySuccess? (() => { 
+                setFormOnClear(true)
                 setDob(null);
                 setDoBap(null);
-                dateOfBaptismForm.clear();
                 permanentAddress.setRegion(null);
                 currentAddress.setRegion(null);
-                outsidePHCurrentAdressForm.clear()
-                outsidePHPermanentAdressForm.clear();
+                tempDpName && setResetDpInputValue(true);
                 updateSameAsCurrentAddress(false);
                 updateSameAsPermanentAddress(false);
                 setResetDpInputValue(true);
                 setDisablePictureInput(false);
-                // addSnackBar("Record Added Successfully!", "success", 5);
+                form.clear();
+                homeContactInfoForm.clear();
+                dateOfBaptismForm.clear();
+                outsidePHCurrentAdressForm.clear();
+                outsidePHPermanentAdressForm.clear();
+                setFormOnClear(false);
             })() : (() => {
                 setDisablePictureInput(false);
                 // addSnackBar("Query Failed!", "error", 5)
@@ -363,12 +367,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
     }, [addRecordTransactionFlag])
 
     React.useEffect(() => {
-        formDispatcher?.avatar(tempDpName as string | null);
+        formDispatcher({...formValues, avatar: tempDpName as string | null});
     }, [tempDpName]);
 
-    React.useEffect(() => {
-        console.log(permanentAddress.values)
-    }, [permanentAddress])
     return (
     <div className={className}>
         <strong className="information-category-title">Basic Information</strong>
@@ -379,10 +380,10 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             </span>
             <Devider $orientation="vertical" $css="margin: 0 5px" />
             <div className="input-category-group">
-                <Input disabled={isLoading} value={form.values.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher?.firstName(val)} />
-                <Input disabled={isLoading} value={form.values.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher?.middleName(val)}  />
-                <Input disabled={isLoading} value={form.values.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher?.surName(val)}  />
-                <Select disabled={isLoading} value={form.values.extName as string} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher?.extName(val)}>
+                <Input disabled={isLoading} value={formValues.firstName as string} name="first-name" placeholder="First Name"  type="text" error={form.errors.firstName} onValChange={(val) => formDispatcher({...formValues, firstName: val})} />
+                <Input disabled={isLoading} value={formValues.middleName as string} name="middle-name" placeholder="Middle Name"  type="text" error={form.errors.middleName} onValChange={(val) => formDispatcher({...formValues, middleName: val})}  />
+                <Input disabled={isLoading} value={formValues.surName as string} name="sur-name" placeholder="Sur Name"  type="text" error={form.errors.surName} onValChange={(val) => formDispatcher({...formValues, surName: val})}  />
+                <Select disabled={isLoading} value={formValues.extName as string} placeholder="Ex. Name" error={form.errors.extName} onValChange={(val) => formDispatcher({...formValues, extName: val})}>
                     <Option value="">Please select</Option>
                     <Option value="jr">JR</Option>
                     <Option value="sr">SR</Option>
@@ -408,7 +409,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             </span>
             <Devider $orientation="vertical" $css="margin: 0 5px" />
             <div className="input-category-group">
-                <Select disabled={isLoading} value={form.values.gender as string} placeholder="Gender" error={form.errors.gender} onValChange={(val) => formDispatcher?.gender(val)}>
+                <Select disabled={isLoading} value={formValues.gender as string} placeholder="Gender" error={form.errors.gender} onValChange={(val) => formDispatcher({...formValues, gender: val})}>
                     <Option value="">Please select</Option>
                     <Option value="male">Male</Option>
                     <Option value="female">Female</Option>
@@ -422,7 +423,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             </span>
             <Devider $orientation="vertical" $css="margin: 0 5px" />
             <div className="input-category-group">
-                <Select disabled={isLoading} value={form.values.maritalStatus as string} placeholder="Marital Status" error={form.errors.maritalStatus} onValChange={(val) => formDispatcher?.maritalStatus(val)}>
+                <Select disabled={isLoading} value={formValues.maritalStatus as string} placeholder="Marital Status" error={form.errors.maritalStatus} onValChange={(val) => formDispatcher({...formValues, maritalStatus: val})}>
                     <Option value="">Please select</Option>
                     <Option value="single">Single</Option>
                     <Option value="married">Married</Option>
@@ -519,14 +520,14 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        </> : <Input disabled={isLoading} value={outsidePHPermanentAdressForm.values.outsidePHPermanentAddress as string} type="text" error={outsidePHPermanentAdressForm.errors.outsidePHPermanentAddress} placeholder="Specify your complete address outside PH" label="Complete Address" onValChange={(e) => updateOutsidePHPermanentAdressForm?.outsidePHPermanentAddress(e)}/>
+                        </> : <Input disabled={isLoading} value={outsidePHPermanentAdressFormValues.outsidePHPermanentAddress as string} type="text" error={outsidePHPermanentAdressForm.errors.outsidePHPermanentAddress} placeholder="Specify your complete address outside PH" label="Complete Address" onValChange={(e) => updateOutsidePHPermanentAdressForm({...outsidePHPermanentAdressFormValues, outsidePHPermanentAddress: e})}/>
                     }
                 </Revealer>
                 {
-                    outsidePHCurrentAddress == false && currentAddressForm.isReady && sameAsCurrentAddress && <AddressBox>{`${currentAddressForm.values.barangay}, ${currentAddressForm.values.cityOrMunicipality}, ${currentAddressForm.values.province}, ${currentAddressForm.values.region}`}</AddressBox> 
+                    outsidePHCurrentAddress == false && currentAddressForm.isReady && sameAsCurrentAddress && <AddressBox>{`${currentAddressFormValues.barangay}, ${currentAddressFormValues.cityOrMunicipality}, ${currentAddressFormValues.province}, ${currentAddressFormValues.region}`}</AddressBox> 
                 }
                 {
-                    outsidePHCurrentAddress && outsidePHCurrentAdressForm.isReady && sameAsCurrentAddress && <AddressBox>{`${outsidePHCurrentAdressForm.values.outsidePHCurrentAddress}`}</AddressBox> 
+                    outsidePHCurrentAddress && outsidePHCurrentAdressForm.isReady && sameAsCurrentAddress && <AddressBox>{`${outsidePHCurrentAdressFormValues.outsidePHCurrentAddress}`}</AddressBox> 
                 }
             </div>
         </div>
@@ -616,14 +617,14 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                                 }) 
                             }
                         </Select>
-                        </> : <Input disabled={isLoading} value={outsidePHCurrentAdressForm.values.outsidePHCurrentAddress as string} error={outsidePHCurrentAdressForm.errors.outsidePHCurrentAddress} type="text" placeholder="Specify your complete address outside PH" label="Complete Address" onValChange={(e) => updateOutsidePHCurrentAdressForm?.outsidePHCurrentAddress(e)}/>
+                        </> : <Input disabled={isLoading} value={outsidePHCurrentAdressFormValues.outsidePHCurrentAddress as string} error={outsidePHCurrentAdressForm.errors.outsidePHCurrentAddress} type="text" placeholder="Specify your complete address outside PH" label="Complete Address" onValChange={(e) => updateOutsidePHCurrentAdressForm({...outsidePHCurrentAdressFormValues, outsidePHCurrentAddress: e})}/>
                     }
                 </Revealer> 
                 {
-                    outsidePHPermanetAddress == false && permanentAddressForm.isReady && sameAsPermanetAddress && <AddressBox>{`${permanentAddressForm.values.barangay}, ${permanentAddressForm.values.cityOrMunicipality}, ${permanentAddressForm.values.province}, ${permanentAddressForm.values.region}`}</AddressBox> 
+                    outsidePHPermanetAddress == false && permanentAddressForm.isReady && sameAsPermanetAddress && <AddressBox>{`${permanentAddressFormValues.barangay}, ${permanentAddressFormValues.cityOrMunicipality}, ${permanentAddressFormValues.province}, ${permanentAddressFormValues.region}`}</AddressBox> 
                 } 
                 {
-                    outsidePHPermanetAddress && outsidePHPermanentAdressForm.isReady && sameAsPermanetAddress && <AddressBox>{`${outsidePHPermanentAdressForm.values.outsidePHPermanentAddress}`}</AddressBox> 
+                    outsidePHPermanetAddress && outsidePHPermanentAdressForm.isReady && sameAsPermanetAddress && <AddressBox>{`${outsidePHPermanentAdressFormValues.outsidePHPermanentAddress}`}</AddressBox> 
                 } 
             </div>
         </div>
@@ -635,9 +636,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             </span>
             <Devider $orientation="vertical" $css="margin: 0 5px" />
             <div className="input-category-group">
-                <IconInput disabled={isLoading} value={form.values.email as string} type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
-                <PHCPNumberInput disabled={isLoading} value={form.values.cpNumber as string} placeholder="Mobile Number" error={form.errors.cpNumber} onChange={(e) => formDispatcher?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
-                <PHTelNumberInput disabled={isLoading} value={form.values.telephoneNumber as string} placeholder="Telephone Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                <IconInput disabled={isLoading} value={formValues.email as string} type="email" placeholder="Email Address" error={form.errors.email} onValChange={(e) => formDispatcher({...formValues, email: e})} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                <PHCPNumberInput disabled={isLoading} value={formValues.cpNumber as string} placeholder="Mobile Number" error={form.errors.cpNumber} onChange={(e) => formDispatcher({...formValues, cpNumber: e})} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                <PHTelNumberInput disabled={isLoading} value={formValues.telephoneNumber as string} placeholder="Telephone Number" error={form.errors.telephoneNumber} onChange={(e) => formDispatcher({...formValues, telephoneNumber: e})} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
                 {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
             </div>
         </div>
@@ -648,9 +649,9 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
             </span>
             <Devider $orientation="vertical" $css="margin: 0 5px" />
             <div className="input-category-group">
-                <IconInput disabled={isLoading} value={homeContactInfoForm.values.email as string} type="email" placeholder="Email Address" error={homeContactInfoForm.errors.email} onValChange={(e) => homeContactInfoFormDispatchers?.email(e)} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
-                <PHCPNumberInput disabled={isLoading} value={homeContactInfoForm.values.cpNumber as string} placeholder="Mobile Number" error={homeContactInfoForm.errors.cpNumber} onChange={(e) => homeContactInfoFormDispatchers?.cpNumber(e)} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
-                <PHTelNumberInput disabled={isLoading} value={homeContactInfoForm.values.telephoneNumber as string} placeholder="Telephone Number" error={homeContactInfoForm.errors.telephoneNumber} onChange={(e) => homeContactInfoFormDispatchers?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
+                <IconInput disabled={isLoading} value={homeContactInfoFormValues.email as string} type="email" placeholder="Email Address" error={homeContactInfoForm.errors.email} onValChange={(e) => homeContactInfoFormDispatchers({...homeContactInfoFormValues, email: e})} icon={<FontAwesomeIcon icon={["fas", "at"]} />} />
+                <PHCPNumberInput disabled={isLoading} value={homeContactInfoFormValues.cpNumber as string} placeholder="Mobile Number" error={homeContactInfoForm.errors.cpNumber} onChange={(e) => homeContactInfoFormDispatchers({...homeContactInfoFormValues, cpNumber: e})} icon={<FontAwesomeIcon icon={["fas", "mobile-alt"]} />} />
+                <PHTelNumberInput disabled={isLoading} value={homeContactInfoFormValues.telephoneNumber as string} placeholder="Telephone Number" error={homeContactInfoForm.errors.telephoneNumber} onChange={(e) => homeContactInfoFormDispatchers({...homeContactInfoFormValues, telephoneNumber: e})} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} />
                 {/* <IconInput value={form.values.telephoneNumber as number} type="number" placeholder="Telephone" error={form.errors.telephoneNumber} onValChange={(e) => formDispatcher?.telephoneNumber(e)} icon={<FontAwesomeIcon icon={["fas", "phone-alt"]} />} /> */}
             </div>
         </div>
@@ -690,17 +691,19 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
         </div>
         <Devider $orientation="horizontal"  $css="margin: 0 5px" />
         <div className="submit-button-container">
-            <Button disabled={isLoading || isUploadingDp} label="Clear Form" variant="standard" color="theme" onClick={(e) => {
-                form.clear();
-                homeContactInfoForm.clear();
+            <Button disabled={isLoading || isUploadingDp} label="Clear Form" variant="standard" color="theme" isLoading={formOnClear} onClick={(e) => {
+                setFormOnClear(true)
                 setDob(null);
                 setDoBap(null);
-                dateOfBaptismForm.clear();
                 permanentAddress.setRegion(null);
                 currentAddress.setRegion(null);
+                tempDpName && setResetDpInputValue(true);
+                form.clear();
+                homeContactInfoForm.clear();
+                dateOfBaptismForm.clear();
                 outsidePHCurrentAdressForm.clear();
                 outsidePHPermanentAdressForm.clear();
-                tempDpName && setResetDpInputValue(true);
+                setFormOnClear(false);
             }}/>
             <Button disabled={isLoading || !formIsReadyState || errorUploadingDp as boolean || isUploadingDp as boolean} isLoading={isLoading} label="Add Member" icon={<FontAwesomeIcon icon={["fas", "plus"]} />} variant="standard" color="primary"  
             onClick={(e) => {
@@ -708,82 +711,92 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                 const currentAddressData = !sameAsPermanetAddress? 
                 outsidePHCurrentAddress? {
                     philippines: false,
-                    address: outsidePHCurrentAdressForm.values.outsidePHCurrentAddress
+                    address: (outsidePHCurrentAdressFormValues.outsidePHCurrentAddress as string).trim()
                 } : {
                     philippines: true,
                     address: {
-                        region: currentAddressForm.values.region,
-                        province: currentAddressForm.values.province,
-                        cityOrMunicipality: currentAddressForm.values.cityOrMunicipality,
-                        barangay: currentAddressForm.values.barangay
+                        region: currentAddressFormValues.region,
+                        province: currentAddressFormValues.province,
+                        cityOrMunicipality: currentAddressFormValues.cityOrMunicipality,
+                        barangay: currentAddressFormValues.barangay
                     }
                 } : 
                 outsidePHPermanetAddress? {
                     philippines: false,
-                    address: outsidePHPermanentAdressForm.values.outsidePHPermanentAddress
+                    address: (outsidePHPermanentAdressFormValues.outsidePHPermanentAddress as string).trim()
                 }: {
                     philippines: true,
                     address: {
-                        region: permanentAddressForm.values.region,
-                        province: permanentAddressForm.values.province,
-                        cityOrMunicipality: permanentAddressForm.values.cityOrMunicipality,
-                        barangay: permanentAddressForm.values.barangay
+                        region: permanentAddressFormValues.region,
+                        province: permanentAddressFormValues.province,
+                        cityOrMunicipality: permanentAddressFormValues.cityOrMunicipality,
+                        barangay: permanentAddressFormValues.barangay
                     }
                 };
 
                 const permanentAddressData = !sameAsCurrentAddress?
                 outsidePHPermanetAddress? {
                     philippines: false,
-                    address: outsidePHPermanentAdressForm.values.outsidePHPermanentAddress
+                    address: (outsidePHPermanentAdressFormValues.outsidePHPermanentAddress as string).trim()
                 }: {
                     philippines: true,
                     address: {
-                        region: permanentAddressForm.values.region,
-                        province: permanentAddressForm.values.province,
-                        cityOrMunicipality: permanentAddressForm.values.cityOrMunicipality,
-                        barangay: permanentAddressForm.values.barangay
+                        region: permanentAddressFormValues.region,
+                        province: permanentAddressFormValues.province,
+                        cityOrMunicipality: permanentAddressFormValues.cityOrMunicipality,
+                        barangay: permanentAddressFormValues.barangay
                     }
                 } : 
                 outsidePHCurrentAddress? {
                     philippines: false,
-                    address: outsidePHCurrentAdressForm.values.outsidePHCurrentAddress
+                    address: (outsidePHCurrentAdressFormValues.outsidePHCurrentAddress as string).trim()
                 } : {
                     philippines: true,
                     address: {
-                        region: currentAddressForm.values.region,
-                        province: currentAddressForm.values.province,
-                        cityOrMunicipality: currentAddressForm.values.cityOrMunicipality,
-                        barangay: currentAddressForm.values.barangay
+                        region: currentAddressFormValues.region,
+                        province: currentAddressFormValues.province,
+                        cityOrMunicipality: currentAddressFormValues.cityOrMunicipality,
+                        barangay: currentAddressFormValues.barangay
                     }
                 }
 
                 const record = {
                     personalInformation: {
-                        firstName: form.values.firstName,
-                        middleName: form.values.middleName,
-                        surName: form.values.surName,
-                        extName: form.values.extName? form.values.extName : null, 
-                        maritalStatus: form.values.maritalStatus,
-                        dateOfBirth: form.values.dateOfBirth,
-                        gender: form.values.gender,
-                        avatar: form.values.avatar,
+                        firstName: (formValues.firstName as string).trim(),
+                        middleName: (formValues.middleName as string).trim(),
+                        surName: (formValues.surName as string).trim(),
+                        extName: formValues.extName? formValues.extName : null, 
+                        maritalStatus: formValues.maritalStatus,
+                        dateOfBirth: formValues.dateOfBirth,
+                        gender: formValues.gender,
+                        avatar: formValues.avatar,
                     },
                     contactInformation: {
-                        email: form.values.email? form.values.email : null,
-                        cpNumber: form.values.cpNumber? form.values.cpNumber : null,
-                        telephoneNumber: form.values.telephoneNumber? form.values.telephoneNumber : null,
+                        email: formValues.email? (formValues.email as string).trim() : null,
+                        cpNumber: formValues.cpNumber? formValues.cpNumber : null,
+                        telephoneNumber: formValues.telephoneNumber? formValues.telephoneNumber : null,
                     }, 
                     homeContactInformation: {
-                        email: homeContactInfoForm.values.email? homeContactInfoForm.values.email : null,
-                        cpNumber: homeContactInfoForm.values.cpNumber? homeContactInfoForm.values.cpNumber : null,
-                        telephoneNumber: homeContactInfoForm.values.telephoneNumber? homeContactInfoForm.values.telephoneNumber : null,
+                        email: homeContactInfoFormValues.email? (homeContactInfoFormValues.email as string).trim() : null,
+                        cpNumber: homeContactInfoFormValues.cpNumber? homeContactInfoFormValues.cpNumber : null,
+                        telephoneNumber: homeContactInfoFormValues.telephoneNumber? homeContactInfoFormValues.telephoneNumber : null,
                     }, 
                     currentAddress: currentAddressData,
                     permanentAddress: permanentAddressData,
                     baptismInformation: isBaptised? {
-                        ...dateOfBaptismForm.values
+                        ...dateOfBaptismFormValues
                     } : null
                 }
+
+                if([
+                    formValues.firstName,
+                    formValues.middleName,
+                    formValues.surName,
+                    formValues.maritalStatus,
+                    formValues.dateOfBirth,
+                    formValues.gender,
+                ].includes("")) return;
+
                 addMemberRecord(record);
             }}/>
         </div>

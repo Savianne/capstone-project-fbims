@@ -25,7 +25,7 @@ const FCAddOrganizationForm: React.FC<IAddOrganizationForm> = ({className, onLoa
     const [resetDpInputValue, setResetDpInputValue] = React.useState(false);
 
     const [isLoading, setIsLoading] = React.useState(false);
-    const [addOrganizationForm, addOrganizationFormDispatchers] = useFormControl({
+    const [addOrganizationForm, addOrganizationFormValues, addOrganizationFormDispatchers] = useFormControl({
         title: {
             validateAs: "text",
             minValLen: 5,
@@ -59,15 +59,15 @@ const FCAddOrganizationForm: React.FC<IAddOrganizationForm> = ({className, onLoa
     return(
         <div className={className}>
             <div className="input-group">
-                <Input disabled={isLoading} value={addOrganizationForm.values.title as string} error={addOrganizationForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addOrganizationFormDispatchers?.title(val)} />
-                <Input disabled={isLoading} value={addOrganizationForm.values.description as string} error={addOrganizationForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addOrganizationFormDispatchers?.description(val)}/>
+                <Input disabled={isLoading} value={addOrganizationFormValues.title as string} error={addOrganizationForm.errors.title} type="text" placeholder="Title" onValChange={(val) => addOrganizationFormDispatchers({...addOrganizationFormValues, title: val})} />
+                <Input disabled={isLoading} value={addOrganizationFormValues.description as string} error={addOrganizationForm.errors.description} type="text" placeholder="Description" onValChange={(val) => addOrganizationFormDispatchers({...addOrganizationFormValues, description: val})}/>
             </div>
             <Alert severity="info" variant="default">
             While it is not mandatory, you have the option to upload a display picture or logo for the ministry if you wish to do so.
             </Alert>
             <AvatarUploaderArea>
                 <AvatarPicker onChange={(avatar) => {
-                    addOrganizationFormDispatchers?.avatar(avatar);
+                    addOrganizationFormDispatchers({...addOrganizationFormValues, avatar});
                     errorUploadingDp && setErrorUploadingDp(false);
                     isUploadingDp && setIsUploadingDp(false);
                     resetDpInputValue && setResetDpInputValue(false)
@@ -88,7 +88,7 @@ const FCAddOrganizationForm: React.FC<IAddOrganizationForm> = ({className, onLoa
                 onClick={() => {
                     setIsLoading(true);
                     setDisablePictureInput(true);
-                    addOrganization({name: addOrganizationForm.values.title as string, description: addOrganizationForm.values.description as string, avatar: addOrganizationForm.values.avatar as string | null})
+                    addOrganization({name: (addOrganizationFormValues.title as string).trim(), description: (addOrganizationFormValues.description as string).trim(), avatar: addOrganizationFormValues.avatar as string | null})
                     .then(response => {
                         if(response.success) {
                             setIsLoading(false);

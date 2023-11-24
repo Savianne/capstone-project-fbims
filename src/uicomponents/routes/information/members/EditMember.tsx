@@ -332,7 +332,7 @@ const EditMember: React.FC = () => {
                                                     <Button disabled={!(basicDataIsModified) || isUpdatingBasicInfo} label="Revert changes" onClick={revertChange}/>
                                                     <Button disabled={!(basicDataIsModified) || (basicDataIsModified && Object.values(basicInfoInputErrors).length > 0)} label="Update changes" color="edit" isLoading={isUpdatingBasicInfo} onClick={() => submitBasicInfoUpdate && submitBasicInfoUpdate(memberInformation.member_uid, () => addSnackBar("Update success", "success", 5))} />
                                                 </div>
-                                            </> : "Loading..."
+                                            </> : ""
                                         }
                                     </> 
                                 }

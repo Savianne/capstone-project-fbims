@@ -29,19 +29,17 @@ const PaginationFC: React.FC<IUsePagenation> = ({className, totalPage, onChange}
             </UseRipple>
             {
                 pageNumbers.map((page, index) => {
-                    return <>
-                        {
-                            page? 
-                            <UseRipple key={index}>
-                                <span className={page.isCurrentPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => setPage(page.number)}>
-                                    <strong>{page.number}</strong>
-                                </span>
-                            </UseRipple> : 
-                            <span className="btn hidden-pages">
-                                <strong>...</strong>
+                    return (
+                        page? 
+                        <UseRipple key={index}>
+                            <span className={page.isCurrentPage? 'btn page-number current-page' : 'btn page-number'} onClick={(e) => setPage(page.number)}>
+                                <strong>{page.number}</strong>
                             </span>
-                        }
-                    </>
+                        </UseRipple> : 
+                        <span key={index} className="btn hidden-pages">
+                            <strong>...</strong>
+                        </span>
+                    )
                 })
             }
             <UseRipple>

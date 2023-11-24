@@ -43,7 +43,7 @@ const FCAddCategoryForm: React.FC<IAddCategoryForm> = ({className, dispatch}) =>
 
     let cancelTokenSource: CancelTokenSource | null = null;
 
-    const [form, formDispatcher] = useFormControl({
+    const [form, formValues, formDispatcher] = useFormControl({
         title: {
             required: true,
             minValLen: 3,
@@ -124,7 +124,7 @@ const FCAddCategoryForm: React.FC<IAddCategoryForm> = ({className, dispatch}) =>
                     }}/>
                 </div>
             </div>
-            <Input type="text" placeholder="Title" value={form.values.title as string} error={form.errors.title} onValChange={(e) => formDispatcher?.title(e)}/>
+            <Input type="text" placeholder="Title" value={formValues.title as string} error={form.errors.title} onValChange={(e) => formDispatcher({...formValues, title: e})}/>
             <Select placeholder="Attenders" value={attenders} onValChange={(e) => setAttenders(e as typeof attenders)}>
                 <Option value="all">All Members</Option>
                 <Option value="select">Select Member</Option>
@@ -213,7 +213,7 @@ const FCAddCategoryForm: React.FC<IAddCategoryForm> = ({className, dispatch}) =>
                     url: "/attendance/add-attendance-category",
                     method: "POST",
                     data: {
-                        title: form.values.title,
+                        title: formValues.title,
                         type: attendanceType,
                         attender: attenders,
                         attenders: attendersList.map(item => item.uid)
@@ -223,13 +223,17 @@ const FCAddCategoryForm: React.FC<IAddCategoryForm> = ({className, dispatch}) =>
                     if(result.success) {
                         setOnSubmit(false);
                         dispatch({
-                            title: form.values.title as string,
+                            title: formValues.title as string,
                             type: attendanceType,
                             attender: attenders,
                             uid: result.data as string
                         });
                         form.clear();
                         setAttendersList([]);
+                        setSearchTerm("");
+                        setResults([]);
+                        setSearchActive(false);
+                        setAttenders("all");
                         addSnackbar("Added new Category", "default", 5);
                     } else throw result.error
                 })
@@ -288,12 +292,13 @@ const Attender = styled.div`
 const AddCategoryForm = styled(FCAddCategoryForm)`
     display: flex;
     flex-wrap: wrap;
-    flex: 1;
+    flex: 0 1 800px;
     padding: 15px;
     border-radius: 5px;
-    /* border: 1px solid ${({theme}) => theme.borderColor}; */
     height: fit-content;
-    background-color: ${({theme}) => theme.background.lighter};
+    margin: 0 auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    background-color: ${({theme}) => theme.background.primary};
 
     && .input-area {
         display: flex;
@@ -333,7 +338,7 @@ const AddCategoryForm = styled(FCAddCategoryForm)`
         flex-wrap: wrap;
         flex: 0 1 100%;
         height: fit-content;
-        max-height: CALC(100vh - 35vh);
+        max-height: calc(100vh - 35vh);
         margin-top: 10px;
         /* padding-bottom: 15px; */
         overflow-x: auto;
@@ -396,6 +401,7 @@ const AddCategoryForm = styled(FCAddCategoryForm)`
 
             .btn-area {
                 display: inline-flex;
+                align-items: center;
             }
         }
     }
@@ -442,7 +448,7 @@ const AddCategoryForm = styled(FCAddCategoryForm)`
         }
     }
 
-    ${Button} {
+    && > ${Button} {
         margin-top: 10px;
     }
 `

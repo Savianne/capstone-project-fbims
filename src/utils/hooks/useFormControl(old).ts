@@ -9,7 +9,7 @@ import validateSelectField from "../inputValidators/defaultValidator/validateSel
 import validateMinDateInput from "../inputValidators/defaultValidator/validateMinDateInput";
 import validateMaxDateInput from "../inputValidators/defaultValidator/validateMaxDateInput";
 
-export type TInputVal = string | number | boolean;
+export type TInputVal = string | number | boolean | readonly string[]
 
 export type TInputType = 'text' | 'number' | 'radio' | 'checkbox' | 'date' | 'email';
 
@@ -29,7 +29,7 @@ export interface IFormErrorFieldValues {
 
 type TFormErrorFieldsValues<K> = Record<keyof K, IFormErrorFieldValues | null>;
 
-type TValDispatcher = (newVal: TInputVal) => void;
+type TValDispatcher = (newVal: TInputVal | null) => void;
 
 type TFormDispatchers<K> = Record<keyof K, TValDispatcher>;
 
@@ -107,7 +107,6 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
     const [formErrors, updateFormErrors] = React.useState<TFormErrorFieldsValues<T>>(createFormInitialErrorValues(fields));
     const [formDispatchers, updateFormDispatchers] = React.useState<null | TFormDispatchers<T>>(null);
     const [isReady, updateIsReadyState] = React.useState(false);
-    const [isOnSubmit, updateIsOnSubmitState] = React.useState(false);
     const [isValidating, startValidating] = React.useTransition();
 
 
@@ -155,11 +154,18 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
             
             updateFormValues(newFormValues);
             
-            startValidating(() => {
+           // startValidating(() => {
                 const key = Object.keys(activeFromField)[0] as keyof typeof fields;
                 const newValue = Object.values(activeFromField)[0] as TInputVal;
                 
-                if(fields[key].required && newValue == '') 
+                if(newValue == null) {
+                    const obj = {
+                        [key]: null
+                    } as TFormErrorFieldsValues<T>;
+    
+                    updateFormErrors({...formErrors, ...obj});
+                }
+                else if(fields[key].required && newValue == '') 
                 {
                     const mutableObj: IFormErrorFieldValues = {
                         errorText: 'Required Input!',
@@ -190,8 +196,8 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
                         break;
                         case 'text': 
                             const currentField = fields[key] as IValidateAsTextInput;
-                            if(currentField.minValLen) validationResultContainer.push(validateTextMinValLen(currentField.minValLen, newValue as string));
-                            if(currentField.maxValLen) validationResultContainer.push(validateTextMaxValLen(currentField.maxValLen, newValue as string));
+                            if(currentField.minValLen) validationResultContainer.push(validateTextMinValLen(currentField.minValLen, (newValue as string).trim()));
+                            if(currentField.maxValLen) validationResultContainer.push(validateTextMaxValLen(currentField.maxValLen, (newValue as string).trim()));
                         break;
                         case 'date':
                             const currentDateField = fields[key] as IValidateAsDateInput;
@@ -204,7 +210,13 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
                     }
 
                     //Write a Logic to run validator functions if there is any
-    
+                    if(fields[key].validators && fields[key].validators?.length) {
+                        fields[key].validators?.every(validator => {
+                            const validationResult = validator(newValue);
+                            validationResultContainer.push(validationResult);
+                        })
+                    }   
+
                     if(hasError(validationResultContainer)) 
                     {
                         const mutableObj: IFormErrorFieldValues = {
@@ -228,7 +240,7 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
                     }
                 }
     
-            })
+            //})
 
         }
     }, [activeFromField]);
@@ -241,10 +253,25 @@ function useFormControl<T extends unknown>(fields: TParam<T>) {
         isReady: typeof isReady,
         isValidating: typeof isValidating,
         values: typeof formValues,
-        errors: typeof formErrors
+        errors: typeof formErrors,
+        clear: () => void
     }
 
-    const retVal: [IForm, typeof formDispatchers] = [{isReady, isValidating, values: formValues, errors: formErrors}, formDispatchers];
+    const retVal: [IForm, typeof formDispatchers] = [{isReady, isValidating, values: formValues, errors: formErrors, clear() {
+        const clearedForm = Object.keys(fields).reduce((P, C) => {
+            const obj = {[C]: null} as TFormFieldsValues<T>;
+            return {...P, ...obj }
+        }, {});
+        updateFormValues(clearedForm as TFormFieldsValues<T>);
+
+        const clearedErrors = Object.keys(fields).reduce((P, C) => {
+            const obj = {[C]: null} as TFormErrorFieldsValues<T>;
+            return {...P, ...obj }
+        }, {});
+        updateFormErrors(clearedErrors as TFormErrorFieldsValues<T>)
+
+        updateIsReadyState(false);
+    },}, formDispatchers];
     
     return retVal;
 }

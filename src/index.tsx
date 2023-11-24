@@ -88,7 +88,10 @@ import {
   faAngleDown,
   faPrint,
   faFire,
-  faFilePdf
+  faFilePdf,
+  faThLarge,
+  faThList,
+  faFileCsv
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -164,6 +167,9 @@ library.add(faS, faAngleDown);
 library.add(faS, faPrint);
 library.add(faS, faFire);
 library.add(faS, faFilePdf);
+library.add(faS, faThLarge);
+library.add(faS, faThList);
+library.add(faS, faFileCsv);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

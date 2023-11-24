@@ -7,21 +7,22 @@ function useUpdateOutsidePHAddress(label: 'permanent' | 'current') {
     const [onUPdateSuccess, setOnUpdateSuccess] = React.useState(false);
     const [onUpdateError, setOnUpdateError] = React.useState<null | string>(null)
 
-    const [outsidePHAddressForm, outsidePHAddressFormValueDispatchers] = useFormControl({
+    const [outsidePHAddressForm, outsidePHAddressFormValues, outsidePHAddressFormValueDispatchers] = useFormControl({
         address: {
             required: true,
             errorText: 'Invalid Entry',
-            validateAs: 'select'
+            validateAs: 'text',
+            minValLen: 5,
         },
     });
 
     return {
         errors: outsidePHAddressForm.errors,
         input: {
-            address: (input: string | null) => outsidePHAddressFormValueDispatchers?.address(input),
+            address: (input: string | null) => outsidePHAddressFormValueDispatchers({...outsidePHAddressFormValues, address: input}),
 
         }, 
-        values: outsidePHAddressForm.values,
+        values: outsidePHAddressFormValues,
         isUpdating: onUpdate,
         isUpdateSuccess: false,
         isUpdateError: onUpdateError? true : false,
@@ -36,7 +37,7 @@ function useUpdateOutsidePHAddress(label: 'permanent' | 'current') {
                     data: {
                         label,
                         addressType: 'outside',
-                        address: outsidePHAddressForm.values.address
+                        address: (outsidePHAddressFormValues.address as string).trim()
                     }
                 })
                 .then(response => {
@@ -44,7 +45,7 @@ function useUpdateOutsidePHAddress(label: 'permanent' | 'current') {
                     if(response.success) {
                         onUpdateError && setOnUpdateError(null);
                         setOnUpdateSuccess(true);
-                        onSuccess(outsidePHAddressForm.values.address as string);
+                        onSuccess(outsidePHAddressFormValues.address as string);
                         outsidePHAddressForm.clear();
                     } else throw response.error;
                 })

@@ -59,7 +59,7 @@ const NoRecordFound = styled(NoRecordFoundFC)`
     && .secondary-text {
         font-size: 20px;
         margin-top: 5px;
-        font-weight: 600;
+        font-weight: normal;
     }
 
     .action-btn-area {

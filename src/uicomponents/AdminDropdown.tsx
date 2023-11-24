@@ -13,7 +13,7 @@ const FCAdminDropdown: React.FC<IStyledFC> = ({className}) => {
     return (
         <div className={className}>
             <UseRipple>
-                <Avatar size='35px' alt="Bpple" src="/assets/images/avatar/apple.png" />
+                <Avatar size='35px' alt="Bpple" src="apple.png" />
                 <Stack>
                     <StackItem><p>Apple Jane De Guzmanssssssssssssss</p></StackItem>
                     <StackItem><p>Roxas Church of Christ</p></StackItem>

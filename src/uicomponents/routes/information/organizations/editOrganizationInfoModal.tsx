@@ -21,8 +21,8 @@ interface IEditOrganizationForm extends IStyledFC {
 }
 
 const validationSchema = Yup.object().shape({
-    organizationName: Yup.string().required(),
-    description: Yup.string().required(),
+    organizationName: Yup.string().trim().required(),
+    description: Yup.string().trim().required(),
 });
 
 const EditOrganizationFC: React.FC<IEditOrganizationForm> = ({className, onLoading, data, update}) => {
@@ -94,7 +94,7 @@ const EditOrganizationFC: React.FC<IEditOrganizationForm> = ({className, onLoadi
                     doRequest({
                         url: `/update-organization-info/${data.organizationUID}`,
                         method: "PATCH",
-                        data: editData
+                        data: {organizationName: editData?.organizationName, description: editData?.description}
                     })
                     .then(response => {
                         addSnackbar("Update success", 'default', 5);

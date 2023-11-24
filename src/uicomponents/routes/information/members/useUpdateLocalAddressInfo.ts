@@ -7,7 +7,7 @@ function useUpdateLocalAddressInfo(label: 'permanent' | 'current') {
     const [onUPdateSuccess, setOnUpdateSuccess] = React.useState(false);
     const [onUpdateError, setOnUpdateError] = React.useState<null | string>(null)
 
-    const [localAddressForm, localAddressFormValueDispatchers] = useFormControl({
+    const [localAddressForm, localAddressFormValues, localAddressFormValueDispatchers] = useFormControl({
         region: {
             required: true,
             errorText: 'Invalid Entry',
@@ -33,12 +33,12 @@ function useUpdateLocalAddressInfo(label: 'permanent' | 'current') {
     return {
         errors: localAddressForm.errors,
         input: {
-            region: (input: string | null) => localAddressFormValueDispatchers?.region(input),
-            province: (input: string | null) => localAddressFormValueDispatchers?.province(input),
-            munCity: (input: string | null) => localAddressFormValueDispatchers?.cityOrMunicipality(input),
-            barangay: (input: string | null) => localAddressFormValueDispatchers?.barangay(input)
+            region: (input: string | null) => localAddressFormValueDispatchers({...localAddressFormValues, region: input}),
+            province: (input: string | null) => localAddressFormValueDispatchers({...localAddressFormValues, province: input}),
+            munCity: (input: string | null) => localAddressFormValueDispatchers({...localAddressFormValues, cityOrMunicipality: input}),
+            barangay: (input: string | null) => localAddressFormValueDispatchers({...localAddressFormValues, barangay: input})
         }, 
-        values: localAddressForm.values,
+        values: localAddressFormValues,
         isUpdating: onUpdate,
         isUpdateSuccess: false,
         isUpdateError: onUpdateError? true : false,
@@ -59,18 +59,18 @@ function useUpdateLocalAddressInfo(label: 'permanent' | 'current') {
                     data: {
                         label,
                         addressType: 'local',
-                        address: localAddressForm.values
+                        address: localAddressFormValues
                     }
                 })
                 .then(response => {
                     if(response.success) {
                         onUpdateError && setOnUpdateError(null);
                         setOnUpdateSuccess(true);
-                        localAddressForm.values && onSuccess({
-                            region: localAddressForm.values.region,
-                            province: localAddressForm.values.province,
-                            cityOrMunicipality: localAddressForm.values.cityOrMunicipality,
-                            barangay: localAddressForm.values.barangay
+                        localAddressFormValues && onSuccess({
+                            region: localAddressFormValues.region,
+                            province: localAddressFormValues.province,
+                            cityOrMunicipality: localAddressFormValues.cityOrMunicipality,
+                            barangay: localAddressFormValues.barangay
                         });
                         localAddressForm.clear();
                         setOnUpdate(false);
