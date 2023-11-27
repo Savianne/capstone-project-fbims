@@ -10,14 +10,6 @@ const AttendanceCategorySkeletoFC: React.FC<IStyledFC> = ({className}) => {
                 <div className="title">
                     <SkeletonLoading />
                 </div>
-                <div className="list-view-toggle">
-                    <div className="toggle">
-                        <SkeletonLoading />
-                    </div>
-                    <div className="toggle">
-                        <SkeletonLoading />
-                    </div>
-                </div>
             </header>
             <div className="btn-row">
                 <div className="btn"><SkeletonLoading /></div>
@@ -28,9 +20,16 @@ const AttendanceCategorySkeletoFC: React.FC<IStyledFC> = ({className}) => {
                 <SkeletonLoading />
             </div>
             <div className="list">
-                <SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} />
-                <SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} />
+                <SkeletonLoading height={77}/>
+                <SkeletonLoading height={77}/>
+                <SkeletonLoading height={77}/>
+                <SkeletonLoading height={77}/>
+                <SkeletonLoading height={77}/>
             </div>
+            {/* <div className="list">
+                <SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} />
+                <SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} /><SkeletonLoading height={140} />
+            </div> */}
         </div>
     )
 }
@@ -91,12 +90,21 @@ const AttendanceCategorySkeleton = styled(AttendanceCategorySkeletoFC)`
     }
 
     .list {
+        display: flex;
+        flex: 0 1 800px;
+        padding: 15px;
+        margin: 0 auto;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* .list {
         display: grid;
         flex: 0 1 100%;
         margin-top: 15px;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         grid-gap: 20px;
-    }
+    } */
 `;
 
 export default AttendanceCategorySkeleton;

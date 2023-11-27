@@ -1,21 +1,21 @@
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IStyledFC } from "../../IStyledFC";
-import IPendingEntry from "./IPendingEntry";
-import Button from "../../reusables/Buttons/Button";
-import SkeletonLoading from "../../reusables/SkeletonLoading";
+import { IStyledFC } from "../../../IStyledFC";
+import TAttendanceEntry from "./TAttendanceEntry";
+import Button from "../../../reusables/Buttons/Button";
+import SkeletonLoading from "../../../reusables/SkeletonLoading";
 
-interface IPendingEntriesFC extends IStyledFC {
-    pendingEntries: IPendingEntry[]
+interface IAttendanceEntriesListViewFC extends IStyledFC {
+    entries: TAttendanceEntry[]
 }
 
-const PendingEntriesFC: React.FC<IPendingEntriesFC> = ({className, pendingEntries}) => {
+const AttendanceEntriesFC: React.FC<IAttendanceEntriesListViewFC> = ({className, entries}) => {
 
     return(
         <div className={className}>
             {
-                pendingEntries.map(entry => (
+                entries.map(entry => (
                     <div key={entry.entryUID} className="entry">
                         <h5 className="entry-description">{entry.description}</h5>
                         <div className="lower-container">
@@ -35,7 +35,7 @@ const PendingEntriesFC: React.FC<IPendingEntriesFC> = ({className, pendingEntrie
     )
 }
 
-const PendingEntriesFCSkeleton: React.FC<IStyledFC> = ({className}) => {
+const AttendanceEntriesFCSkeleton: React.FC<IStyledFC> = ({className}) => {
     return(
         <div className={className}>
             <SkeletonLoading height={77}/>
@@ -47,7 +47,7 @@ const PendingEntriesFCSkeleton: React.FC<IStyledFC> = ({className}) => {
     )
 }
 
-export const PendingEntriesSkeleton = styled(PendingEntriesFCSkeleton)`
+export const AttendanceEntriesSkeleton = styled(AttendanceEntriesFCSkeleton)`
     display: flex;
     flex: 0 1 800px;
     margin: 0 auto;
@@ -55,7 +55,7 @@ export const PendingEntriesSkeleton = styled(PendingEntriesFCSkeleton)`
     gap: 5px;
 `
 
-const PendingEntries = styled(PendingEntriesFC)`
+const AttendanceEntriesListView = styled(AttendanceEntriesFC)`
     display: flex;
     flex: 0 1 800px;
     margin: 0 auto;
@@ -109,4 +109,4 @@ const PendingEntries = styled(PendingEntriesFC)`
 
 `;
 
-export default PendingEntries;
+export default AttendanceEntriesListView;

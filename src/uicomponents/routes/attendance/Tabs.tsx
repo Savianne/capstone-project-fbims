@@ -7,9 +7,11 @@ import UseRipple from "../../reusables/Ripple/UseRipple";
 interface ITabs extends IStyledFC {
     tab: string;
     setTab: (val:string) => void;
+    pendingEntriesCount: number,
+    categoriesCount: number
 }
 
-const TabsFC: React.FC<ITabs> = ({className, tab, setTab, children}) => {
+const TabsFC: React.FC<ITabs> = ({className, tab, setTab, pendingEntriesCount, categoriesCount, children}) => {
     return (
         <div className={className}>
             <div className={tab == "pending-entries"? "tab active-tab" : "tab"} onClick={() => setTab("pending-entries")}>
@@ -18,6 +20,7 @@ const TabsFC: React.FC<ITabs> = ({className, tab, setTab, children}) => {
                         <FontAwesomeIcon icon={['fas', "qrcode"]} />
                     </div>
                     <p className="label">Pending Entries</p>
+                    <span className="count">{pendingEntriesCount}</span>
                 </UseRipple>
             </div>
             <div className={tab == "add-entry"? "tab active-tab" : "tab"} onClick={() => setTab("add-entry")}>
@@ -34,6 +37,7 @@ const TabsFC: React.FC<ITabs> = ({className, tab, setTab, children}) => {
                         <FontAwesomeIcon icon={['fas', "people-group"]} />
                     </div>
                     <p className="label">Categories</p>
+                    <span className="count">{categoriesCount}</span>
                 </UseRipple>
             </div>
             <div className={tab == "add-category"? "tab active-tab" : "tab"} onClick={() => setTab("add-category")}>
@@ -67,7 +71,8 @@ const Tabs = styled(TabsFC)`
     && > .tab {
         display: flex;
         align-items: center;
-        width: 196px;
+        /* min-width: 196px; */
+        width: fit-content;
         /* width: fit-content; */
         height: fit-content;
         border-radius: 5px;
@@ -84,7 +89,7 @@ const Tabs = styled(TabsFC)`
     && > .tab > ${UseRipple} {
         display: flex;
         align-items: center;
-        width: 100%;
+        width: fit-content;
         height: 40px;
         padding: 5px 20px;
         border-radius: 5px;
@@ -106,6 +111,19 @@ const Tabs = styled(TabsFC)`
     && > .tab > ${UseRipple} > .label {
         /* font-size: 13px; */
         margin-left: 10px;
+        flex-shrink: 0;
+    }
+
+    && > .tab > ${UseRipple} > .count {
+        color: white;
+        padding: 0 5px;
+        height: fit-content;
+        width: fit-content;
+        border-radius: 16px;
+        background-color: #ff4400;
+        margin-left: 10px;
+        font-size: 11px;
+        font-weight: bold;
     }
 `;
 

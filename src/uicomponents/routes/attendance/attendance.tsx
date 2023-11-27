@@ -12,9 +12,7 @@ import SiteMap from "../SiteMap";
 import GoBackBtn from "../../GoBackBtn";
 import Button from "../../reusables/Buttons/Button";
 import AddCategoryForm from "./AddCategoryForm";
-import AddCategoryBanner from "./AddCategoryBanner";
 import Categories, {ICategory} from "./Categories";
-import SkeletonLoading from "../../reusables/SkeletonLoading";
 import CreateEntryForm from "./CreateEntryForm";
 import GenerateReportForm from "./GenerateReportForm";
 import Scrollbar from "../../reusables/ScrollBar";
@@ -22,7 +20,9 @@ import Tabs from "./Tabs";
 import Revealer from "../../reusables/Revealer";
 import NoRecordFound from "../../NoRecordFound";
 import IPendingEntry from "./IPendingEntry";
-import PendingEntries from "./PendingEntries";
+import PendingEntries, {PendingEntriesSkeleton} from "./PendingEntries";
+import FailedToLoadError from "../../reusables/FailedToLoadError";
+import SkeletonLoading from "../../reusables/SkeletonLoading";
 
 const IsLoadingCategories = styled.div`
     display: grid;
@@ -75,6 +75,9 @@ const ContentWraper = styled.div`
     }
 
     && > .comp-tabs-area {
+        /* position: sticky; */
+        background-color: ${({theme}) => theme.background.primary};
+        top: 65px;
         display: flex;
         flex: 0 1 100%;
         height: fit-content;
@@ -87,13 +90,39 @@ const ContentWraper = styled.div`
         height: 0; /* For Chrome, Safari, and Opera */
     }    
 
-
-    && ${Revealer} .tab-content {
+    && .tab-content {
         display: flex;
+        flex-wrap: wrap;
         padding: 20px;
         flex: 0 1 100%;
-        height: fit-content;
+        height: calc(100vh - 251.8px);
         background-color: ${({theme}) => theme.background.lighter};
+    }
+    
+    
+    && .tab-content .scroll-content {
+        display: flex;
+        flex-wrap: wrap;
+        flex: 0 1 100%;
+        height: fit-content;
+        /* height: calc(100vh - 251.8px); */
+        /* overflow-y: auto; */
+        /* background-color: ${({theme}) => theme.background.lighter}; */
+    }
+
+    && .tab-content .scroll-content .load-more-btn {
+        display: flex;
+        flex: 0 1 100%;
+        justify-content: center;
+        height: fit-content;
+        margin-top: 15px;
+    }
+
+    && .tab-content .scroll-content .end-of-list {
+        color: ${({theme}) => theme.textColor.light};
+        flex: 0 1 100%;
+        margin-top: 15px;
+        text-align: center;
     }
 `;
 
@@ -101,10 +130,13 @@ const Attendance: React.FC = () => {
     const admin = useAppSelector(state => state.setAdmin.admin);
     const [isLoadingCategories, setIsLoadingCategories] = React.useState(true);
     const [isLoadingPendingEntries, setIsLoadingPendingEntries] = React.useState(true);
+    const [loadingPendingEntriesError, setLoadingPendingEntriesError] = React.useState(false);
+    const [loadingCategoriesError, setLoadingCategoriesError] = React.useState(false);
+    const [isLoadingMorePendingEntries, setIsLoadingMorePendingEntries] = React.useState(false);
     const [totalEntriesUpdate, setTotalEntriesUpdate] = React.useState<{categoryUID: string, uniqueId: string}>();
     const [categories, setCategories] = React.useState<({data: ICategory, fetchTotalEntryIncrementalVal: number})[]>([]);
-    const [pendingEntries, setPendingEntries] = React.useState<null | IPendingEntry[]>([]);
-
+    const [pendingEntries, setPendingEntries] = React.useState<null | IPendingEntry[]>(null);
+    const [totalPendingEntries, setTotalPendingEntries] = React.useState(0);
     const [tab, setTab] = React.useState('pending-entries');
 
     const fetchCategories = () => {
@@ -118,45 +150,67 @@ const Attendance: React.FC = () => {
             if(result.success) {
                 const mapedRes = result.data?.map(c => ({data: c, fetchTotalEntryIncrementalVal: 1}))
                 setCategories(mapedRes as typeof categories)
+                loadingCategoriesError && setLoadingCategoriesError(false)
             } else throw result.error
         })
         .catch(err => {
             setIsLoadingCategories(false);
-            console.log(err)
+            setLoadingCategoriesError(true);
         });
     }
 
     const fetchPendingEntries = () => {
         setIsLoadingPendingEntries(true);
         doRequest<IPendingEntry[]>({
-            url: "/attendance/get-pending-attendance-entries",
+            url: `/attendance/get-pending-attendance-entries/0`,
             method: "GET"
         })
         .then(result => {
             if(result.success && result.data) {
-                setPendingEntries(result.data);
+                setTimeout(() => {
+                    setPendingEntries(result.data as IPendingEntry[]);
+                    setIsLoadingPendingEntries(false);
+                    loadingPendingEntriesError && setLoadingPendingEntriesError(false);
+                }, 1000)
+            } else throw result
+        })
+        .catch(err => {
+            setLoadingPendingEntriesError(true);
+        })
+    }
+
+    const fetchTotalPendingEntries = () => {
+        doRequest<number>({
+            url: `/attendance/get-total-pending-attendance-entries`,
+            method: "GET"
+        })
+        .then(result => {
+            if(result.success && result.data) {
+                setTotalPendingEntries(result.data);
             } else throw result
         })
         .catch(err => {
             console.log(err);
         })
-        .finally(() => setIsLoadingPendingEntries(false))
     }
 
     React.useEffect(() => {
         fetchCategories();
         fetchPendingEntries();
+        fetchTotalPendingEntries();
         const socket = io(SOCKETIO_URL);
 
         socket.on(`${admin?.congregation}-ADDED_NEW_ATTENDANCE_ENTRY`, (data) => {
           setTotalEntriesUpdate({categoryUID: data.category, uniqueId: data.id});
           fetchPendingEntries();
+          fetchTotalPendingEntries();
         });
 
         socket.on('reconnect', (attemptNumber: number) => {
             console.log(`Reconnected to the server after ${attemptNumber} attempts`);
             fetchCategories();
             fetchPendingEntries();
+            fetchTotalPendingEntries();
         });
 
         return function () {
@@ -189,28 +243,76 @@ const Attendance: React.FC = () => {
                         <p>Track members' participation in church events, services, and activities.</p>
                     </div>
                     <div className="comp-tabs-area">
-                        <Tabs tab={tab} setTab={(tab) => setTab(tab)} />
+                        <Tabs tab={tab} setTab={(tab) => setTab(tab)} categoriesCount={categories.length} pendingEntriesCount={totalPendingEntries}/>
                     </div>
-                    <Revealer reveal={!!tab} maxHeight="fit-content">
+                    {/* <Revealer reveal={!!tab} maxHeight="fit-content"> */}
                         <div className="tab-content">
-                            {
-                                tab == "pending-entries"? <>
-                                    {
-                                        pendingEntries && pendingEntries.length == 0? <NoRecordFound actionBtn={<Button label="Create Entry" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-entry")}/>} />:
-                                        pendingEntries && pendingEntries.length? <PendingEntries pendingEntries={pendingEntries} /> : ""
-                                    }
-                                </> :
-                                tab == "categories"? <>
-                                    {
-                                        categories.length? <Categories categories={categories} onDeleted={(uid) => setCategories((current) => current.filter(category => category.data.uid !== uid))}/> 
-                                        : <NoRecordFound secondaryText="Create Category to Categorize Attendance and track as one" actionBtn={<Button label="Create Category" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-category")}/>} />
-                                    }
-                                </> : 
-                                tab == "add-category"? <AddCategoryForm dispatch={(newCategory) => setCategories((current) => ([{data: newCategory, fetchTotalEntryIncrementalVal: 1}, ...current]))} />: 
-                                tab == "add-entry"? <CreateEntryForm categories={categories.map(category => category.data)} /> : ''
-                            }
+                            <Scrollbar>
+                                <div className="scroll-content">
+                                {
+                                    tab == "pending-entries"? <>
+                                        {
+                                            isLoadingPendingEntries? <PendingEntriesSkeleton /> :
+                                            <>
+                                            {
+                                                loadingPendingEntriesError? <FailedToLoadError /> : 
+                                                pendingEntries && pendingEntries.length == 0? <NoRecordFound actionBtn={<Button label="Create Entry" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-entry")}/>} />:
+                                                pendingEntries && pendingEntries.length? <>
+                                                    <PendingEntries pendingEntries={pendingEntries} />
+                                                    {
+                                                        pendingEntries.length == totalPendingEntries? <p className="end-of-list">--End of list--</p> :
+                                                        <div className="load-more-btn">
+                                                            <Button isLoading={isLoadingMorePendingEntries} label="Load more" color="primary" variant="hidden-bg-btn" 
+                                                            onClick={() => {
+                                                                setIsLoadingMorePendingEntries(true);
+                                                                doRequest<IPendingEntry[]>({
+                                                                    url: `/attendance/get-pending-attendance-entries/${pendingEntries.length}`,
+                                                                    method: "GET"
+                                                                })
+                                                                .then(result => {
+                                                                    if(result.success && result.data) {
+                                                                        setPendingEntries([...pendingEntries, ...result.data]);
+                                                                        loadingPendingEntriesError && setLoadingPendingEntriesError(false);
+                                                                    } else throw result
+                                                                })
+                                                                .catch(err => {
+                                                                    setLoadingPendingEntriesError(true);
+                                                                })
+                                                                .finally(() => setIsLoadingMorePendingEntries(false))
+                                                            }}/>
+                                                        </div>
+                                                    } 
+                                                </> : ""
+                                            }
+                                            </>
+                                        }
+                                    </> :
+                                    tab == "categories"? <>
+                                        {
+                                            isLoadingCategories? <IsLoadingCategories>
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                                <SkeletonLoading height={170} />
+                                            </IsLoadingCategories> :
+                                            loadingCategoriesError? <FailedToLoadError /> :
+                                            categories.length? <Categories categories={categories} onDeleted={(uid) => setCategories((current) => current.filter(category => category.data.uid !== uid))}/> 
+                                            : <NoRecordFound secondaryText="Create Category to Categorize Attendance and track as one" actionBtn={<Button label="Create Category" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-category")}/>} />
+                                        }
+                                    </> : 
+                                    tab == "add-category"? <AddCategoryForm dispatch={(newCategory) => setCategories((current) => ([{data: newCategory, fetchTotalEntryIncrementalVal: 1}, ...current]))} />: 
+                                    tab == "add-entry"? <CreateEntryForm categories={categories.map(category => category.data)} /> : ''
+                                }
+                                </div>
+                            </Scrollbar>
                         </div>
-                    </Revealer>
+                    {/* </Revealer> */}
                 </ContentWraper>
             </RouteContentBaseBody>
         </RouteContentBase>

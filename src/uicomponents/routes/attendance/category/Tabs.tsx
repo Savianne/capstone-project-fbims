@@ -12,6 +12,14 @@ interface ITabs extends IStyledFC {
 const TabsFC: React.FC<ITabs> = ({className, tab, setTab, children}) => {
     return (
         <div className={className}>
+            <div className={tab == "entries"? "tab active-tab" : "tab"} onClick={() => setTab("entries")}>
+                <UseRipple>
+                    <div className="icon">
+                        <FontAwesomeIcon icon={['fas', "qrcode"]} />
+                    </div>
+                    <p className="label">Entries</p>
+                </UseRipple>
+            </div>
             <div className={tab == "attenders"? "tab active-tab" : "tab"} onClick={() => setTab("attenders")}>
                 <UseRipple>
                     <div className="icon">

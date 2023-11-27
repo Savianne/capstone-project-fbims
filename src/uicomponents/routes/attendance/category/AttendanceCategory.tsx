@@ -20,6 +20,8 @@ import Tabs from "./Tabs";
 import Scrollbar from "../../../reusables/ScrollBar";
 import Revealer from "../../../reusables/Revealer";
 import AttendersTabContent from "./AttendersTabContent";
+import AttendanceEntriesListView, {AttendanceEntriesSkeleton} from "./EntriesListView";
+import TAttendanceEntry from "./TAttendanceEntry";
 
 interface ICategoryData {
     id: string,
@@ -124,6 +126,7 @@ const ContentWraper = styled.div`
         position: relative;
         display: flex;
         flex: 0 1 100%;
+        flex-wrap: wrap;
         padding: 15px;
         height: fit-content;
         /* box-shadow: 0px 0 4px 0px rgba(0, 0, 0, 0.25); */
@@ -146,6 +149,21 @@ const ContentWraper = styled.div`
             color: ${({theme}) => theme.textColor.strong};
         }
     }
+
+    && .scroll ${Revealer} .tab-container  .load-more-btn {
+        display: flex;
+        flex: 0 1 100%;
+        justify-content: center;
+        height: fit-content;
+        margin-top: 15px;
+    }
+
+    && .scroll ${Revealer} .tab-container .end-of-list {
+        color: ${({theme}) => theme.textColor.light};
+        flex: 0 1 100%;
+        margin-top: 15px;
+        text-align: center;
+    }
 `;
 
 const validationSchema = Yup.object().shape({
@@ -157,17 +175,40 @@ const AttendanceCategory: React.FC = () => {
     const addSnackBar = useAddSnackBar();
     const {categoryUID} = useParams();
     const [editTitleModal, updateEditTitleModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
-    const [listView, setListView] = React.useState<"row" | "col">("col");
     const [isLoadingCategoryInfo, setIsLoadingCategoryInfo] = React.useState(true);
     const [categoryData, setCategoryData] = React.useState<ICategoryData>();
     const [isLoadingAttenders, setIsLoadingAttenders] = React.useState(true);
     const [attenders, setAttenders] = React.useState<({name: string, picture: string | null, memberUID: string})[]>([]);
     const [editFormData, setEditFormData] = React.useState<{title: string} | null>(null);
     const [errors, setErrors] = React.useState<{ title?: string }>({});
+    const [attendanceEntries, updateAttendanceEntries] = React.useState<{total: number, entries: TAttendanceEntry[]} | null>(null);
+    const [isLoadingAttendanceEntries, setIsLoadingAttendanceEntries] = React.useState(true);
+    const [isLoadingMoreAttendanceEntries, setIsLoadingMoreAttendanceEntries] = React.useState(false);
 
     const [isUpdatingTitle, setIsUpdatingTitle] = React.useState(false);
 
-    const [tab, setTab] = React.useState('');
+    const [tab, setTab] = React.useState('entries');
+
+    const fetchAttendanceEntries = (categoryUID: string) => {
+        setIsLoadingAttendanceEntries(true);
+        doRequest<{total: number, entries: TAttendanceEntry[]}>({
+            url: `/attendance/get-attendance-entries-by-category/${categoryUID}/0`,
+            data: {dateRangeFilter: null},
+            method: "POST"
+        })
+        .then(result => {
+            if(result.success && result.data) {
+                console.log(result)
+                setTimeout(() => {
+                    updateAttendanceEntries(result.data as {total: number, entries: TAttendanceEntry[]});
+                    setIsLoadingAttendanceEntries(false)
+                }, 1000)
+            } else throw result
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
 
     React.useEffect(() => {
         editFormData && debounce(async () => {
@@ -191,6 +232,7 @@ const AttendanceCategory: React.FC = () => {
 
     React.useEffect(() => {
         if(categoryData) {
+            fetchAttendanceEntries(categoryData.uid);
             setEditFormData({title: categoryData.title});
             if(categoryData.attender == "select") {
                 doRequest<({name: string, picture: string | null, memberUID: string})[]>({
@@ -258,11 +300,6 @@ const AttendanceCategory: React.FC = () => {
                                 </span>
                                 <p className="type">{categoryData?.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
                             </div>
-                            <div className="list-view-toggles">
-                                <ListViewToggle variant="hidden-bg-btn" color="theme" label="List" active={listView == "row"} icon={<FontAwesomeIcon icon={["fas", "th-list"]} />} iconButton onClick={() => setListView("row")} />
-                                <Devider $orientation="vertical" $variant="center"/>
-                                <ListViewToggle variant="hidden-bg-btn" color="theme" label="List" active={listView == "col"} icon={<FontAwesomeIcon icon={["fas", "th-large"]} />} iconButton onClick={() => setListView("col")}/>
-                            </div>
                         </header>
                         <Scrollbar scrollBarProps={{
                             autoHeight: true
@@ -275,10 +312,41 @@ const AttendanceCategory: React.FC = () => {
                             <Scrollbar>
                                 <Revealer reveal={!!tab} maxHeight="fit-content">
                                     <div className="tab-container">
-                                        <span className="btn-close" onClick={() => setTab("")}>
-                                            <FontAwesomeIcon icon={['fas', 'times']}/>
-                                        </span>
                                         {
+                                            tab == "entries"? <>
+                                            {
+                                                isLoadingAttendanceEntries? <AttendanceEntriesSkeleton /> : <>
+                                                {
+                                                    attendanceEntries? <AttendanceEntriesListView entries={attendanceEntries.entries} /> : ""
+                                                }
+                                                </>
+                                            }
+                                            {
+                                                attendanceEntries && attendanceEntries.entries.length == attendanceEntries.total? <p className="end-of-list">--End of list--</p> :
+                                                <div className="load-more-btn">
+                                                    <Button isLoading={isLoadingMoreAttendanceEntries} label="Load more" color="primary" variant="hidden-bg-btn" 
+                                                    onClick={() => {
+                                                        setIsLoadingMoreAttendanceEntries(true);
+                                                        doRequest<{total: number, entries: TAttendanceEntry[]}>({
+                                                            url: `/attendance/get-attendance-entries-by-category/${categoryData?.uid}/${attendanceEntries?.entries.length}`,
+                                                            data: {dateRangeFilter: null},
+                                                            method: "POST"
+                                                        })
+                                                        .then(result => {
+                                                            if(result.success && result.data) {
+                                                                setTimeout(() => {
+                                                                    updateAttendanceEntries({...result.data, entries: [...attendanceEntries?.entries as TAttendanceEntry[], ...result.data?.entries as TAttendanceEntry[]]} as {total: number, entries: TAttendanceEntry[]});
+                                                                    setIsLoadingMoreAttendanceEntries(false)
+                                                                }, 1000)
+                                                            } else throw result
+                                                        })
+                                                        .catch(err => {
+                                                            console.log(err);
+                                                        })
+                                                    }}/>
+                                                </div> 
+                                            }
+                                            </> :
                                             tab == "attenders"? <>
                                                 <AttendersTabContent attender={categoryData?.attender as "all" | "select"} attenders={attenders} onAdded={(attender) => {}} onRemoved={(attenderUid) => {}}/>
                                             </> :
