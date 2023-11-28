@@ -25,6 +25,8 @@ const AttendanceEntriesFC: React.FC<IAttendanceEntriesListViewFC> = ({className,
                                 <p className="data">{entry.categoryTitle}</p>
                                 <span className="dot-devider"></span>
                                 <p className="data">{entry.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
+                                <span className="dot-devider"></span>
+                                <p className="data">{entry.pending? "Pending" : "Saved"}    </p>
                             </div>
                             <Button iconButton icon={<FontAwesomeIcon icon={["fas", "angle-right"]} />} label="View entry" color="theme" variant="hidden-bg-btn" />
                         </div>

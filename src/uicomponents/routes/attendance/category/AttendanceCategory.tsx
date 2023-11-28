@@ -22,6 +22,8 @@ import Revealer from "../../../reusables/Revealer";
 import AttendersTabContent from "./AttendersTabContent";
 import AttendanceEntriesListView, {AttendanceEntriesSkeleton} from "./EntriesListView";
 import TAttendanceEntry from "./TAttendanceEntry";
+import DateRangeSelect from "../../../reusables/DateRange";
+import NoRecordFound from "../../../NoRecordFound";
 
 interface ICategoryData {
     id: string,
@@ -35,7 +37,7 @@ const ContentWraper = styled.div`
     display: flex;
     flex: 1;
     flex-wrap: wrap;
-    height: calc(100vh - 145.8px);
+    height: calc(100vh - 143.8px);
     align-content: flex-start;
     overflow: hidden;
     padding: 0 5px 15px 5px;
@@ -113,7 +115,7 @@ const ContentWraper = styled.div`
         position: relative;
         display: flex;
         flex: 0 1 calc(100% + 10px);
-        height: calc(100% - 115px);
+        height: calc(100% - 195px);
         /* overflow: auto; */
     }
 
@@ -164,6 +166,28 @@ const ContentWraper = styled.div`
         margin-top: 15px;
         text-align: center;
     }
+
+    && .list-toolbar {
+        /* position: sticky;
+        top: 0; */
+        display: flex;
+        flex: 0 1 100%;
+        align-items: center;
+        padding: 15px;
+        height: 40px;
+        gap: 10px;
+        border-radius: 5px;
+        background-color: ${({theme}) => theme.background.primary};
+        color: ${({theme}) => theme.textColor.strong};
+        /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25); */
+        margin-bottom: 10px;
+        z-index: 150;
+
+        ${Input} {
+            flex: 0 1 200px;
+            margin-top: 25px;
+        }
+    }
 `;
 
 const validationSchema = Yup.object().shape({
@@ -184,21 +208,20 @@ const AttendanceCategory: React.FC = () => {
     const [attendanceEntries, updateAttendanceEntries] = React.useState<{total: number, entries: TAttendanceEntry[]} | null>(null);
     const [isLoadingAttendanceEntries, setIsLoadingAttendanceEntries] = React.useState(true);
     const [isLoadingMoreAttendanceEntries, setIsLoadingMoreAttendanceEntries] = React.useState(false);
-
+    const [dateRangeFilter, setDateRangeFilter] = React.useState<{from: Date, to: Date} | null>(null);
     const [isUpdatingTitle, setIsUpdatingTitle] = React.useState(false);
 
     const [tab, setTab] = React.useState('entries');
 
-    const fetchAttendanceEntries = (categoryUID: string) => {
+    const fetchAttendanceEntries = (categoryUID: string, dateRangeFilter: {from: string, to: string} | null) => {
         setIsLoadingAttendanceEntries(true);
         doRequest<{total: number, entries: TAttendanceEntry[]}>({
             url: `/attendance/get-attendance-entries-by-category/${categoryUID}/0`,
-            data: {dateRangeFilter: null},
+            data: {dateRangeFilter: dateRangeFilter},
             method: "POST"
         })
         .then(result => {
             if(result.success && result.data) {
-                console.log(result)
                 setTimeout(() => {
                     updateAttendanceEntries(result.data as {total: number, entries: TAttendanceEntry[]});
                     setIsLoadingAttendanceEntries(false)
@@ -232,7 +255,6 @@ const AttendanceCategory: React.FC = () => {
 
     React.useEffect(() => {
         if(categoryData) {
-            fetchAttendanceEntries(categoryData.uid);
             setEditFormData({title: categoryData.title});
             if(categoryData.attender == "select") {
                 doRequest<({name: string, picture: string | null, memberUID: string})[]>({
@@ -276,6 +298,13 @@ const AttendanceCategory: React.FC = () => {
         }
     }, [categoryUID]);
 
+    React.useEffect(() => {
+        if(categoryData) {
+            debounce(() => {
+                fetchAttendanceEntries(categoryData.uid, dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null);
+            }, 500)()
+        }
+    }, [dateRangeFilter, categoryData])
     return (<>
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -308,6 +337,18 @@ const AttendanceCategory: React.FC = () => {
                                 <Tabs tab={tab} setTab={(tab) => setTab(tab)} />
                             </div>
                         </Scrollbar>
+                        <div className="list-toolbar">
+                            {
+                                tab == "entries"? <>
+                                <FontAwesomeIcon icon={["fas", "filter"]} />
+                                <Devider $orientation="vertical" $variant="center" />
+                                <DateRangeSelect value={dateRangeFilter} onValChange={(v) => setDateRangeFilter(v)} />
+                                </> : 
+                                tab == "attenders"? <>
+                                
+                                </> : ""
+                            }
+                        </div>
                         <div className="scroll"> 
                             <Scrollbar>
                                 <Revealer reveal={!!tab} maxHeight="fit-content">
@@ -317,7 +358,11 @@ const AttendanceCategory: React.FC = () => {
                                             {
                                                 isLoadingAttendanceEntries? <AttendanceEntriesSkeleton /> : <>
                                                 {
-                                                    attendanceEntries? <AttendanceEntriesListView entries={attendanceEntries.entries} /> : ""
+                                                    attendanceEntries? <>
+                                                        {
+                                                            attendanceEntries.total > 0? <AttendanceEntriesListView entries={attendanceEntries.entries} /> : <NoRecordFound />
+                                                        }
+                                                    </> : ""
                                                 }
                                                 </>
                                             }
@@ -329,7 +374,7 @@ const AttendanceCategory: React.FC = () => {
                                                         setIsLoadingMoreAttendanceEntries(true);
                                                         doRequest<{total: number, entries: TAttendanceEntry[]}>({
                                                             url: `/attendance/get-attendance-entries-by-category/${categoryData?.uid}/${attendanceEntries?.entries.length}`,
-                                                            data: {dateRangeFilter: null},
+                                                            data: {dateRangeFilter: dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null},
                                                             method: "POST"
                                                         })
                                                         .then(result => {

@@ -91,7 +91,8 @@ import {
   faFilePdf,
   faThLarge,
   faThList,
-  faFileCsv
+  faFileCsv,
+  faFilter
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -170,6 +171,7 @@ library.add(faS, faFilePdf);
 library.add(faS, faThLarge);
 library.add(faS, faThList);
 library.add(faS, faFileCsv);
+library.add(faS, faFilter);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

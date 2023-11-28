@@ -16,7 +16,7 @@ const AttendanceCategorySkeletoFC: React.FC<IStyledFC> = ({className}) => {
                 <div className="btn"><SkeletonLoading /></div>
                 <div className="btn"><SkeletonLoading /></div>
             </div>
-            <div className="list-toolbar">
+            <div className="list-toolbar-skeleton">
                 <SkeletonLoading />
             </div>
             <div className="list">
@@ -68,7 +68,7 @@ const AttendanceCategorySkeleton = styled(AttendanceCategorySkeletoFC)`
         }
     }
 
-    .btn-row {
+    && .btn-row {
         display: flex;
         flex: 0 1 100%;
         gap: 10px;
@@ -82,14 +82,14 @@ const AttendanceCategorySkeleton = styled(AttendanceCategorySkeletoFC)`
         }
     }
 
-    .list-toolbar {
+    && .list-toolbar-skeleton {
         display: flex;
         flex: 0 1 100%;
         height: 60px;
         margin-top: 15px;
     }
 
-    .list {
+    && .list {
         display: flex;
         flex: 0 1 800px;
         padding: 15px;

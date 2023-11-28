@@ -121,7 +121,6 @@ const FCSelect: React.FC<IFCSelect> = ({
               typeof selectedOptionIndex == "number" &&
               selectedOptionIndex > 0
             ) {
-              console.log(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex - 1)[0][0])
               controlled? onValChange(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex - 1)[0][0]) : updateSelectedValue(Object.entries(options).filter((option) => option[1].index == selectedOptionIndex - 1)[0][0]);
             } 
             break;
