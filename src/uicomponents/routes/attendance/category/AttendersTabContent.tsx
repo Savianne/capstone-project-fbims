@@ -108,7 +108,7 @@ const AttendersTabContentFC: React.FC<IAttendersTabContent> = ({className, atten
                             }} label="" variant="hidden-bg-btn" iconButton icon={<FontAwesomeIcon icon={["fas", "times"]} />} />
                         </div>
                     </div>
-                    {
+                    {/* {
                         searchActive? 
                         <div className="result-area">
                             {
@@ -137,7 +137,7 @@ const AttendersTabContentFC: React.FC<IAttendersTabContent> = ({className, atten
                                 ))
                             }
                         </div> : ""
-                    }
+                    } */}
                     <div className="attenders-grid">
                         {
                             attenders.map(attender => <AttenderCard key={attender.memberUID} {...attender} />)

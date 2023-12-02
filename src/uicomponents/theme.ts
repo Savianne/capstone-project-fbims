@@ -9,6 +9,7 @@ const lightTheme: DefaultTheme = {
         // light: '#d7f0ff5e',
         light: '#e6f2fa',
         lighter: '#F9F9F9',
+        // lighter: "#f4f4f4",
         transparent: 'transparent',
     },
     textColor: {
@@ -40,7 +41,8 @@ const darkTheme: DefaultTheme = {
         // light: 'rgba(21, 169, 253, 0.09)',
         // light: '#263d4b',
         light: '#3e8cba2e',
-        lighter: '#34384f',
+        // lighter: '#34384f',
+        lighter: "#2f303d",
         transparent: 'transparent',
     },
     textColor: {

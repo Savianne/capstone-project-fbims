@@ -146,7 +146,8 @@ const Backdrop = styled.div`
         background-color: transparent;
         z-index: 1000;
     }
-`
+`;
+
 interface IDateRangeSelect extends IStyledFC {
    value: {from: Date, to: Date} | null;
    onValChange: (val: { from: Date; to: Date} | null) => void;
@@ -503,7 +504,7 @@ const DateRangeSelect = styled(FCDateRangeSelect)`
        /* From https://css.glass */
         background: rgba(255, 255, 255, 0.10);
         border-radius: 4px;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); */
         backdrop-filter: blur(7.6px);
         -webkit-backdrop-filter: blur(7.6px);
         z-index: 1001;

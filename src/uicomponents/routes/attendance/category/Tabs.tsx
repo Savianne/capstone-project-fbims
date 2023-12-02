@@ -20,6 +20,14 @@ const TabsFC: React.FC<ITabs> = ({className, tab, setTab, children}) => {
                     <p className="label">Entries</p>
                 </UseRipple>
             </div>
+            <div className={tab == "add-entry"? "tab active-tab" : "tab"} onClick={() => setTab("add-entry")}>
+                <UseRipple>
+                    <div className="icon">
+                        <FontAwesomeIcon icon={['fas', "plus"]} />
+                    </div>
+                    <p className="label">Add Entry</p>
+                </UseRipple>
+            </div>
             <div className={tab == "attenders"? "tab active-tab" : "tab"} onClick={() => setTab("attenders")}>
                 <UseRipple>
                     <div className="icon">
@@ -34,14 +42,6 @@ const TabsFC: React.FC<ITabs> = ({className, tab, setTab, children}) => {
                         <FontAwesomeIcon icon={['fas', "file-csv"]} />
                     </div>
                     <p className="label">Report</p>
-                </UseRipple>
-            </div>
-            <div className={tab == "add-entry"? "tab active-tab" : "tab"} onClick={() => setTab("add-entry")}>
-                <UseRipple>
-                    <div className="icon">
-                        <FontAwesomeIcon icon={['fas', "plus"]} />
-                    </div>
-                    <p className="label">Add Entry</p>
                 </UseRipple>
             </div>
         </div>

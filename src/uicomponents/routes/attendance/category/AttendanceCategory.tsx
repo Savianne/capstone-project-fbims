@@ -24,6 +24,13 @@ import AttendanceEntriesListView, {AttendanceEntriesSkeleton} from "./EntriesLis
 import TAttendanceEntry from "./TAttendanceEntry";
 import DateRangeSelect from "../../../reusables/DateRange";
 import NoRecordFound from "../../../NoRecordFound";
+import SearchAttenders from "./SearchAttendersSelect";
+import AttendersGrid from "./AttendersList";
+import ConfirmModal from "../../../reusables/ConfirmModal/ConfirmModal";
+import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
+import FullScreenSpinner from "../../../reusables/FullScreenSpinner";
+import Alert, { AlertTitle } from "../../../reusables/Alert";
+import AddEntryForm from "./AddEntry";
 
 interface ICategoryData {
     id: string,
@@ -91,7 +98,7 @@ const ContentWraper = styled.div`
 
     }
     
-    && ${Input} {
+    && ${Modal} ${Input} {
         margin: 15px 0;
     }
 
@@ -115,7 +122,7 @@ const ContentWraper = styled.div`
         position: relative;
         display: flex;
         flex: 0 1 calc(100% + 10px);
-        height: calc(100% - 195px);
+        min-height: calc(100% - 195px);
         /* overflow: auto; */
     }
 
@@ -173,14 +180,14 @@ const ContentWraper = styled.div`
         display: flex;
         flex: 0 1 100%;
         align-items: center;
-        padding: 15px;
-        height: 40px;
+        padding: 15px 0;
+        height: 46.6px;
         gap: 10px;
         border-radius: 5px;
         background-color: ${({theme}) => theme.background.primary};
         color: ${({theme}) => theme.textColor.strong};
         /* box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25); */
-        margin-bottom: 10px;
+        margin-bottom: 5px;
         z-index: 150;
 
         ${Input} {
@@ -198,6 +205,7 @@ const validationSchema = Yup.object().shape({
 const AttendanceCategory: React.FC = () => {
     const addSnackBar = useAddSnackBar();
     const {categoryUID} = useParams();
+    const {modal, confirm} = useConfirmModal();
     const [editTitleModal, updateEditTitleModal] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">("inactive");
     const [isLoadingCategoryInfo, setIsLoadingCategoryInfo] = React.useState(true);
     const [categoryData, setCategoryData] = React.useState<ICategoryData>();
@@ -210,7 +218,7 @@ const AttendanceCategory: React.FC = () => {
     const [isLoadingMoreAttendanceEntries, setIsLoadingMoreAttendanceEntries] = React.useState(false);
     const [dateRangeFilter, setDateRangeFilter] = React.useState<{from: Date, to: Date} | null>(null);
     const [isUpdatingTitle, setIsUpdatingTitle] = React.useState(false);
-
+    const [addingAttenderSpinnerState, setAddingAttenderSpinnerState] = React.useState<"loading" | "done" | "close" | "error">("close");
     const [tab, setTab] = React.useState('entries');
 
     const fetchAttendanceEntries = (categoryUID: string, dateRangeFilter: {from: string, to: string} | null) => {
@@ -337,18 +345,45 @@ const AttendanceCategory: React.FC = () => {
                                 <Tabs tab={tab} setTab={(tab) => setTab(tab)} />
                             </div>
                         </Scrollbar>
-                        <div className="list-toolbar">
-                            {
-                                tab == "entries"? <>
-                                <FontAwesomeIcon icon={["fas", "filter"]} />
+                        {
+                            tab == "entries"?
+                            <div className="list-toolbar">
+                                <FontAwesomeIcon icon={["fas", "filter"]} style={{marginLeft: '15px'}}/>
                                 <Devider $orientation="vertical" $variant="center" />
                                 <DateRangeSelect value={dateRangeFilter} onValChange={(v) => setDateRangeFilter(v)} />
-                                </> : 
-                                tab == "attenders"? <>
-                                
-                                </> : ""
-                            }
-                        </div>
+                            </div> : 
+                            tab == "attenders" && categoryData?.attender == "select"?
+                            <div className="list-toolbar">
+                                <SearchAttenders attenders={attenders} onSelected={(result) => {
+                                    confirm("Add Attender", `Are you sure you want to add ${result.name} as Attender to this category?`, () => {
+                                        setAddingAttenderSpinnerState("loading");
+                                        doRequest<null>({
+                                            method: "POST",
+                                            url: `/attendance/add-attendance-category-attender/${categoryData.uid}`,
+                                            data: { memberUID: result.memberUID}
+                                        })
+                                        .then(response => {
+                                            if(response.success) {
+                                                setAttenders([{...result, picture: result.avatar}, ...attenders]);
+                                                setTimeout(() => {
+                                                    setAddingAttenderSpinnerState("done");
+                                                }, 1000)
+                                            } else throw response
+                                        })
+                                        .catch(err => {
+                                            console.log(err)
+                                            setAddingAttenderSpinnerState("error")
+                                        })
+                                    })
+                                }}/>
+                                <ConfirmModal context={modal} variant={"default"} />
+                                <FullScreenSpinner state={addingAttenderSpinnerState} onClose={() => setAddingAttenderSpinnerState("close")}/>
+                            </div> : 
+                            tab == "report"? 
+                            <div className="list-toolbar">
+                                <DateRangeSelect value={dateRangeFilter} onValChange={(v) => setDateRangeFilter(v)} />
+                            </div> :""
+                        }
                         <div className="scroll"> 
                             <Scrollbar>
                                 <Revealer reveal={!!tab} maxHeight="fit-content">
@@ -393,16 +428,24 @@ const AttendanceCategory: React.FC = () => {
                                             }
                                             </> :
                                             tab == "attenders"? <>
-                                                <AttendersTabContent attender={categoryData?.attender as "all" | "select"} attenders={attenders} onAdded={(attender) => {}} onRemoved={(attenderUid) => {}}/>
+                                                { 
+                                                categoryData?.attender == "select"? 
+                                                    attenders.length? <AttendersGrid categoryUID={categoryData?.uid as string} attenders={attenders} onRemoved={(attenderUid) => setAttenders(attenders.filter(attender => attender.memberUID !== attenderUid))}/> : 
+                                                    <Alert severity="warning" variant="filled">
+                                                        <AlertTitle>No Attender found!</AlertTitle>
+                                                        Every attendance category must be associated with at least one attender.
+                                                    </Alert>
+                                                    : <Alert severity="info" variant="filled">
+                                                        All members of the congregation are considered attenders for this attendance category.
+                                                    </Alert>
+                                                }
                                             </> :
                                             tab == "report"? <>
                                                 <div style={{display: "flex", width: "100%", height: "1500px", color: "white"}}>
                                                     report
                                                 </div>
                                             </> :
-                                            tab == "add-entry"? <>
-                                            
-                                            </> : ""
+                                            tab == "add-entry"? <AddEntryForm category={categoryData?.uid as string} />: ""
                                         }
                                     </div>
                                 </Revealer>

@@ -20,6 +20,7 @@ import PHTelNumberInput from "../../../reusables/Inputs/PHTelNumberInput";
 import { AvatarUploaderComponent, useAvatarUploaderContext } from "../../../reusables/AvatarUploader/AvatarUploader";
 import AvatarPicker from "../../../reusables/AvatarPicker/AvatarPicker";
 import Alert from "../../../reusables/Alert";
+import FullScreenSpinner from "../../../reusables/FullScreenSpinner";
 
 //Custom Hooks
 import useFormControl from "../../../../utils/hooks/useFormControl";
@@ -97,7 +98,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
     const [isBaptised, updateIsBaptised] = React.useState(true);
     const [formIsReadyState, updateFormIsReadyState] = React.useState(false);
     const [formOnClear, setFormOnClear] = React.useState(false);
-    
+    const [addingMemberLoadingState, setAddingMemberLoadingState] = React.useState<"loading" | "done" | "close" | "error">("close");
     const [sameAsCurrentAddress, updateSameAsCurrentAddress] = React.useState(false);
     const [sameAsPermanetAddress, updateSameAsPermanentAddress] = React.useState(false);
     const [outsidePHPermanetAddress, updateOutsidePHPermanetAddress] = React.useState(false);
@@ -310,6 +311,8 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
        isSuccess && onSuccess();
        isError && onError();
        isLoading && onLoading();
+       if(isSuccess) setAddingMemberLoadingState('done');
+       if(isError) setAddingMemberLoadingState('error')
     }, [isLoading, isError, isSuccess])
 
     React.useEffect(() => {
@@ -372,6 +375,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
 
     return (
     <div className={className}>
+        <FullScreenSpinner state={addingMemberLoadingState} onClose={() => setAddingMemberLoadingState("close")}/>
         <strong className="information-category-title">Basic Information</strong>
         <div className="data-category full-name-group">
             <span className="data-category-title-container">
@@ -796,7 +800,7 @@ const FCMembershipFormModalView: React.FC<IFCMembershipForm> = ({className, onLo
                     formValues.dateOfBirth,
                     formValues.gender,
                 ].includes("")) return;
-
+                setAddingMemberLoadingState("loading");
                 addMemberRecord(record);
             }}/>
         </div>

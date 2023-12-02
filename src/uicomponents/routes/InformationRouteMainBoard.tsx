@@ -5,8 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import Devider from "../reusables/devider";
 import UseRipple from "../reusables/Ripple/UseRipple";
-import Modal from "../reusables/Modal";
-import { IStyledFC } from "../IStyledFC";
+import bibleVerses from "../../bibleVersesArray";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
 const AddRecordBtn = styled(UseRipple)`
@@ -102,14 +101,6 @@ const Board = styled.div<{ bgImage?: string}>`
         font-size: 120px;
     }
 
-    /* & .board-content .icon {
-        position: absolute;
-        left: 0;
-        color: ${({theme}) => theme.staticColor.primary};
-        opacity: 0.55;
-        font-size: 160px;
-    } */
-
     & .bg-image {
         ${
             (prop) => {
@@ -151,6 +142,9 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
     }) => {
     
     const navigate = useNavigate();
+    
+    const randomVerseIndex = Math.floor(Math.random() * bibleVerses.length);
+    const randomVerse = bibleVerses[randomVerseIndex];
 
     return (<>
         <Board bgImage={bgImage}>
@@ -160,8 +154,8 @@ const InformationRouteMainBoard: React.FC<IInformationRouteMainBoard> = (
                 
                 <Devider $orientation="vertical" $css="z-index: 100; height: 83px;margin: 0 10px 0 30px;& .devider { border-color: #fff }" $lineWidth="3px" />
                 <div className="bible-verse">
-                    <p className="verse-text"><FontAwesomeIcon icon={["fas", "quote-left"]} pull="left" size="lg" />{verseText.content}</p>
-                    <p className="verse">- {verseText.verse}</p>
+                    <p className="verse-text"><FontAwesomeIcon icon={["fas", "quote-left"]} pull="left" size="lg" />{randomVerse[1]}</p>
+                    <p className="verse">- {randomVerse[0]}</p>
                 </div>
                 <span className="data-total-info">
                     {
