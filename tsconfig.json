@@ -4,7 +4,10 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "esnext",
+      "scripthost", 
+      "webworker", 
+      "webworker.importscripts"
     ],
     "allowImportingTsExtensions": true,
     "allowJs": true,

@@ -84,7 +84,8 @@ const Menu = styled(MenuFC)`
     color: ${({theme}) => theme.textColor.strong};
     background-color: ${({theme}) => theme.background.primary};
     border: 1px solid ${({theme}) => theme.borderColor};
-    box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    /* box-shadow: rgb(0 0 0 / 20%) 0px 5px 5px -3px, rgb(0 0 0 / 14%) 0px 8px 10px 1px, rgb(0 0 0 / 12%) 0px 3px 14px 2px; */
     z-index: 10001;
 `;
 
@@ -127,11 +128,13 @@ export const MenuItemIcon = styled.span`
 `;
 
 export const MenuItemLabel = styled.h1`
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    && {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 `;
 
 

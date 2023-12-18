@@ -30,7 +30,7 @@ export default function useConfirmModal() {
             confirmedCB,
             cancelledCB,
         },
-        confirm: (title: string, text: string, confirmed: () => void, cancelled?: () => void) => {
+        confirm: (title: string, text: string, confirmed?: () => void, cancelled?: () => void) => {
             setConfirmTitle(title);
             setConfirmText(text);
             setConfirmedCB(() => confirmed);

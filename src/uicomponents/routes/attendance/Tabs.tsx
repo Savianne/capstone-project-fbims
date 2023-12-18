@@ -73,6 +73,7 @@ const Tabs = styled(TabsFC)`
         align-items: center;
         /* min-width: 196px; */
         width: fit-content;
+        flex-shrink: 0;
         /* width: fit-content; */
         height: fit-content;
         border-radius: 5px;
@@ -112,6 +113,7 @@ const Tabs = styled(TabsFC)`
         /* font-size: 13px; */
         margin-left: 10px;
         flex-shrink: 0;
+        text-overflow: none;
     }
 
     && > .tab > ${UseRipple} > .count {

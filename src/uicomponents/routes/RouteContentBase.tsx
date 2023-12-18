@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import GoBackBtn from "../GoBackBtn";
+import Devider from "../reusables/devider";
 
 const RouteContentBase = styled.div`
     display: flex;
@@ -30,6 +31,16 @@ const RouteContentBaseHeader = styled.div`
 
     & ${GoBackBtn} {
         margin-left: auto;
+    }
+
+    @media screen and (max-width: 600px) {
+        & strong {
+            display: none;
+        }
+
+        & ${Devider} {
+            display: none;
+        }
     }
 `;
 

@@ -5,66 +5,54 @@ import { IStyledFC } from "../../../IStyledFC";
 import TAttendanceEntry from "./TAttendanceEntry";
 import Button from "../../../reusables/Buttons/Button";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
+import EntryPage from "../entryPage/EntryPage";
 
 interface IAttendanceEntriesListViewFC extends IStyledFC {
-    entries: TAttendanceEntry[]
+    entries: TAttendanceEntry[],
+    editEntryTitleUpdate: (uid: string, title: string) => void
 }
 
-const AttendanceEntriesFC: React.FC<IAttendanceEntriesListViewFC> = ({className, entries}) => {
-
+const AttendanceEntriesFC: React.FC<IAttendanceEntriesListViewFC> = ({className, entries, editEntryTitleUpdate}) => {
     return(
         <div className={className}>
             {
-                entries.map(entry => (
-                    <div key={entry.entryUID} className="entry">
-                        <h5 className="entry-description">{entry.description}</h5>
-                        <div className="lower-container">
-                            <div className="extra-detailes-group">
-                                <p className="data">{new Date(entry.date).toDateString()}</p>
-                                <span className="dot-devider"></span>
-                                <p className="data">{entry.categoryTitle}</p>
-                                <span className="dot-devider"></span>
-                                <p className="data">{entry.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
-                                <span className="dot-devider"></span>
-                                <p className="data">{entry.pending? "Pending" : "Saved"}    </p>
-                            </div>
-                            <Button iconButton icon={<FontAwesomeIcon icon={["fas", "angle-right"]} />} label="View entry" color="theme" variant="hidden-bg-btn" />
-                        </div>
-                    </div>
-                ))
+                entries.map(entry => <Entry editEntryTitleUpdate={(uid, title) => editEntryTitleUpdate(uid, title)} key={entry.entryUID} entry={entry}/>)
             }
         </div>
     )
 }
 
-const AttendanceEntriesFCSkeleton: React.FC<IStyledFC> = ({className}) => {
-    return(
-        <div className={className}>
-            <SkeletonLoading height={77}/>
-            <SkeletonLoading height={77}/>
-            <SkeletonLoading height={77}/>
-            <SkeletonLoading height={77}/>
-            <SkeletonLoading height={77}/>
-        </div>
-    )
+interface IEntry extends IStyledFC {
+    entry: TAttendanceEntry,
+    editEntryTitleUpdate: (uid: string, title: string) => void
 }
 
-export const AttendanceEntriesSkeleton = styled(AttendanceEntriesFCSkeleton)`
-    display: flex;
-    flex: 0 1 800px;
-    margin: 0 auto;
-    flex-wrap: wrap;
-    gap: 5px;
-`
+const EntryFC:React.FC<IEntry> = ({className, entry, editEntryTitleUpdate}) => {
+    const [entryPage, setEntryPage] = React.useState(false);
+    return(
+        <div className={className}>
+            <h5 className="entry-description">{entry.description}</h5>
+            <div className="lower-container">
+                <div className="extra-detailes-group">
+                    <p className="data">{new Date(entry.date).toDateString()}</p>
+                    <span className="dot-devider"></span>
+                    <p className="data">{entry.categoryTitle}</p>
+                    <span className="dot-devider"></span>
+                    <p className="data">{entry.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
+                    <span className="dot-devider"></span>
+                    <p className="data">{entry.pending? "Pending" : "Saved"}    </p>
+                </div>
+                <Button iconButton icon={<FontAwesomeIcon icon={["fas", "angle-right"]} />} label="View entry" color="theme" variant="hidden-bg-btn"  onClick={() => setEntryPage(true)} />
+                {
+                    entryPage? <EntryPage editEntryTitleUpdate={(uid, title) => editEntryTitleUpdate(uid, title)} entryInfo={entry} onClose={() => setEntryPage(false)}/> : null
+                }
+            </div>
+        </div>
+    )
+};
 
-const AttendanceEntriesListView = styled(AttendanceEntriesFC)`
-    display: flex;
-    flex: 0 1 800px;
-    margin: 0 auto;
-    flex-wrap: wrap;
-    gap: 5px;
-
-    && > .entry {
+const Entry = styled(EntryFC)`
+    && {
         display: flex;
         flex-wrap: wrap;
         flex: 0 1 100%;
@@ -103,12 +91,40 @@ const AttendanceEntriesListView = styled(AttendanceEntriesFC)`
                 }
             }
 
-            ${Button} {
+            > ${Button} {
                 margin-left: auto;
             }
         }
     }
+`
 
+
+const AttendanceEntriesFCSkeleton: React.FC<IStyledFC> = ({className}) => {
+    return(
+        <div className={className}>
+            <SkeletonLoading height={77}/>
+            <SkeletonLoading height={77}/>
+            <SkeletonLoading height={77}/>
+            <SkeletonLoading height={77}/>
+            <SkeletonLoading height={77}/>
+        </div>
+    )
+}
+
+export const AttendanceEntriesSkeleton = styled(AttendanceEntriesFCSkeleton)`
+    display: flex;
+    flex: 0 1 800px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 5px;
+`
+
+const AttendanceEntriesListView = styled(AttendanceEntriesFC)`
+    display: flex;
+    flex: 0 1 800px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 5px;
 `;
 
 export default AttendanceEntriesListView;

@@ -59,8 +59,9 @@ const Tabs = styled(TabsFC)`
     && > .tab {
         display: flex;
         align-items: center;
-        width: 170px;
-        /* width: fit-content; */
+        /* width: 170px; */
+        width: fit-content;
+        flex-shrink: 0;
         height: fit-content;
         border-radius: 5px;
         border: 1px solid ${({theme}) => theme.borderColor};

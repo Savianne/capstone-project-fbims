@@ -2,12 +2,14 @@ import { Link, useNavigate } from "react-router-dom";
 import React from "react";
 import styled from "styled-components";
 import * as Yup from 'yup';
+import { io } from "socket.io-client";
+import { SOCKETIO_URL } from "../../../../API/BASE_URL";
 import { debounce } from 'lodash';
 import { useParams } from "react-router-dom";
+import { useAppSelector } from "../../../../global-state/hooks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
 import RouteContentBase, { RouteContentBaseHeader, RouteContentBaseBody } from "../../RouteContentBase";
-import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import Devider from "../../../reusables/devider";
 import SiteMap from "../../SiteMap";
 import GoBackBtn from "../../../GoBackBtn";
@@ -113,11 +115,19 @@ const ContentWraper = styled.div`
         height: fit-content;
     }
 
+    
     && > .tabs-area {
         display: flex;
         flex: 0 1 100%;
+        overflow-x: auto;
+        scrollbar-width: thin; /* For Firefox */
+        -ms-overflow-style: none; /* For IE and Edge */
     }
 
+    && > .tabs-area::-webkit-scrollbar {
+        height: 0; /* For Chrome, Safari, and Opera */
+    }    
+    
     && > .scroll {
         position: relative;
         display: flex;
@@ -203,6 +213,7 @@ const validationSchema = Yup.object().shape({
 
 
 const AttendanceCategory: React.FC = () => {
+    const admin = useAppSelector(state => state.setAdmin.admin);
     const addSnackBar = useAddSnackBar();
     const {categoryUID} = useParams();
     const {modal, confirm} = useConfirmModal();
@@ -240,6 +251,25 @@ const AttendanceCategory: React.FC = () => {
             console.log(err);
         })
     }
+
+    React.useEffect(() => {
+        if(categoryData) {
+            const socket = io(SOCKETIO_URL);
+    
+            socket.on(`${admin?.congregation}-ADDED_NEW_ATTENDANCE_ENTRY`, (data) => {
+              fetchAttendanceEntries(categoryData?.uid, dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null)
+            });
+    
+            socket.on('reconnect', (attemptNumber: number) => {
+                console.log(`Reconnected to the server after ${attemptNumber} attempts`);
+                
+            });
+    
+            return function () {
+                socket.disconnect();
+            }
+        }
+    }, [dateRangeFilter, categoryData]);
 
     React.useEffect(() => {
         editFormData && debounce(async () => {
@@ -312,7 +342,8 @@ const AttendanceCategory: React.FC = () => {
                 fetchAttendanceEntries(categoryData.uid, dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null);
             }, 500)()
         }
-    }, [dateRangeFilter, categoryData])
+    }, [dateRangeFilter, categoryData]);
+
     return (<>
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -338,13 +369,13 @@ const AttendanceCategory: React.FC = () => {
                                 <p className="type">{categoryData?.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
                             </div>
                         </header>
-                        <Scrollbar scrollBarProps={{
+                        {/* <Scrollbar scrollBarProps={{
                             autoHeight: true
-                        }}>
+                        }}> */}
                             <div className="tabs-area">
                                 <Tabs tab={tab} setTab={(tab) => setTab(tab)} />
                             </div>
-                        </Scrollbar>
+                        {/*  */}
                         {
                             tab == "entries"?
                             <div className="list-toolbar">
@@ -395,7 +426,7 @@ const AttendanceCategory: React.FC = () => {
                                                 {
                                                     attendanceEntries? <>
                                                         {
-                                                            attendanceEntries.total > 0? <AttendanceEntriesListView entries={attendanceEntries.entries} /> : <NoRecordFound />
+                                                            attendanceEntries.total > 0? <AttendanceEntriesListView editEntryTitleUpdate={(uid, title) => updateAttendanceEntries({...attendanceEntries, entries: attendanceEntries.entries.map(i => (i.entryUID == uid? {...i, description: title} : i))})} entries={attendanceEntries.entries} /> : <NoRecordFound />
                                                         }
                                                     </> : ""
                                                 }

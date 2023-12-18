@@ -1,5 +1,7 @@
 import React from 'react';
 import { ThemeProvider } from 'styled-components';
+import { io } from 'socket.io-client';
+import { SOCKETIO_URL } from './API/BASE_URL';
 import { lightTheme, darkTheme } from './uicomponents/theme';
 import styled, { createGlobalStyle, css } from 'styled-components';
 import { Reset } from 'styled-reset'
@@ -21,6 +23,9 @@ import UseToggle from './uicomponents/reusables/Toggle/UseToggle';
 //API
 import { useGetAdminInfoQuery } from './global-state/api/api';
 
+//Types
+import { TBasicAttendancePresentAttendees } from './uicomponents/routes/attendance/entryPage/EntryPage';
+
 //Conponents
 import AppLayout from './uicomponents/AppLayout';
 import AppHeader from './uicomponents/AppHeader';
@@ -36,6 +41,7 @@ import TodaysEventsSideBar from './uicomponents/TodaysEventsSideBar';
 import Scrollbars from 'react-custom-scrollbars-2';
 import 'react-loading-skeleton/dist/skeleton.css'
 import SnackBars from './uicomponents/reusables/SnackBar/SnackBars';
+import AppMainLayout from './AppMainLayout';
 
 //Routes
 import Layout from './uicomponents/routes/layout';
@@ -71,13 +77,51 @@ function App() {
 
   React.useEffect(() => {
     console.log(admin)
-  }, [admin])
+  }, [admin]);
+
+  function showNotification(icon?: string | null, body?: string) {
+    const notification = new Notification('Hello Admin', {
+      body: 'New Document Request Added!',
+      icon: '/assets/faith-buddy-mob.png',
+    });
+  
+    notification.addEventListener('click', () => {
+      // Handle notification click event
+    });
+  
+    notification.addEventListener('close', () => {
+      // Handle notification close event
+    });
+  }
+
+  React.useEffect(() => {
+    // const socket = io(SOCKETIO_URL);
+
+    // socket.on(`${admin?.congregation}-NEW_PRESENT`, (data: TBasicAttendancePresentAttendees) => {
+    //   if ('Notification' in window) {
+    //     if (Notification.permission === 'granted') {
+    //       showNotification();
+    //     } else if (Notification.permission !== 'denied') {
+    //       Notification.requestPermission().then((permission) => {
+    //         if (permission === 'granted') {
+    //           showNotification();
+    //         }
+    //       });
+    //     }
+    //   }
+    // });
+
+    // return function () {
+    //     socket.disconnect();
+    // }
+}, [admin]);
+
   return (
     <React.Fragment>
       <Reset />
       <ThemeProvider theme={ theme }>
         <SnackBars position='bottom-left' />
-        <AppLayout>
+        {/* <AppLayout>
           <DeleteModal />
           <AppHeader>
             <NavBarToggle />
@@ -88,56 +132,59 @@ function App() {
             </SystemLogo>
             <AdminDropdown />
             <ThemeModeToggle />
-            {/* <UserAvatar /> */}
           </AppHeader>
           <AppNavBar />
-          <ScrollingContent>
+          <ScrollingContent> */}
             {
               admin? <>
               <Routes>
-                <Route path='/app' element={<Layout />}>
-                  <Route path='information'>
-                    <Route index element={<Information />} />
-                    <Route path='members'>
-                      <Route index element={<Members />} />
-                      <Route path='view/:memberUID' element={<MemberProfile />} />
-                      <Route path='edit/:memberUID' element={<EditMember />} />
-                      <Route path='new-member' element={<MembershipForm />} />
+                <Route path='/' element={<AppMainLayout />}>
+                  <Route path='/app' element={<Layout />}>
+                    <Route path='information'>
+                      <Route index element={<Information />} />
+                      <Route path='members'>
+                        <Route index element={<Members />} />
+                        <Route path='view/:memberUID' element={<MemberProfile />} />
+                        <Route path='edit/:memberUID' element={<EditMember />} />
+                        <Route path='new-member' element={<MembershipForm />} />
+                      </Route>
+                      <Route path='ministry'>
+                        <Route index element={<Ministry />} />
+                        <Route path="/app/information/ministry/:ministryUID" element={<ManageMinistryView />} />
+                        {/* <Route path='add-ministry' element={<AddNewMinistryForm />} /> */}
+                      </Route>
+                      <Route path='organizations'>
+                        <Route index element={<Organizations />} />
+                        <Route path="/app/information/organizations/:orgUID" element={<ManageOrganizationView />} />
+                      </Route>
                     </Route>
-                    <Route path='ministry'>
-                      <Route index element={<Ministry />} />
-                      <Route path="/app/information/ministry/:ministryUID" element={<ManageMinistryView />} />
-                      {/* <Route path='add-ministry' element={<AddNewMinistryForm />} /> */}
+                    <Route path='worship-service'>
+                      <Route index element={<WorshipService />} />
                     </Route>
-                    <Route path='organizations'>
-                      <Route index element={<Organizations />} />
-                      <Route path="/app/information/organizations/:orgUID" element={<ManageOrganizationView />} />
+                    <Route path='attendance'>
+                      <Route index element={<Attendance />} />
+                      <Route path='/app/attendance/category/:categoryUID' element={<AttendanceCategory />} />
                     </Route>
+                    <Route path='calendar' element={<Calendar />} />
+                    <Route path='*' element={<Error404 />} />
                   </Route>
-                  <Route path='worship-service'>
-                    <Route index element={<WorshipService />} />
-                  </Route>
-                  <Route path='attendance'>
-                    <Route index element={<Attendance />} />
-                    <Route path='/app/attendance/category/:categoryUID' element={<AttendanceCategory />} />
-                  </Route>
-                  <Route path='calendar' element={<Calendar />} />
-                  <Route path='*' element={<Error404 />} />
                 </Route>
               </Routes>
               </> : <>
               <Routes>
-                <Route path='/app' element={<Layout />}>
-                  <Route index path='*' element={<SkeletonRouteLayout />} />
+                <Route path='/' element={<AppMainLayout />}>
+                  <Route path='/app' element={<Layout />}>
+                    <Route index path='*' element={<SkeletonRouteLayout />} />
+                  </Route>
                 </Route>
               </Routes>
               </>
             }
-          </ScrollingContent>
+          {/* </ScrollingContent>
           <SideBar>
             <TodaysEventsSideBar />
           </SideBar>
-        </AppLayout>
+        </AppLayout> */}
       </ThemeProvider>
     </React.Fragment>
   );

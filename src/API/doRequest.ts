@@ -18,10 +18,10 @@ const doRequest = <T>(config: AxiosRequestConfig) : Promise<TResponseFlag<T>> =>
             const serverResponseFla = response.data as IServerResponseFlag;
             if(serverResponseFla.success) {
                 res(serverResponseFla) 
-            } else throw serverResponseFla;
+            } else throw serverResponseFla.error;
         })
         .catch(error => {
-            rej({success: false, error})
+            rej(error)
         })
     })
 }

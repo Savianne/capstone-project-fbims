@@ -1,17 +1,21 @@
 import React, { ReactNode } from "react";
 import styled, { css } from "styled-components";
 import { IStyledFC } from "../IStyledFC";
+import UseRipple from "./Ripple/UseRipple";
 
 interface IDataDisplayChip extends IStyledFC {
     icon?: ReactNode,
     severity?:  "info" | "warning" | "error" | "success";
     variant?: "outlined" | "filled" | "default";
+    clickable?: boolean;
+    action?: () => void
 }
 
-const DataDisplayChipFC: React.FC<IDataDisplayChip> = ({className, icon, severity = "info", variant = "default", children}) => {
+const DataDisplayChipFC: React.FC<IDataDisplayChip> = ({className, icon, severity = "info", variant = "default", children, clickable, action}) => {
 
     return (
-        <div className={className}>
+        <div className={className} onClick={() => action? action() : null}>
+            {clickable && <UseRipple onClick={() => action? action() : null} />}
             {
                 icon && <span className="icon">
                     {icon}
@@ -25,6 +29,7 @@ const DataDisplayChipFC: React.FC<IDataDisplayChip> = ({className, icon, severit
 };
 
 const DataDisplayChip = styled(DataDisplayChipFC)`
+    position: relative;
     max-width: 100%;
     font-family: Roboto, Helvetica, Arial, sans-serif;
     font-size: 0.8125rem;
@@ -46,6 +51,15 @@ const DataDisplayChip = styled(DataDisplayChipFC)`
     box-sizing: border-box;
 
     /* border: 1px solid rgb(189, 189, 189); */
+
+    && > ${UseRipple} {
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 16px;
+        width: 100%;
+        height: 100%;
+    }
 
     .icon {
         display: inline-flex;
@@ -90,8 +104,8 @@ const DataDisplayChip = styled(DataDisplayChipFC)`
 
             `;
             default: return css`
-                background-color: ${props.theme.mode == "dark"?  "rgb(7, 19, 24)" : "rgb(229, 246, 253)"};
-                color: ${props.theme.mode == "dark"?  "rgb(184, 231, 251)" : "rgb(1, 67, 97)"};
+                background-color: ${props.theme.mode == "dark"?  "rgb(104 102 102)" : "rgb(243 243 243)"};
+                color: ${props.theme.textColor.strong};
             `;
         }
     }};

@@ -17,7 +17,7 @@ type TModalContext = {
 
 interface IConfirmModal extends IStyledFC {
     context: TModalContext;
-    variant: "warning" | "delete" | "info" | "default"
+    variant: "warning" | "delete" | "error" | "info" | "default"
 }
 const ConfirmModalFC: React.FC<IConfirmModal> = ({context, variant, className}) => {
     return (
@@ -28,6 +28,7 @@ const ConfirmModalFC: React.FC<IConfirmModal> = ({context, variant, className}) 
                         <div className="icon">
                             {
                                 variant == "warning"? <FontAwesomeIcon icon={["fas", "exclamation-triangle"]} />:
+                                variant == "error"? <FontAwesomeIcon icon={["fas", "exclamation-circle"]} />:
                                 variant == "delete"? <FontAwesomeIcon icon={["fas", "trash"]} />:
                                 variant == "info"? <FontAwesomeIcon icon={["fas", "info-circle"]} />:
                                 <FontAwesomeIcon icon={["fas", "question-circle"]} />
@@ -41,13 +42,16 @@ const ConfirmModalFC: React.FC<IConfirmModal> = ({context, variant, className}) 
                     </div>
                     <Devider $orientation="horizontal" />
                     <div className="btn-group-area">
-                        <Button 
-                        color="primary"
-                        onClick={() => {
-                            context.confirmedCB && context.confirmedCB();
-                            context.closeModal();
-                        }} 
-                        label="Continue" />
+                        {
+                            context.confirmedCB? 
+                            <Button 
+                            color="primary"
+                            onClick={() => {
+                                context.confirmedCB && context.confirmedCB();
+                                context.closeModal();
+                            }} 
+                            label="Continue" /> : ""
+                        }
                         {/* <Devider $orientation="vertical" $variant="middle"/> */}
                         <Button 
                         // variant="bordered-btn"
@@ -75,7 +79,7 @@ const ConfirmModal = styled(ConfirmModalFC)`
     top: 0;
 `;
 
-const Modal = styled.div<{variant: "warning" | "delete" | "info" | "default"}>`
+const Modal = styled.div<{variant: "warning" | "delete" | "error" | "info" | "default"}>`
     display: flex;
     flex: 0 1 350px;
     flex-wrap: wrap;
@@ -83,7 +87,7 @@ const Modal = styled.div<{variant: "warning" | "delete" | "info" | "default"}>`
     background-color: ${({theme}) => theme.background.primary};
     box-shadow: 17px 20px 61px 21px rgb(0 0 0 / 25%);
     border-radius: 3px;
-    border-top: 5px solid ${(props) => props.variant == "default"? '#979797' : props.variant == "delete"? props.theme.staticColor.delete : props.variant == "info"? props.theme.staticColor.primary : props.theme.staticColor.warning};
+    border-top: 5px solid ${(props) => props.variant == "default"? '#979797' : props.variant == "delete" || props.variant == "error"? props.theme.staticColor.delete : props.variant == "info"? props.theme.staticColor.primary : props.theme.staticColor.warning};
     
     .modal-content {
         display: flex;
@@ -96,7 +100,7 @@ const Modal = styled.div<{variant: "warning" | "delete" | "info" | "default"}>`
             height: fit-content;
             font-size: 40px;
             margin-right: 25px;
-            color: ${(props) => props.variant == "default"? '#979797' : props.variant == "delete"? props.theme.staticColor.delete : props.variant == "info"? props.theme.staticColor.primary : props.theme.staticColor.warning};
+            color: ${(props) => props.variant == "default"? '#979797' : props.variant == "delete" || props.variant == "error"? props.theme.staticColor.delete : props.variant == "info"? props.theme.staticColor.primary : props.theme.staticColor.warning};
         }
 
         .text {
