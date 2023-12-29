@@ -46,7 +46,7 @@ const ContentWraper = styled.div`
     display: flex;
     flex: 1;
     flex-wrap: wrap;
-    height: calc(100vh - 143.8px);
+    /* height: calc(100vh - 143.8px); */
     align-content: flex-start;
     overflow: hidden;
     padding: 0 5px 15px 5px;
@@ -99,17 +99,6 @@ const ContentWraper = styled.div`
         }
 
     }
-    
-    && ${Modal} ${Input} {
-        margin: 15px 0;
-    }
-
-    && .btn-container {
-        display: flex;
-        flex: 0 1 100%;
-        justify-content: flex-end;
-        gap: 5px;
-    }
 
     && ${Tabs} {
         height: fit-content;
@@ -131,14 +120,8 @@ const ContentWraper = styled.div`
     && > .scroll {
         position: relative;
         display: flex;
-        flex: 0 1 calc(100% + 10px);
-        min-height: calc(100% - 195px);
-        /* overflow: auto; */
-    }
-
-    && .scroll ${Revealer} {
-        /* max-height: fit-content; */
-        margin-right: 15px;
+        flex: 0 1 100%;
+        height: fit-content;
     }
 
     && .scroll ${Revealer} .tab-container {
@@ -259,6 +242,12 @@ const AttendanceCategory: React.FC = () => {
             socket.on(`${admin?.congregation}-ADDED_NEW_ATTENDANCE_ENTRY`, (data) => {
               fetchAttendanceEntries(categoryData?.uid, dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null)
             });
+
+            socket.on(`${admin?.congregation}-ENTRY_SAVED`, (data) => {
+                if(data.category == categoryData.uid) {
+                    fetchAttendanceEntries(categoryData?.uid, dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null)
+                }
+            });
     
             socket.on('reconnect', (attemptNumber: number) => {
                 console.log(`Reconnected to the server after ${attemptNumber} attempts`);
@@ -344,6 +333,9 @@ const AttendanceCategory: React.FC = () => {
         }
     }, [dateRangeFilter, categoryData]);
 
+    React.useEffect(() => {
+        console.log(attendanceEntries);
+    }, [attendanceEntries])
     return (<>
         <RouteContentBase>
             <RouteContentBaseHeader>
@@ -369,13 +361,9 @@ const AttendanceCategory: React.FC = () => {
                                 <p className="type">{categoryData?.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
                             </div>
                         </header>
-                        {/* <Scrollbar scrollBarProps={{
-                            autoHeight: true
-                        }}> */}
-                            <div className="tabs-area">
-                                <Tabs tab={tab} setTab={(tab) => setTab(tab)} />
-                            </div>
-                        {/*  */}
+                        <div className="tabs-area">
+                            <Tabs tab={tab} setTab={(tab) => setTab(tab)} />
+                        </div>
                         {
                             tab == "entries"?
                             <div className="list-toolbar">
@@ -416,71 +404,70 @@ const AttendanceCategory: React.FC = () => {
                             </div> :""
                         }
                         <div className="scroll"> 
-                            <Scrollbar>
-                                <Revealer reveal={!!tab} maxHeight="fit-content">
-                                    <div className="tab-container">
+                            <Revealer reveal={!!tab} maxHeight="fit-content">
+                                <div className="tab-container">
+                                    {
+                                        tab == "entries"? <>
                                         {
-                                            tab == "entries"? <>
+                                            isLoadingAttendanceEntries? <AttendanceEntriesSkeleton /> : <>
                                             {
-                                                isLoadingAttendanceEntries? <AttendanceEntriesSkeleton /> : <>
-                                                {
-                                                    attendanceEntries? <>
-                                                        {
-                                                            attendanceEntries.total > 0? <AttendanceEntriesListView editEntryTitleUpdate={(uid, title) => updateAttendanceEntries({...attendanceEntries, entries: attendanceEntries.entries.map(i => (i.entryUID == uid? {...i, description: title} : i))})} entries={attendanceEntries.entries} /> : <NoRecordFound />
-                                                        }
-                                                    </> : ""
-                                                }
-                                                </>
+                                                attendanceEntries? <>
+                                                    {
+                                                        attendanceEntries.total > 0? <AttendanceEntriesListView editEntryTitleUpdate={(uid, title) => updateAttendanceEntries({...attendanceEntries, entries: attendanceEntries.entries.map(i => (i.entryUID == uid? {...i, description: title} : i))})} entries={attendanceEntries.entries} /> : <NoRecordFound />
+                                                    }
+                                                </> : ""
                                             }
-                                            {
-                                                attendanceEntries && attendanceEntries.entries.length == attendanceEntries.total? <p className="end-of-list">--End of list--</p> :
-                                                <div className="load-more-btn">
-                                                    <Button isLoading={isLoadingMoreAttendanceEntries} label="Load more" color="primary" variant="hidden-bg-btn" 
-                                                    onClick={() => {
-                                                        setIsLoadingMoreAttendanceEntries(true);
-                                                        doRequest<{total: number, entries: TAttendanceEntry[]}>({
-                                                            url: `/attendance/get-attendance-entries-by-category/${categoryData?.uid}/${attendanceEntries?.entries.length}`,
-                                                            data: {dateRangeFilter: dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null},
-                                                            method: "POST"
-                                                        })
-                                                        .then(result => {
-                                                            if(result.success && result.data) {
-                                                                setTimeout(() => {
-                                                                    updateAttendanceEntries({...result.data, entries: [...attendanceEntries?.entries as TAttendanceEntry[], ...result.data?.entries as TAttendanceEntry[]]} as {total: number, entries: TAttendanceEntry[]});
-                                                                    setIsLoadingMoreAttendanceEntries(false)
-                                                                }, 1000)
-                                                            } else throw result
-                                                        })
-                                                        .catch(err => {
-                                                            console.log(err);
-                                                        })
-                                                    }}/>
-                                                </div> 
-                                            }
-                                            </> :
-                                            tab == "attenders"? <>
-                                                { 
-                                                categoryData?.attender == "select"? 
-                                                    attenders.length? <AttendersGrid categoryUID={categoryData?.uid as string} attenders={attenders} onRemoved={(attenderUid) => setAttenders(attenders.filter(attender => attender.memberUID !== attenderUid))}/> : 
-                                                    <Alert severity="warning" variant="filled">
-                                                        <AlertTitle>No Attender found!</AlertTitle>
-                                                        Every attendance category must be associated with at least one attender.
-                                                    </Alert>
-                                                    : <Alert severity="info" variant="filled">
-                                                        All members of the congregation are considered attenders for this attendance category.
-                                                    </Alert>
-                                                }
-                                            </> :
-                                            tab == "report"? <>
-                                                <div style={{display: "flex", width: "100%", height: "1500px", color: "white"}}>
-                                                    report
-                                                </div>
-                                            </> :
-                                            tab == "add-entry"? <AddEntryForm category={categoryData?.uid as string} />: ""
+                                            </>
                                         }
-                                    </div>
-                                </Revealer>
-                            </Scrollbar>
+                                        {
+                                            attendanceEntries && attendanceEntries.entries.length == attendanceEntries.total? 
+                                            <p className="end-of-list">--End of list--</p> :
+                                            <div className="load-more-btn">
+                                                <Button isLoading={isLoadingMoreAttendanceEntries} label="Load more" color="primary" variant="hidden-bg-btn" 
+                                                onClick={() => {
+                                                    setIsLoadingMoreAttendanceEntries(true);
+                                                    doRequest<{total: number, entries: TAttendanceEntry[]}>({
+                                                        url: `/attendance/get-attendance-entries-by-category/${categoryData?.uid}/${attendanceEntries?.entries.length}`,
+                                                        data: {dateRangeFilter: dateRangeFilter? {from: `${dateRangeFilter.from.getFullYear()}-${dateRangeFilter.from.getMonth() + 1}-${dateRangeFilter.from.getDate()}`, to: `${dateRangeFilter.to.getFullYear()}-${dateRangeFilter.to.getMonth() + 1}-${dateRangeFilter.to.getDate()}`} : null},
+                                                        method: "POST"
+                                                    })
+                                                    .then(result => {
+                                                        if(result.success && result.data) {
+                                                            setTimeout(() => {
+                                                                updateAttendanceEntries({...result.data, entries: [...attendanceEntries?.entries as TAttendanceEntry[], ...result.data?.entries as TAttendanceEntry[]]} as {total: number, entries: TAttendanceEntry[]});
+                                                                setIsLoadingMoreAttendanceEntries(false)
+                                                            }, 1000)
+                                                        } else throw result
+                                                    })
+                                                    .catch(err => {
+                                                        console.log(err);
+                                                    })
+                                                }}/>
+                                            </div> 
+                                        }
+                                        </> :
+                                        tab == "attenders"? <>
+                                            { 
+                                            categoryData?.attender == "select"? 
+                                                attenders.length? <AttendersGrid categoryUID={categoryData?.uid as string} attenders={attenders} onRemoved={(attenderUid) => setAttenders(attenders.filter(attender => attender.memberUID !== attenderUid))}/> : 
+                                                <Alert severity="warning" variant="filled">
+                                                    <AlertTitle>No Attender found!</AlertTitle>
+                                                    Every attendance category must be associated with at least one attender.
+                                                </Alert>
+                                                : <Alert severity="info" variant="filled">
+                                                    All members of the congregation are considered attenders for this attendance category.
+                                                </Alert>
+                                            }
+                                        </> :
+                                        tab == "report"? <>
+                                            <div style={{display: "flex", width: "100%", height: "1500px", color: "white"}}>
+                                                report
+                                            </div>
+                                        </> :
+                                        tab == "add-entry"? <AddEntryForm category={categoryData?.uid as string} />: ""
+                                    }
+                                </div>
+                            </Revealer>
                         </div>
                         </> : <AttendanceCategorySkeleton />
                     }

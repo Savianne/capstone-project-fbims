@@ -94,7 +94,8 @@ import {
   faFileCsv,
   faFilter,
   faCamera,
-  faBan
+  faBan,
+  faCropAlt
  } from '@fortawesome/free-solid-svg-icons';
 
 import { faClock } from '@fortawesome/free-regular-svg-icons';
@@ -176,6 +177,8 @@ library.add(faS, faFileCsv);
 library.add(faS, faFilter);
 library.add(faS, faCamera);
 library.add(faS, faBan);
+library.add(faS, faExpand);
+library.add(faS, faCropAlt);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

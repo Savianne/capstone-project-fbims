@@ -35,7 +35,7 @@ const ContentWraper = styled.div`
     display: flex;
     flex: 1;
     flex-wrap: wrap;
-    min-height: calc(100vh - 161.8px);
+    /* min-height: calc(100vh - 161.8px); */
     overflow: hidden;
     padding: 15px 5px;
     gap: 5px;
@@ -95,7 +95,9 @@ const ContentWraper = styled.div`
         flex-wrap: wrap;
         padding: 20px;
         flex: 0 1 100%;
-        height: calc(100vh - 251.8px);
+        min-width: 0;
+        /* height: calc(100vh - 251.8px); */
+        height: fit-content;
         background-color: ${({theme}) => theme.background.lighter};
     }
     
@@ -104,6 +106,7 @@ const ContentWraper = styled.div`
         display: flex;
         flex-wrap: wrap;
         flex: 0 1 100%;
+        min-width: 0;
         height: fit-content;
         /* height: calc(100vh - 251.8px); */
         /* overflow-y: auto; */
@@ -206,6 +209,12 @@ const Attendance: React.FC = () => {
           fetchTotalPendingEntries();
         });
 
+        socket.on(`${admin?.congregation}-ENTRY_SAVED`, (data) => {
+            setTotalEntriesUpdate({categoryUID: data.category, uniqueId: data.id});
+            fetchPendingEntries();
+            fetchTotalPendingEntries();
+        });
+
         socket.on('reconnect', (attemptNumber: number) => {
             console.log(`Reconnected to the server after ${attemptNumber} attempts`);
             fetchCategories();
@@ -245,74 +254,70 @@ const Attendance: React.FC = () => {
                     <div className="comp-tabs-area">
                         <Tabs tab={tab} setTab={(tab) => setTab(tab)} categoriesCount={categories.length} pendingEntriesCount={totalPendingEntries}/>
                     </div>
-                    {/* <Revealer reveal={!!tab} maxHeight="fit-content"> */}
-                        <div className="tab-content">
-                            <Scrollbar>
-                                <div className="scroll-content">
+                    <div className="tab-content">
+                        <div className="scroll-content">
+                        {
+                            tab == "pending-entries"? <>
                                 {
-                                    tab == "pending-entries"? <>
-                                        {
-                                            isLoadingPendingEntries? <PendingEntriesSkeleton /> :
-                                            <>
+                                    isLoadingPendingEntries? <PendingEntriesSkeleton /> :
+                                    <>
+                                    {
+                                        loadingPendingEntriesError? <FailedToLoadError /> : 
+                                        pendingEntries && pendingEntries.length == 0? <NoRecordFound actionBtn={<Button label="Create Entry" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-entry")}/>} />:
+                                        pendingEntries && pendingEntries.length? <>
+                                            <PendingEntries pendingEntries={pendingEntries} editEntryTitleUpdate={(uid, title) => setPendingEntries(pendingEntries.map(i => (i.entryUID == uid? {...i, description: title} : i)))}/>
                                             {
-                                                loadingPendingEntriesError? <FailedToLoadError /> : 
-                                                pendingEntries && pendingEntries.length == 0? <NoRecordFound actionBtn={<Button label="Create Entry" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-entry")}/>} />:
-                                                pendingEntries && pendingEntries.length? <>
-                                                    <PendingEntries pendingEntries={pendingEntries} />
-                                                    {
-                                                        pendingEntries.length == totalPendingEntries? <p className="end-of-list">--End of list--</p> :
-                                                        <div className="load-more-btn">
-                                                            <Button isLoading={isLoadingMorePendingEntries} label="Load more" color="primary" variant="hidden-bg-btn" 
-                                                            onClick={() => {
-                                                                setIsLoadingMorePendingEntries(true);
-                                                                doRequest<IPendingEntry[]>({
-                                                                    url: `/attendance/get-pending-attendance-entries/${pendingEntries.length}`,
-                                                                    method: "GET"
-                                                                })
-                                                                .then(result => {
-                                                                    if(result.success && result.data) {
-                                                                        setPendingEntries([...pendingEntries, ...result.data]);
-                                                                        loadingPendingEntriesError && setLoadingPendingEntriesError(false);
-                                                                    } else throw result
-                                                                })
-                                                                .catch(err => {
-                                                                    setLoadingPendingEntriesError(true);
-                                                                })
-                                                                .finally(() => setIsLoadingMorePendingEntries(false))
-                                                            }}/>
-                                                        </div>
-                                                    } 
-                                                </> : ""
-                                            }
-                                            </>
-                                        }
-                                    </> :
-                                    tab == "categories"? <>
-                                        {
-                                            isLoadingCategories? <IsLoadingCategories>
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                                <SkeletonLoading height={170} />
-                                            </IsLoadingCategories> :
-                                            loadingCategoriesError? <FailedToLoadError /> :
-                                            categories.length? <Categories categories={categories} onDeleted={(uid) => setCategories((current) => current.filter(category => category.data.uid !== uid))}/> 
-                                            : <NoRecordFound secondaryText="Create Category to Categorize Attendance and track as one" actionBtn={<Button label="Create Category" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-category")}/>} />
-                                        }
-                                    </> : 
-                                    tab == "add-category"? <AddCategoryForm dispatch={(newCategory) => setCategories((current) => ([{data: newCategory, fetchTotalEntryIncrementalVal: 1}, ...current]))} />: 
-                                    tab == "add-entry"? <CreateEntryForm categories={categories.map(category => category.data)} /> : ''
+                                                pendingEntries.length == totalPendingEntries? <p className="end-of-list">--End of list--</p> :
+                                                <div className="load-more-btn">
+                                                    <Button isLoading={isLoadingMorePendingEntries} label="Load more" color="primary" variant="hidden-bg-btn" 
+                                                    onClick={() => {
+                                                        setIsLoadingMorePendingEntries(true);
+                                                        doRequest<IPendingEntry[]>({
+                                                            url: `/attendance/get-pending-attendance-entries/${pendingEntries.length}`,
+                                                            method: "GET"
+                                                        })
+                                                        .then(result => {
+                                                            if(result.success && result.data) {
+                                                                setPendingEntries([...pendingEntries, ...result.data]);
+                                                                loadingPendingEntriesError && setLoadingPendingEntriesError(false);
+                                                            } else throw result
+                                                        })
+                                                        .catch(err => {
+                                                            setLoadingPendingEntriesError(true);
+                                                        })
+                                                        .finally(() => setIsLoadingMorePendingEntries(false))
+                                                    }}/>
+                                                </div>
+                                            } 
+                                        </> : ""
+                                    }
+                                    </>
                                 }
-                                </div>
-                            </Scrollbar>
+                            </> :
+                            tab == "categories"? <>
+                                {
+                                    isLoadingCategories? <IsLoadingCategories>
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                        <SkeletonLoading height={170} />
+                                    </IsLoadingCategories> :
+                                    loadingCategoriesError? <FailedToLoadError /> :
+                                    categories.length? <Categories categories={categories} onDeleted={(uid) => setCategories((current) => current.filter(category => category.data.uid !== uid))}/> 
+                                    : <NoRecordFound secondaryText="Create Category to Categorize Attendance and track as one" actionBtn={<Button label="Create Category" icon={<FontAwesomeIcon icon={["fas", "plus"]}/>} variant="hidden-bg-btn" color="primary" onClick={() => setTab("add-category")}/>} />
+                                }
+                            </> : 
+                            tab == "add-category"? <AddCategoryForm dispatch={(newCategory) => setCategories((current) => ([{data: newCategory, fetchTotalEntryIncrementalVal: 1}, ...current]))} />: 
+                            tab == "add-entry"? <CreateEntryForm categories={categories.map(category => category.data)} /> : ''
+                        }
                         </div>
-                    {/* </Revealer> */}
+                    </div>
                 </ContentWraper>
             </RouteContentBaseBody>
         </RouteContentBase>

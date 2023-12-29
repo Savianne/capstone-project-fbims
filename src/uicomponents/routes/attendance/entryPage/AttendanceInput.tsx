@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SearchAttenderByName from "./SearchByNameEntry";
 import Input from "../../../reusables/Inputs/Input";
 import CameraQrCodeScanner from "./CameraQrCodeScanner";
+import QRCodeScannerInput from "./QRCodeScannerInput";
 
 const Mover = styled.div<{state: string}>`
     position: fixed;
@@ -36,7 +37,7 @@ interface IAttendanceInput extends IStyledFC {
 
 const FCModal: React.FC<IAttendanceInput> = ({className, onClose, state, attendanceType, entryUID, categoryUID, attender, attenders, session, presents}) => {
     const [formState, updateModalState] = React.useState<"close" | "ondisplay" | "open" | "remove" | "inactive">(state);
-    const [inputType, setInputType] = React.useState<"camera" | "search" | "scanner">("camera");
+    const [inputType, setInputType] = React.useState<"camera" | "search" | "scanner">("search");
     const [entryType, setEntryType] = React.useState<'time-in' | "time-out">('time-in');
     
     React.useEffect(() => {
@@ -88,7 +89,8 @@ const FCModal: React.FC<IAttendanceInput> = ({className, onClose, state, attenda
                     <div className="input-container">
                         {
                            inputType == "search"? <SearchAttenderByName categoryUID={categoryUID} presents={presents? presents : []} attendanceType={attendanceType} entryUID={entryUID} attender={attender} attenders={attenders} session={session} entryType={entryType} /> :
-                           inputType == "camera"? <CameraQrCodeScanner categoryUID={categoryUID} attendanceType={attendanceType} entryUID={entryUID} attender={attender} session={session} entryType={entryType} /> : ""
+                           inputType == "camera"? <CameraQrCodeScanner categoryUID={categoryUID} attendanceType={attendanceType} entryUID={entryUID} attender={attender} session={session} entryType={entryType} /> :
+                           inputType == "scanner"? <QRCodeScannerInput categoryUID={categoryUID} attendanceType={attendanceType} entryUID={entryUID} attender={attender} session={session} entryType={entryType} /> : ""
                         }
                     </div>
                 </ModalContent>

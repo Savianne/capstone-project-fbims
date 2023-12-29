@@ -6,6 +6,7 @@ import TAttendanceEntry from "./TAttendanceEntry";
 import Button from "../../../reusables/Buttons/Button";
 import SkeletonLoading from "../../../reusables/SkeletonLoading";
 import EntryPage from "../entryPage/EntryPage";
+import DataDisplayChip from "../../../reusables/DataDisplayChip";
 
 interface IAttendanceEntriesListViewFC extends IStyledFC {
     entries: TAttendanceEntry[],
@@ -34,13 +35,17 @@ const EntryFC:React.FC<IEntry> = ({className, entry, editEntryTitleUpdate}) => {
             <h5 className="entry-description">{entry.description}</h5>
             <div className="lower-container">
                 <div className="extra-detailes-group">
-                    <p className="data">{new Date(entry.date).toDateString()}</p>
+                    {/* <p className="data">{new Date(entry.date).toDateString()}</p> */}
+                    <DataDisplayChip icon={<FontAwesomeIcon icon={['fas', 'calendar-day']} />}>{new Date(entry.date).toDateString()}</DataDisplayChip>
                     <span className="dot-devider"></span>
-                    <p className="data">{entry.categoryTitle}</p>
+                    {/* <p className="data">{entry.categoryTitle}</p>
                     <span className="dot-devider"></span>
                     <p className="data">{entry.type == "basic"? "Basic (Present/Absent)" : "Detailed (Time-in/Time-out)"}</p>
-                    <span className="dot-devider"></span>
-                    <p className="data">{entry.pending? "Pending" : "Saved"}    </p>
+                    <span className="dot-devider"></span> */}
+                    {
+                        entry.pending? 
+                        <DataDisplayChip severity="info">Pending</DataDisplayChip> : 
+                        <DataDisplayChip icon={<FontAwesomeIcon icon={['fas', 'check']} />} severity="success">Saved</DataDisplayChip>} 
                 </div>
                 <Button iconButton icon={<FontAwesomeIcon icon={["fas", "angle-right"]} />} label="View entry" color="theme" variant="hidden-bg-btn"  onClick={() => setEntryPage(true)} />
                 {

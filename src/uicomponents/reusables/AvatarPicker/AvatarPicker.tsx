@@ -6,6 +6,8 @@ import FadeLoader from "react-spinners/FadeLoader";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Button from '../Buttons/Button';
 import UseRipple from '../Ripple/UseRipple';
+import ReactCrop, { type Crop, makeAspectCrop, centerCrop } from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
 
 import uploadAvatar from '../../../API/uploadAvatar';
 import deleteTmpUpload from '../../../API/delete-tmp-upload';
@@ -325,6 +327,7 @@ function useAvatarUploaderContext() {
   const [imageReplace, setImageReplace] = useState<FileObject | null>(null);
   const [selectedImage, setSelectedImage] = useState<FileObject | null>(null);
   const [errorUpload, setErrorUpload] = React.useState(false);
+  const [fileForCropping, setFileForCropping] = React.useState<null | FileObject>(null);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       // Handle dropped files here
@@ -337,11 +340,13 @@ function useAvatarUploaderContext() {
         return;
       }
 
-      if(!selectedImage) {
-        setSelectedImage(imagePreview);
-      } else {
-        setImageReplace(imagePreview)
-      }
+      setFileForCropping(imagePreview);
+
+      // if(!selectedImage) {
+      //   setSelectedImage(imagePreview);
+      // } else {
+      //   setImageReplace(imagePreview)
+      // }
     },
     multiple: false, // Allow only one file to be selected at a time
     accept:  {
@@ -381,6 +386,7 @@ function useAvatarUploaderContext() {
     imageReplace, setImageReplace,
     selectedImage, setSelectedImage,
     errorUpload, setErrorUpload,
+    fileForCropping, setFileForCropping,
     getRootProps, getInputProps, isDragActive,
     function reset() {
       if(imageTmpUploaded) {
@@ -417,6 +423,7 @@ function useAvatarUploaderContext() {
     FileObject | null, React.Dispatch<React.SetStateAction<FileObject | null>>,
     FileObject | null, React.Dispatch<React.SetStateAction<FileObject | null>>,
     boolean, React.Dispatch<React.SetStateAction<boolean>>,
+    FileObject | null, React.Dispatch<React.SetStateAction<FileObject | null>>,
     <T extends DropzoneRootProps>(props?: T | undefined) => T, 
     <T extends DropzoneInputProps>(props?: T | undefined) => T, boolean,
     () => void,
@@ -441,9 +448,62 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
     imageReplace, setImageReplace,
     selectedImage, setSelectedImage,
     errorUpload, setErrorUpload,
+    fileForCropping, setFileForCropping,
     getRootProps, getInputProps, isDragActive,
     reset,
   ] = useAvatarUploaderContext();
+
+  const [crop, setCrop] = useState<Crop>();
+  const imageForCropElem = React.useRef<null | HTMLImageElement>(null);
+  const [cropedImage, setCropedImage] = React.useState<null | string>(null);
+
+  const getCroppedImg = (image: HTMLImageElement, crop: Crop, fileName: string) => {
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    console.log(image.naturalWidth)
+    console.log(image.naturalHeight);
+    console.log(image.width)
+    console.log(image.height)
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("No 2d context");
+    }
+
+    ctx.drawImage(
+      image,
+      0,
+      0,
+      image.width,
+      image.height,
+      0,
+      0,
+      image.width,
+      image.height,
+    );
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            console.error('Canvas is empty');
+            return;
+          }
+  
+          // Create a File object with the desired name
+          const file = new File([blob], fileName, { type: 'image/jpeg' });
+          
+          // Resolve with the object URL of the File
+          resolve(window.URL.createObjectURL(file));
+        },
+        'image/jpeg'
+      );
+    });
+  };
 
   React.useEffect(() => {
     onChange && onChange(imageTmpUploaded);
@@ -463,67 +523,133 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
 
   React.useEffect(() => {
     !(isDeletingTmpImage) && doReset && reset()
-  }, [doReset])
+  }, [doReset]);
+
+  React.useEffect(() => {
+    if (fileForCropping) {
+      // Create a FileReader
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const dataURL = e.target?.result;
+
+        // Set the data URL as the src attribute of the image element
+        imageForCropElem.current?.setAttribute('src', dataURL as string);
+
+        if(imageForCropElem.current) {
+          imageForCropElem.current.onload = (e: any) => {
+            const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+            const crop = centerCrop(
+              makeAspectCrop(
+                {
+                  unit: '%',
+                  width: 90,
+                },
+                1,
+                width,
+                height
+              ),
+              width,
+              height
+            )
+            setCrop(crop)
+          }
+        }
+      }
+      // Read the content of the file as a data URL
+      reader.readAsDataURL(fileForCropping);
+    }
+  }, [fileForCropping])
   return (
     <div className={className}>
-      <DropzoneContainer {...getRootProps({active: isDragActive})}>
-        <input disabled={disabled} {...getInputProps()} />
-        {
-          selectedImage? <PreviewAvatar file={selectedImage}>
-            <div className="middle-backdrop"></div>
-            <div className="circle-image"></div>
-            <ErrorUploadMessage active={errorUpload} />
-            {/* {  isDeletingTmpImage && <LoadingIndicator /> }  */}
-            { imageReplace && <ReplaceCurrentImageConfirm 
-            yes={() => {
-              return new Promise<{success: boolean}>((res, rej) => {
-                if(imageTmpUploaded) {
-                  setIsDeletingTmpImage(true);
-                  deleteTmpUpload(imageTmpUploaded)
-                  .then(response => {
-                    if(response.success) {
-                      setSelectedImage(imageReplace);
-                      setImageReplace(null);
-                      setIsDeletingTmpImage(false);
-                      res({success: true})
-                    } else {
-                      throw response
-                    }
-                  }).catch(err => {
-                    setIsDeletingTmpImage(false);
-                    setImageReplace(null);
-                    setSelectedImage(null);
-                    rej({success: false})
-                  })
-                } else {
-                  setSelectedImage(imageReplace);
-                  setImageReplace(null);
-                  res({success: true})
-                }
-              })
-            }} 
-            no={() => setImageReplace(null)} />}
-            { isUploading && <LoadingIndicator /> } 
-          </PreviewAvatar> :
-          <>
-            <span className="icon">
-              <FontAwesomeIcon icon={["fas", "image"]} />
-            </span>
-            <span className='info-text'>
-                <strong>Add photo</strong>
-                <p>or drag and drop</p>
-            </span>
-          </>
-        }
-      </DropzoneContainer>
       {
-        selectedImage && !isUploading && <span className='remove-selected-image-btn-container'>
-          <Button disabled={disabled} isLoading={isDeletingTmpImage} variant='hidden-bg-btn' label='Remove picture' icon={<FontAwesomeIcon icon={["fas", "times"]}  />} 
-          onClick={() => {
-            reset()
-          }}/>
-        </span>
+        fileForCropping? 
+        <div className="cropping-tool-container">
+          <ReactCrop 
+          crop={crop} 
+          circularCrop 
+          keepSelection
+          onChange={(c, p) => setCrop(p)} 
+          aspect={1} 
+          className='image-crop'
+          onComplete={async  (c, p) => {
+            if (imageForCropElem.current && crop && crop.width && crop.height) {
+              const croppedImageUrl = await getCroppedImg(
+                imageForCropElem.current,
+                crop,
+                'newFile.jpeg'
+              );
+              // You can save the cropped image URL or upload it to a server.
+              setCropedImage(croppedImageUrl as string);
+            }
+          }}>
+            <img ref={imageForCropElem} />
+          </ReactCrop><br />
+            {cropedImage? <img src={cropedImage} /> : ''}
+            <Button label='Crop' variant='hidden-bg-btn' icon={<FontAwesomeIcon icon={['fas', 'crop-alt']}/>} />
+        </div> : 
+        <>
+        <DropzoneContainer {...getRootProps({active: isDragActive})}>
+          <input disabled={disabled} {...getInputProps()} />
+          {
+            selectedImage? <PreviewAvatar file={selectedImage}>
+              <div className="middle-backdrop"></div>
+              <div className="circle-image"></div>
+              <ErrorUploadMessage active={errorUpload} />
+              {/* {  isDeletingTmpImage && <LoadingIndicator /> }  */}
+              { imageReplace && <ReplaceCurrentImageConfirm 
+              yes={() => {
+                return new Promise<{success: boolean}>((res, rej) => {
+                  if(imageTmpUploaded) {
+                    setIsDeletingTmpImage(true);
+                    deleteTmpUpload(imageTmpUploaded)
+                    .then(response => {
+                      if(response.success) {
+                        setSelectedImage(imageReplace);
+                        setImageReplace(null);
+                        setIsDeletingTmpImage(false);
+                        res({success: true})
+                      } else {
+                        throw response
+                      }
+                    }).catch(err => {
+                      setIsDeletingTmpImage(false);
+                      setImageReplace(null);
+                      setSelectedImage(null);
+                      rej({success: false})
+                    })
+                  } else {
+                    setSelectedImage(imageReplace);
+                    setImageReplace(null);
+                    res({success: true})
+                  }
+                })
+              }} 
+              no={() => setImageReplace(null)} />}
+              { isUploading && <LoadingIndicator /> } 
+            </PreviewAvatar> :
+            <>
+              <span className="icon">
+                <FontAwesomeIcon icon={["fas", "image"]} />
+              </span>
+              <span className='info-text'>
+                  <strong>Add photo</strong>
+                  <p>or drag and drop</p>
+              </span>
+            </>
+          }
+        </DropzoneContainer>
+        {
+          selectedImage && !isUploading && <span className='remove-selected-image-btn-container'>
+            <Button disabled={disabled} isLoading={isDeletingTmpImage} variant='hidden-bg-btn' label='Remove picture' icon={<FontAwesomeIcon icon={["fas", "times"]}  />} 
+            onClick={() => {
+              reset()
+            }}/>
+          </span>
+        }
+        </>
       }
+      
     </div>
   )
 }
@@ -538,7 +664,20 @@ const AvatarPicker = styled(FCAvatarPickerComponent)`
   height: fit-content;
   padding: 8px;
 
-  .remove-selected-image-btn-container {
+  && > .cropping-tool-container {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 0 0 300px;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+
+    > ${Button} {
+      margin-top: 5px;
+    }
+  }
+
+  && > .remove-selected-image-btn-container {
     display: flex;
     flex: 0 1 100%;
     justify-content: center;

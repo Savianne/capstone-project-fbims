@@ -1,17 +1,15 @@
 import React from "react";
-import QrScanner from 'qr-scanner';
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { PuffLoader, BounceLoader, ClipLoader } from "react-spinners";
 import { IStyledFC } from "../../../IStyledFC";
-import Select, { Option } from "../../../reusables/Inputs/Select";
-import doRequest from "../../../../API/doRequest";
+import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
 import useConfirmModal from "../../../reusables/ConfirmModal/useConfirmModal";
 import ConfirmModal from "../../../reusables/ConfirmModal/ConfirmModal";
-import useAddSnackBar from "../../../reusables/SnackBar/useSnackBar";
+import doRequest from "../../../../API/doRequest";
 import getCurrentTime from "../../../../utils/helpers/getCurrentTime";
-import { ClipLoader, FadeLoader } from "react-spinners";
 
-interface IQRCodeCameraScanner extends IStyledFC {
+interface IQRCodeScannerInputProps extends IStyledFC {
     attendanceType: "basic" | "detailed",
     entryUID: string,
     attender: "all" | "select",
@@ -20,32 +18,21 @@ interface IQRCodeCameraScanner extends IStyledFC {
     entryType?: 'time-in' | "time-out"
 }
 
-const CameraQrCodeScannerFC: React.FC<IQRCodeCameraScanner> = ({className, attendanceType, entryUID, entryType, session, attender, categoryUID}) => {
+const QRCodeScannerInputFC: React.FC<IQRCodeScannerInputProps> = ({className, attendanceType, entryUID, entryType, session, attender, categoryUID}) => {
+    const inputRef = React.useRef<null | HTMLInputElement>(null)
     const addSnackBar = useAddSnackBar();
     const {modal, confirm} = useConfirmModal();
     const {modal: warningModal, confirm: confirmWarningModal} = useConfirmModal();
-    const videoRef = React.useRef<HTMLVideoElement | null>(null);
-    const [cameraDevices, setCameraDevices] = React.useState<QrScanner.Camera[] | null>(null);
-    const [selectedCameraDevice, setSelectedCameraDevice] = React.useState<null | string>(null);
-    const [hasCamera, setHasCamera] = React.useState(false);
-    const [isLoadingCameraDevices, setIsLoadingCameraDevices] = React.useState(true);
+    const [isFocust, setIsFocust] = React.useState(false);
     const [scannedQRValue, setScannedQRValue] = React.useState("");
     const [allowScan, setAllowScan] = React.useState(true);
     const [sucessScan, setSuccessScan] = React.useState(false);
-    const qrScanner = React.useMemo(() => {
-        if(videoRef.current) {
-            return new QrScanner(
-                videoRef.current,
-                result => {
-                    if(allowScan) setScannedQRValue(result.data);
-                },
-                { 
-                    highlightScanRegion: true,
-                    highlightCodeOutline: true
-                 },
-            )
-        }
-    }, [videoRef.current, allowScan]);
+    const handleScan = React.useCallback((val: string) => {
+        if(allowScan) setScannedQRValue(val)
+    }, [allowScan]);
+    const handleSubmit = React.useCallback(() => {
+        if(allowScan) submitScannedValue(scannedQRValue);
+    }, [scannedQRValue, allowScan])
 
     const submitScannedValue = (value: string) => {
         if(value) {
@@ -68,7 +55,7 @@ const CameraQrCodeScannerFC: React.FC<IQRCodeCameraScanner> = ({className, atten
                         setScannedQRValue("");
                         setAllowScan(true);
                         setSuccessScan(false);
-                    }, 2500);
+                    }, 2000);
                 })
                 .catch(err => {
                     if(typeof err == "string") {
@@ -121,7 +108,7 @@ const CameraQrCodeScannerFC: React.FC<IQRCodeCameraScanner> = ({className, atten
                             setScannedQRValue("");
                             setAllowScan(true);
                             setSuccessScan(false);
-                        }, 2500);
+                        }, 2000);
                     })
                     .catch(err => {
                         if(typeof err == "string") {
@@ -175,7 +162,7 @@ const CameraQrCodeScannerFC: React.FC<IQRCodeCameraScanner> = ({className, atten
                             setScannedQRValue("");
                             setAllowScan(true);
                             setSuccessScan(false);
-                        }, 2500);
+                        }, 2000);
                     })
                     .catch(err => {
                         if(typeof err == "string") {
@@ -207,90 +194,42 @@ const CameraQrCodeScannerFC: React.FC<IQRCodeCameraScanner> = ({className, atten
         }
     }
     
-    const getCameraDevices = () => {
-        setIsLoadingCameraDevices(true);
-        QrScanner.listCameras(true)
-        .then(res => {
-            setCameraDevices(res)
-        })
-        .catch(err => {
-            console.log(err);
-            setCameraDevices(null);
-        })
-        .finally(() => setIsLoadingCameraDevices(false))
-    }
-
-    React.useEffect(() => {
-        QrScanner.hasCamera()
-        .then(res => {
-            if(res) {
-                setHasCamera(true)
-                setTimeout(() => {
-                    getCameraDevices();
-                }, 1000)
-            } else {
-                setHasCamera(false)
-                setCameraDevices(null);
-            }
-        })
-    }, []);
-
-    React.useEffect(() => {
-        if(cameraDevices) {
-            setSelectedCameraDevice(cameraDevices[0].id)
-        }
-    }, [cameraDevices]);
-
-    React.useEffect(() => {
-        if(selectedCameraDevice) {
-            qrScanner?.setCamera(selectedCameraDevice);
-            qrScanner?.start()
-        } else qrScanner?.stop()
-
-        return(() => {
-            qrScanner?.destroy();
-        })
-    }, [selectedCameraDevice]);
-
-    React.useEffect(() => {
-        if(scannedQRValue) {
-            submitScannedValue(scannedQRValue)
-        }
-    }, [scannedQRValue])
-    
-    return (
+    return(
         <div className={className}>
             {
-                hasCamera?
-                    isLoadingCameraDevices? 
-                    <>
-                        <div className="loading-camera-devices">
-                            <FadeLoader color="#36d7b7" />
-                            <p>Loading camera devices...</p>
-                        </div>
-                    </> :
-                    cameraDevices && 
-                    <>
-                        <Select value={selectedCameraDevice || ""} onValChange={(deviceId) => setSelectedCameraDevice(deviceId)} placeholder="Camera">
-                            {
-                                cameraDevices.map(device => (
-                                    <Option key={device.id} value={device.id}>{device.label}</Option>
-                                ))
-                            }
-                        </Select>
-                        <div className="video-container">
-                            <video ref={videoRef} />
-                        </div>
-                    </> 
-                : 
-                <div className="no-camera">
-                    <span className="fa-stack">
-                        <FontAwesomeIcon icon={['fas', 'camera']} className="fa-stack-1x" />
-                        <FontAwesomeIcon icon={["fas", "ban"]} className="fa-stack-2x" style={{opacity: '0.2', color: 'red'}} />
-                    </span>
-                    <h1>No Camera available</h1>
-                </div>                    
+                isFocust && <>
+                <span className="scanner-indicator">
+                    <BounceLoader size={50} color="#36d7b7" />
+                </span>
+                <span className="scanner-indicator">
+                    <PuffLoader size={300} color="#36d7b7" />
+                </span>
+                </>
             }
+            <span className="fa-stack qricon" onClick={() => {
+                inputRef.current?.focus();
+            }}>
+                <FontAwesomeIcon icon={['fas', 'expand']} className="fa-stack-2x" style={{opacity: '0.2'}} />
+                <FontAwesomeIcon icon={["fas", "qrcode"]} className="fa-stack-1x" style={{opacity: '0.5'}} />
+            </span>
+            <form 
+            onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+            }}>
+                <input 
+                autoFocus 
+                type="text" 
+                ref={inputRef}
+                value={scannedQRValue}
+                onChange={(e) => handleScan(e.target.value)}
+                onFocus={() => setIsFocust(true)}
+                onBlur={(e) => {
+                    e.preventDefault();
+                    setIsFocust(false)
+                    e.target.focus();
+                }} />
+            </form>
             {
                 sucessScan && <div className="scan-success">
                     <FontAwesomeIcon icon={['fas', 'check']} />
@@ -303,34 +242,42 @@ const CameraQrCodeScannerFC: React.FC<IQRCodeCameraScanner> = ({className, atten
     )
 }
 
-
-
-const CameraQrCodeScanner = styled(CameraQrCodeScannerFC)`
+const QRCodeScannerInput = styled(QRCodeScannerInputFC)`
     position: relative;
     display: flex;
-    flex: 0 1 100%;
-    width: fit-content;
-    flex-wrap: wrap;
+    flex: 0 1 400px;
+    align-items: center;
     justify-content: center;
+    margin: 0 auto;
+    aspect-ratio: 1/1;
+    color: ${({theme}) => theme.textColor.light};
 
-    && > ${Select} {
-        flex: 0 1 100%;
+    && > .qricon {
+        font-size: 100px;
     }
 
-    && .loading-camera-devices {
+    && > .scanner-indicator {
+        position: absolute;
         display: flex;
-        flex: 0 1 100%;
-        flex-wrap: wrap;
-        height: 200px;
-        align-content: center;
+        align-items: center;
         justify-content: center;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.3;
+    }
 
-        > p {
-            flex: 0 1 100%;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 18px;
-            color: ${({theme}) => theme.textColor.light}
+    && form {
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        > input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+            cursor: default;
         }
     }
 
@@ -359,43 +306,6 @@ const CameraQrCodeScanner = styled(CameraQrCodeScannerFC)`
             /* color: ${({theme}) => theme.textColor.strong} */
         }
     }
-
-    && > .video-container {
-        display: flex;
-        flex: 0 1 100%;
-        justify-content: center;
-        padding: 15px 0;
-        height: fit-content;
-        background-color: ${({theme}) => theme.background.lighter};
-    }
-
-    && > .video-container > video {
-        width: 80%;
-    }
-
-    && > .no-camera {
-        display: flex;
-        flex: 0 1 100%;
-        height: 300px;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        color: ${({theme}) => theme.textColor.disabled};
-        align-content: center;
-        
-        span {
-            font-size: 50px;
-        }
-
-        h1 {
-            flex: 0 1 100%;
-            text-align: center;
-            height: fit-content;
-            font-size: 20px;
-            margin-top: 10px;
-        }
-    }
-    
 `;
 
-export default CameraQrCodeScanner;
+export default QRCodeScannerInput;

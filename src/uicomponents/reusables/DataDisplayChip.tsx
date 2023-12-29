@@ -65,7 +65,8 @@ const DataDisplayChip = styled(DataDisplayChipFC)`
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        /* font-size: 1rem; */
+        font-size: 0.9rem;
         height: 24px;
         width: 24px;
         margin-left: 5px;

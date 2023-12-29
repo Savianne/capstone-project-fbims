@@ -181,7 +181,7 @@ const FormContent = styled.div<{state: string}>`
 
     .form-body .input-area {
         flex: 0 1 100%;
-        margin 15px 0;
+        margin: 15px 0;
         font-size: 30px;
     }
 

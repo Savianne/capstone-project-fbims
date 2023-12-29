@@ -13,14 +13,15 @@ import DataDisplayChip from "../../../reusables/DataDisplayChip";
 interface IPresentAttendeesGrid extends IStyledFC {
     attenders: ({ name: string, picture: string | null, memberUID: string})[],
     entryUID: string,
+    isPendingEntry: boolean;
     // onRemoved: (uid:string) => void,
 }
 
-const PresentAttendeesGridFC: React.FC<IPresentAttendeesGrid> = ({className, attenders, entryUID}) => {
+const PresentAttendeesGridFC: React.FC<IPresentAttendeesGrid> = ({className, attenders, entryUID, isPendingEntry}) => {
     return(
         <div className={className}>
             {
-                attenders.map(attender => <AttenderCard entryUID={entryUID} key={attender.memberUID} {...attender} />)
+                attenders.map(attender => <AttenderCard isPendingEntry={isPendingEntry} entryUID={entryUID} key={attender.memberUID} {...attender} />)
             }
         </div>
     )
@@ -31,9 +32,10 @@ interface IAttenderCard extends IStyledFC {
    picture: string | null, 
    memberUID: string,
    entryUID: string,
+   isPendingEntry: boolean;
 }
 
-const AttenderCardFC: React.FC<IAttenderCard> = ({className, name, picture, memberUID, entryUID }) => {
+const AttenderCardFC: React.FC<IAttenderCard> = ({className, name, picture, memberUID, entryUID, isPendingEntry }) => {
     const addSnackBar = useAddSnackBar();
     const [onDelete, setOnDelete] = React.useState(false);
     const {modal, confirm} = useConfirmModal();
@@ -44,27 +46,30 @@ const AttenderCardFC: React.FC<IAttenderCard> = ({className, name, picture, memb
             <Avatar src={picture} alt={name} size="80px"/>
             <strong className="attender-name">{name}</strong>
             <DataDisplayChip variant="outlined" severity="success" icon={<FontAwesomeIcon icon={['fas', "check"]} />}>Present</DataDisplayChip>
-            <Button isLoading={onDelete} label="Remove" icon={<FontAwesomeIcon icon={['fas', 'times']}/>} color="delete" variant="hidden-bg-btn"
-            onClick={() => {
-                confirm("Remove Present", `Are you sure you want to remove ${name} as present?`, () => {
-                    setOnDelete(true);
-                    doRequest({
-                        method: "DELETE",
-                        url: `/attendance/remove-present/${entryUID}/${memberUID}`,
+            {
+                isPendingEntry?
+                <Button isLoading={onDelete} label="Remove" icon={<FontAwesomeIcon icon={['fas', 'times']}/>} color="delete" variant="hidden-bg-btn"
+                onClick={() => {
+                    confirm("Remove Present", `Are you sure you want to remove ${name} as present?`, () => {
+                        setOnDelete(true);
+                        doRequest({
+                            method: "DELETE",
+                            url: `/attendance/remove-present/${entryUID}/${memberUID}`,
+                        })
+                        .then(response => {
+                            if(response.success) {
+                                setTimeout(() => {
+                                    addSnackBar("Remove Success!", "default", 5);
+                                }, 500)
+                            } else throw response
+                        })
+                        .catch(err => {
+                            setOnDelete(false)
+                            addSnackBar("Failed to remove. Try again.", "error", 5)
+                        })
                     })
-                    .then(response => {
-                        if(response.success) {
-                            setTimeout(() => {
-                                addSnackBar("Remove Success!", "default", 5);
-                            }, 500)
-                        } else throw response
-                    })
-                    .catch(err => {
-                        setOnDelete(false)
-                        addSnackBar("Failed to remove. Try again.", "error", 5)
-                    })
-                })
-            }}/>
+                }}/> : ""
+            }
         </div>
     )
 }

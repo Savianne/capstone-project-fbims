@@ -68,15 +68,19 @@ const ConfirmModalFC: React.FC<IConfirmModal> = ({context, variant, className}) 
     )
 }
 
-const ConfirmModal = styled(ConfirmModalFC)`
-    position: fixed;
+const Mover = styled.div<{state: string}>`
+    position: absolute;
+    top: ${prop => prop.state == "open"? 0 : '-20%'};
+    opacity: ${prop => prop.state == "open"? 1 : 0.1};
+    left: 0;
     display: flex;
     width: 100%;
-    height: 100vh;
-    background-color: ${({theme}) => theme.mode == "dark"? "#00000073" : "#1e1e1e38"};
-    z-index: 5000;
-    left: 0;
-    top: 0;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: top 200ms, opacity 200ms;
+
 `;
 
 const Modal = styled.div<{variant: "warning" | "delete" | "error" | "info" | "default"}>`
@@ -129,19 +133,16 @@ const Modal = styled.div<{variant: "warning" | "delete" | "error" | "info" | "de
         }
     }
 `
-const Mover = styled.div<{state: string}>`
-    position: absolute;
-    top: ${prop => prop.state == "open"? 0 : '-20%'};
-    opacity: ${prop => prop.state == "open"? 1 : 0.1};
-    left: 0;
+
+const ConfirmModal = styled(ConfirmModalFC)`
+    position: fixed;
     display: flex;
     width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    transition: top 200ms, opacity 200ms;
-
+    height: 100vh;
+    background-color: ${({theme}) => theme.mode == "dark"? "#00000073" : "#1e1e1e38"};
+    z-index: 5000;
+    left: 0;
+    top: 0;
 `;
 
 export default ConfirmModal;

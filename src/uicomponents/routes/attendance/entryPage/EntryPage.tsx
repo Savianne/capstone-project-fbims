@@ -121,6 +121,8 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
     const [basicAttendancePresentAttendees, setBasicAttendancePresentAttendees] = React.useState<TBasicAttendancePresentAttendees[]>([]);
     const [detailedAttendanceAttendees, setDetailedAttendanceAttendees] = React.useState<TDetailedAttendanceAttendeesRenderType[]>([]);
     const [attenders, setAttenders] = React.useState<({name: string, picture: string | null, memberUID: string})[]>([]);
+    const [entrySaved, setEntrySaved] = React.useState(false);
+    const [entryOnSave, setEntryOnSave] = React.useState(false);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -210,6 +212,14 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
         })
     };
 
+    const requestFullScreen = () => {
+        if(!(document.fullscreenElement)) {
+            document.body.requestFullscreen().catch((error) => {
+                console.error('Error attempting to enable fullscreen:', error);
+            });
+        }
+    }
+
     React.useEffect(() => {
         editFormData && debounce(async () => {
             try {
@@ -235,6 +245,7 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
     }, [entryInfo]);
 
     React.useEffect(() => {
+        requestFullScreen();
         fetchSessions();
         fetchCategoryAttenders(entryInfo.categoryUID);
         const socket = io(SOCKETIO_URL);
@@ -284,6 +295,7 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
         });
 
         return function () {
+            document.exitFullscreen();
             socket.disconnect();
         }
     }, []);
@@ -298,9 +310,14 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
         <div className={className}>
            <div className="page-heading">
                 <div className="entry-title">
-                    <h1>{entryInfo.description}</h1>
-                    <Button label="more" icon={<FontAwesomeIcon icon={["fas", "ellipsis-h"]}/>} iconButton variant="hidden-bg-btn"
-                    onClick={handleClick} />
+                    <div className="title-group">
+                        <h1>
+                            {entryInfo.description}
+                        </h1>
+                        <Button label="more" icon={<FontAwesomeIcon icon={["fas", "ellipsis-h"]}/>} iconButton variant="hidden-bg-btn"
+                        onClick={handleClick} />
+                    </div>
+                    <p className="entry-date">{new Date(entryInfo.date).toDateString()}</p>
                     <Menu
                     placement="bottom"
                     anchorEl={anchorEl} 
@@ -331,9 +348,28 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
                     </Menu>
                 </div>
                 {
-                    entryInfo.pending? <span className="btn-submit-container">
-                        <Button label="Submit" color="primary" variant="hidden-bg-btn" />
-                    </span> : <DataDisplayChip icon={<FontAwesomeIcon icon={['fas', "check"]} />}>Submitted</DataDisplayChip>
+                    entryInfo.saved || entrySaved? 
+                    <DataDisplayChip icon={<FontAwesomeIcon icon={['fas', "check"]} />} severity="success">Saved</DataDisplayChip> :
+                    <span className="btn-submit-container">
+                        <Button
+                        isLoading={entryOnSave} label="Submit" color="primary" variant="hidden-bg-btn" 
+                        onClick={() => {
+                            setEntryOnSave(true);
+                            doRequest({
+                                method: "POST",
+                                url: `/attendance/save-attendance-entry/${entryInfo.entryUID}/${entryInfo.categoryUID}`
+                            })
+                            .then(res => {
+                                addSnackBar("Saved!", "default", 5);
+                                setEntrySaved(true);
+                            })
+                            .catch(err => {
+                                addSnackBar("Failed to Save, Error occured!", "error", 5)
+                            })
+
+                            .finally(() => setEntryOnSave(false))
+                        }}/>
+                    </span> 
                 }
                 <Devider $orientation="vertical" $variant="center"/>
                 <span className="btn-close-container">
@@ -341,23 +377,37 @@ const EntryPageFC: React.FC<IEntryPage> = ({className, onClose, entryInfo, editE
                 </span>
            </div>
            <div className="attenders-list">
-                <EntrySessionTabs attendanceType={entryInfo.type} entryUID={entryInfo.entryUID} sessions={sessions.map(s => s.id)} activeTab={activeSessionTab} onChangeTab={(tab) => setActiveSessionTab(tab)}/>
+                <EntrySessionTabs isPendingEntry={entryInfo.pending} attendanceType={entryInfo.type} entryUID={entryInfo.entryUID} sessions={sessions.map(s => s.id)} activeTab={activeSessionTab} onChangeTab={(tab) => setActiveSessionTab(tab)}/>
                 <div className="scroll">
                     <Scrollbar>
                     {
-                        entryInfo.type == "basic"? <>
-                        {
-                            basicAttendancePresentAttendees.length?
-                            <PresentAttendeesGrid attenders={basicAttendancePresentAttendees.filter(attendee => attendee.entrySession == activeSessionTab)} entryUID={entryInfo.entryUID} /> : 'No Attendees'
-                        }
-                        </> :
-                        detailedAttendanceAttendees.map(attendee => <DetailedAttendanceAttendeeTimeInOut key={attendee.memberUID} attendanceInfo={attendee} />)
+                        entryInfo.type == "basic"?
+                            activeSessionTab == 0?
+                                basicAttendancePresentAttendees.length? 
+                                    <PresentAttendeesGrid isPendingEntry={entryInfo.pending} attenders={basicAttendancePresentAttendees} entryUID={entryInfo.entryUID} /> :
+                                    <NoAttendee />
+                            :
+                            basicAttendancePresentAttendees.filter(attendee => attendee.entrySession == activeSessionTab)? 
+                            <PresentAttendeesGrid isPendingEntry={entryInfo.pending} attenders={basicAttendancePresentAttendees.filter(attendee => attendee.entrySession == activeSessionTab)} entryUID={entryInfo.entryUID} /> :
+                            <NoAttendee />
+                        :
+                            activeSessionTab == 0?
+                                detailedAttendanceAttendees.length?
+                                    detailedAttendanceAttendees.map(attendee => <DetailedAttendanceAttendeeTimeInOut isPendingEntry={entryInfo.pending} key={attendee.memberUID} attendanceInfo={attendee} />) :
+                                    <NoAttendee />
+                            :
+                            detailedAttendanceAttendees.filter(attendee => attendee.entrySession == activeSessionTab).length? 
+                            detailedAttendanceAttendees.filter(attendee => attendee.entrySession == activeSessionTab).map(attendee => <DetailedAttendanceAttendeeTimeInOut isPendingEntry={entryInfo.pending} key={attendee.memberUID} attendanceInfo={attendee} />):
+                            <NoAttendee />
                     }   
                     </Scrollbar>
                 </div>
-                <AddAttenderBtn onClick={() => setAttendanceInputState('ondisplay')}>
-                    <FontAwesomeIcon icon={["fas", "qrcode"]} />
-                </AddAttenderBtn>
+                {
+                    entryInfo.pending && activeSessionTab !== 0?
+                    <AddAttenderBtn onClick={() => setAttendanceInputState('ondisplay')}>
+                        <FontAwesomeIcon icon={["fas", "qrcode"]} />
+                    </AddAttenderBtn> : ""
+                }
            </div>
            {
                 (attendanceInputState == "open" || attendanceInputState == "ondisplay" || attendanceInputState == "close") &&(attendanceInputState == "open" || attendanceInputState == "ondisplay" || attendanceInputState == "close") &&
@@ -427,17 +477,23 @@ interface IEntrySessionTabs extends IStyledFC {
     activeTab: number;
     onChangeTab: (tab: number) => void;
     attendanceType: "basic" | "detailed";
+    isPendingEntry: boolean
 }
 
-const EntrySessionTabsFC: React.FC<IEntrySessionTabs> = ({className, entryUID, sessions, activeTab, onChangeTab, attendanceType}) => {
+const EntrySessionTabsFC: React.FC<IEntrySessionTabs> = ({className, entryUID, sessions, activeTab, onChangeTab, attendanceType, isPendingEntry}) => {
     const addSnackBar = useAddSnackBar();
     const [isLoading, setIsLoading] = React.useState(false);
 
     return(
         <div className={className}>
+            <div className={activeTab == 0? "all-session-group tab-active" : "all-session-group"}
+            onClick={() => onChangeTab(0)}>
+            All Attendees
+            </div>
             {
                 sessions.map((session, i) => (
-                    <EntrySessionTab 
+                    <EntrySessionTab
+                    isPendingEntry={isPendingEntry} 
                     key={session}
                     isActive={session == activeTab} 
                     entryUID={entryUID}
@@ -448,25 +504,29 @@ const EntrySessionTabsFC: React.FC<IEntrySessionTabs> = ({className, entryUID, s
                 ))
             }
             {
-                isLoading? <ClipLoader size={10} color="#36d7b7" /> : 
-                <AddSession onClick={() => {
-                    setIsLoading(true);
-                    doRequest({
-                        method: "POST",
-                        url: `/attendance/add-entry-session/${entryUID}`
-                    })
-                    .then(result => {
-                        if(result.success) {
-    
-                        } else throw result
-                    })
-                    .catch(err => {
-                        addSnackBar('Error Occured!', "error", 5)
-                    })
-                    .finally(() => setIsLoading(false))
-                }}>
-                    <FontAwesomeIcon icon={["fas", "plus"]} />
-                </AddSession>
+                isPendingEntry? <>
+                {
+                    isLoading? <ClipLoader size={10} color="#36d7b7" /> : 
+                    <AddSession onClick={() => {
+                        setIsLoading(true);
+                        doRequest({
+                            method: "POST",
+                            url: `/attendance/add-entry-session/${entryUID}`
+                        })
+                        .then(result => {
+                            if(result.success) {
+        
+                            } else throw result
+                        })
+                        .catch(err => {
+                            addSnackBar('Error Occured!', "error", 5)
+                        })
+                        .finally(() => setIsLoading(false))
+                    }}>
+                        <FontAwesomeIcon icon={["fas", "plus"]} />
+                    </AddSession>
+                }
+                </> : ""
             }
         </div>
     )
@@ -478,11 +538,12 @@ interface IEntrySessionTab extends IStyledFC {
     attendanceType: "basic" | "detailed";
     tabText: string;
     isActive: boolean;
+    isPendingEntry: boolean;
     onChangeTab: (tab: number) => void
 }
 
 
-const EntrySessionTabFC:React.FC<IEntrySessionTab> = ({className, entryUID, session, attendanceType, tabText, isActive, onChangeTab}) => {
+const EntrySessionTabFC:React.FC<IEntrySessionTab> = ({className, entryUID, session, attendanceType, tabText, isActive, onChangeTab, isPendingEntry}) => {
     const addSnackBar = useAddSnackBar();
     const [onRemove, setOnRemove] = React.useState(false);
     const {modal, confirm} = useConfirmModal();
@@ -491,24 +552,40 @@ const EntrySessionTabFC:React.FC<IEntrySessionTab> = ({className, entryUID, sess
         onClick={() => onChangeTab(session)}>
             {tabText} 
             {
-                isActive? onRemove? <ClipLoader size={8} color="#36d7b7" cssOverride={{marginLeft: "15px"}} /> : <span className="remove-icon-btn" onClick={() => {
-                    setOnRemove(true);
-                    doRequest({
-                        method: "DELETE",
-                        url: `/attendance/delete-attendance-entry-session/${attendanceType}/${entryUID}/${session}`
-                    })
-                    .then(result => {
-                        addSnackBar("Session removed!", "default", 5);
-                    })
-                    .catch(err => {
-                        if(err == "Has attendee") {
-                            confirm("Invalid action", `Deletion of session is not permitted while attendees are present. Please remove attendees from the session before attempting to delete it.`)
-                        }
-                        setOnRemove(false);
-                    })
-                }}>
-                    <FontAwesomeIcon icon={["fas", "times"]} />
-                </span> : ""
+                isPendingEntry?
+                    isActive? 
+                        onRemove? 
+                        <ClipLoader size={8} color="#36d7b7" cssOverride={{marginLeft: "15px"}} /> : 
+                        <span className="remove-icon-btn" onClick={() => {
+                        setOnRemove(true);
+                        doRequest({
+                            method: "DELETE",
+                            url: `/attendance/delete-attendance-entry-session/${attendanceType}/${entryUID}/${session}`
+                        })
+                        .then(result => {
+                            addSnackBar("Session removed!", "default", 5);
+                        })
+                        .catch(err => {
+                            if(typeof err == "string") {
+                                switch(err.toUpperCase()) {
+                                    case "HAS ATTENDEE":
+                                        confirm("Invalid action", `Deletion of session is not permitted while attendees are present. Please remove attendees from the session before attempting to delete it.`)
+                                        break;
+                                    case "ONLY ONE SESSION":
+                                        confirm("Invalid Action", "Cannot remove the session because the attendance entry must have at least one associated session, and the session you are attempting to remove is the only one associated with this entry.")
+                                        break;
+                                    default:
+                                        addSnackBar("Error occured!", "error", 5);
+                                }
+                            } else {
+                                addSnackBar("Error occured!", "error", 5);
+                            }
+                            setOnRemove(false);
+                        })
+                    }}>
+                        <FontAwesomeIcon icon={["fas", "times"]} />
+                    </span> : ""
+                : ""
             }
             <ConfirmModal context={modal} variant={"warning"} />
         </div>
@@ -551,6 +628,50 @@ const EntrySessionTabs = styled(EntrySessionTabsFC)`
     && > .tab-active {
         background-color: ${({theme}) => theme.background.lighter};
     }
+
+    && > .all-session-group {
+        display: flex;
+        flex: 0 0 fit-content;
+        align-items: center;
+        height: 25px;
+        padding: 0 10px;
+        font-size: 13px;
+        cursor: pointer;
+    }
+`;
+
+const NoAttendeesFC: React.FC<IStyledFC> = ({className}) => {
+    return(
+        <div className={className}>
+            <span className="icon">
+                <FontAwesomeIcon icon={['fas', "people-group"]} />
+            </span>
+            <p>No Attendee at the moment.</p>
+        </div>
+    )
+}
+
+const NoAttendee = styled(NoAttendeesFC)`
+    display: flex;
+    flex: 0 1 100%;
+    flex-wrap: wrap;
+    height: 300px;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    color: ${({theme}) => theme.textColor.disabled};
+
+    && > .icon {
+        font-size: 50px;
+        width: fit-content;
+        height: fit-content;
+    }
+
+    && > p {
+        flex: 0 1 100%;
+        height: fit-content;
+        text-align: center;
+    }
 `;
 
 const EntryPage = styled(EntryPageFC)`
@@ -565,18 +686,38 @@ const EntryPage = styled(EntryPageFC)`
     align-content: flex-start;
     background-color: ${({theme}) => theme.background.primary};
     z-index: 10000;
+    overflow: auto;
+
+    && ${Modal} ${Input} {
+        margin: 15px 0;
+    }
+
+    && .btn-container {
+        display: flex;
+        flex: 0 1 100%;
+        justify-content: flex-end;
+        gap: 5px;
+    }
     
     && > .page-heading {
         display: flex;
         flex: 0 1 100%;
-        height: 35px;
+        height: fit-content;
         align-items: center;
 
         .entry-title {
             display: flex;
             flex: 0 1 fit-content;
+            flex-wrap: wrap;
             align-items: center;
             color: ${({theme}) => theme.textColor.strong};
+
+            .entry-date {
+                flex: 0 1 100%;
+                font-size: 11px;
+                line-height: 0.5;
+                color: ${({theme}) => theme.textColor.light};
+            }
         }
 
         .btn-submit-container, ${DataDisplayChip} {
@@ -588,7 +729,13 @@ const EntryPage = styled(EntryPageFC)`
         }
     }
 
-    && > .page-heading > .entry-title > h1 {
+    && > .page-heading > .entry-title .title-group {
+        display: flex;
+        flex: 0 1 100%;
+        height: 100%;
+    }
+
+    && > .page-heading > .entry-title .title-group > h1 {
         font-size: 18px;
         font-weight: 600;
         margin-right: 5px;
