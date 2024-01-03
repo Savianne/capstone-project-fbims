@@ -6,11 +6,12 @@ import FadeLoader from "react-spinners/FadeLoader";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Button from '../Buttons/Button';
 import UseRipple from '../Ripple/UseRipple';
-import ReactCrop, { type Crop, makeAspectCrop, centerCrop } from 'react-image-crop'
+import ReactCrop, { type Crop, makeAspectCrop, centerCrop, PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 
 import uploadAvatar from '../../../API/uploadAvatar';
 import deleteTmpUpload from '../../../API/delete-tmp-upload';
+import { number } from 'yup';
 
 interface FileObject extends File {
   preview: string;
@@ -327,26 +328,17 @@ function useAvatarUploaderContext() {
   const [imageReplace, setImageReplace] = useState<FileObject | null>(null);
   const [selectedImage, setSelectedImage] = useState<FileObject | null>(null);
   const [errorUpload, setErrorUpload] = React.useState(false);
-  const [fileForCropping, setFileForCropping] = React.useState<null | FileObject>(null);
+  const [fileForCropping, setFileForCropping] = React.useState<null | File>(null);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       // Handle dropped files here
       const image = acceptedFiles[0];
-      const imagePreview: FileObject = Object.assign(image, {
-        preview: URL.createObjectURL(image),
-      });
 
       if(isUploading || isDeletingTmpImage || disabled) {
         return;
       }
 
-      setFileForCropping(imagePreview);
-
-      // if(!selectedImage) {
-      //   setSelectedImage(imagePreview);
-      // } else {
-      //   setImageReplace(imagePreview)
-      // }
+      setFileForCropping(image);
     },
     multiple: false, // Allow only one file to be selected at a time
     accept:  {
@@ -423,7 +415,7 @@ function useAvatarUploaderContext() {
     FileObject | null, React.Dispatch<React.SetStateAction<FileObject | null>>,
     FileObject | null, React.Dispatch<React.SetStateAction<FileObject | null>>,
     boolean, React.Dispatch<React.SetStateAction<boolean>>,
-    FileObject | null, React.Dispatch<React.SetStateAction<FileObject | null>>,
+    File | null, React.Dispatch<React.SetStateAction<File | null>>,
     <T extends DropzoneRootProps>(props?: T | undefined) => T, 
     <T extends DropzoneInputProps>(props?: T | undefined) => T, boolean,
     () => void,
@@ -455,20 +447,16 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
 
   const [crop, setCrop] = useState<Crop>();
   const imageForCropElem = React.useRef<null | HTMLImageElement>(null);
-  const [cropedImage, setCropedImage] = React.useState<null | string>(null);
 
   const getCroppedImg = (image: HTMLImageElement, crop: Crop, fileName: string) => {
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
+    const minScale = Math.min(image.naturalHeight, image.naturalWidth) / Math.min(image.width, image.height);
 
-    canvas.width = image.width;
-    canvas.height = image.height;
+    canvas.width = crop.width * minScale;
+    canvas.height = crop.height * minScale;
 
-    console.log(image.naturalWidth)
-    console.log(image.naturalHeight);
-    console.log(image.width)
-    console.log(image.height)
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       throw new Error("No 2d context");
@@ -476,14 +464,14 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
 
     ctx.drawImage(
       image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * minScale,
+      crop.height * minScale,
       0,
       0,
-      image.width,
-      image.height,
-      0,
-      0,
-      image.width,
-      image.height,
+      crop.width * minScale,
+      crop.height * minScale
     );
 
     return new Promise((resolve, reject) => {
@@ -498,7 +486,8 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
           const file = new File([blob], fileName, { type: 'image/jpeg' });
           
           // Resolve with the object URL of the File
-          resolve(window.URL.createObjectURL(file));
+          // resolve(window.URL.createObjectURL(file));
+          resolve(blob)
         },
         'image/jpeg'
       );
@@ -535,31 +524,12 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
 
         // Set the data URL as the src attribute of the image element
         imageForCropElem.current?.setAttribute('src', dataURL as string);
-
-        if(imageForCropElem.current) {
-          imageForCropElem.current.onload = (e: any) => {
-            const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
-            const crop = centerCrop(
-              makeAspectCrop(
-                {
-                  unit: '%',
-                  width: 90,
-                },
-                1,
-                width,
-                height
-              ),
-              width,
-              height
-            )
-            setCrop(crop)
-          }
-        }
       }
       // Read the content of the file as a data URL
       reader.readAsDataURL(fileForCropping);
     }
   }, [fileForCropping])
+
   return (
     <div className={className}>
       {
@@ -569,24 +539,55 @@ const FCAvatarPickerComponent: React.FC<IAvatarPickerComponent> = ({className, o
           crop={crop} 
           circularCrop 
           keepSelection
-          onChange={(c, p) => setCrop(p)} 
+          onChange={(c, p) => setCrop(c)} 
           aspect={1} 
-          className='image-crop'
-          onComplete={async  (c, p) => {
-            if (imageForCropElem.current && crop && crop.width && crop.height) {
-              const croppedImageUrl = await getCroppedImg(
+          className='image-crop'>
+            <img ref={imageForCropElem} 
+            onLoad={(e) => {
+              const width = e.currentTarget.width;
+              const height = e.currentTarget.height;
+              const minSize = Math.min(width, height)
+              const crop = centerCrop(
+                  makeAspectCrop(
+                    {
+                      unit: 'px',
+                      width: minSize,
+                    },
+                    1,
+                    width,
+                    height
+                  ),
+                  width,
+                  height
+                )
+                setCrop(crop)
+              }}
+            />
+          </ReactCrop><br />
+          <Button disabled={!crop} label='Crop' variant='hidden-bg-btn' icon={<FontAwesomeIcon icon={['fas', 'crop-alt']}/>} 
+          onClick={async () => {
+            if (imageForCropElem.current && crop) {
+              const croppedImage = await getCroppedImg(
                 imageForCropElem.current,
                 crop,
                 'newFile.jpeg'
-              );
-              // You can save the cropped image URL or upload it to a server.
-              setCropedImage(croppedImageUrl as string);
+              ) as Blob;
+              
+              // Create a File object from the Blob
+              const file = new File([croppedImage], 'image.png', { type: 'image/png' });
+        
+              const imagePreview: FileObject = Object.assign(file, {
+                preview: URL.createObjectURL(file),
+              });
+
+              if(!selectedImage) {
+                setSelectedImage(imagePreview);
+              } else {
+                setImageReplace(imagePreview)
+              }
             }
-          }}>
-            <img ref={imageForCropElem} />
-          </ReactCrop><br />
-            {cropedImage? <img src={cropedImage} /> : ''}
-            <Button label='Crop' variant='hidden-bg-btn' icon={<FontAwesomeIcon icon={['fas', 'crop-alt']}/>} />
+            setFileForCropping(null);
+          }}/>
         </div> : 
         <>
         <DropzoneContainer {...getRootProps({active: isDragActive})}>
@@ -674,6 +675,10 @@ const AvatarPicker = styled(FCAvatarPickerComponent)`
 
     > ${Button} {
       margin-top: 5px;
+    }
+
+    > img {
+      width: 300px;
     }
   }
 
