@@ -6,6 +6,24 @@ import styled from "styled-components";
 import QRCode from "qrcode"
 import ReactCardFlip from 'react-card-flip';
 import Button from "../reusables/Buttons/Button";
+import doRequest from "../../API/doRequest";
+import useAddSnackBar from "../reusables/SnackBar/useSnackBar";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+type TCongregationInfo = {
+    congregation_uid: string;
+    congregation_name: string;
+    date_founded: string;
+    mission: string;
+    vision: string;
+    avatar: string | null;
+    country: string;
+    region: string;
+    province: string;
+    mun_city: string;
+    barangay: string;
+    zone: number | null
+}
 
 interface IIDGeneratorProps extends IStyledFC {
     name: string;
@@ -14,6 +32,7 @@ interface IIDGeneratorProps extends IStyledFC {
 }
 
 const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID, picture}) => {
+    const addSnackBar = useAddSnackBar();
     const frontIdRef = React.useRef<any>(null);
     const backIdRef = React.useRef<any>(null);
     const coverPhoto = useBibleImage();
@@ -21,8 +40,8 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
     const dp = useDisplayPicture(picture);
     const qrCode = useGenerateQrcode(memberUID);
     const [isFlipped, setIsFlipped] = React.useState(false);
-    const [isFlipping, setIsFlipping] = React.useState(false);
-
+    const [congregationInfo, setCongregationInfo] = React.useState<null | TCongregationInfo>(null);
+    const [isLoadingCongregationInfo, setIsLoadingCongregationInfo] = React.useState(false);
     const logo = useLogoImage()
     const millimetersToPixels = (mm: number, ppi = 96) => {
         return mm * (ppi / 25.4);
@@ -43,17 +62,47 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
     }
 
     
-    // const handleExport = () => {
-    //     const uri = stageRef.current?.toDataURL({
-    //         pixelRatio: 2,
-    //         quality: 1,
-    //     });
-    //     downloadURI(uri, `Front-ID-${name}-${memberUID}`)
-    // };
+    const handleFrontIdExport = () => {
+        const uri = frontIdRef.current?.toDataURL({
+            pixelRatio: 2,
+            quality: 1,
+        });
+        downloadURI(uri, `Front-ID-${name}-${memberUID}.png`)
+    };
+
+    const handleBackIdExport = () => {
+        const uri = backIdRef.current?.toDataURL({
+            pixelRatio: 2,
+            quality: 1,
+        });
+        downloadURI(uri, `Back-ID-${name}-${memberUID}.png`)
+    };
+
+    React.useEffect(() => {
+        setIsLoadingCongregationInfo(true);
+        doRequest<TCongregationInfo>({
+            url: "/get-congregation-info"
+        })
+        .then(res => {
+            if(res.data) {
+                setCongregationInfo(res.data);
+            }
+        })
+        .catch(err => {
+            addSnackBar("Error Fetching Congregation Info", "error", 5)
+        })
+        .finally(() => setIsLoadingCongregationInfo(false))
+    }, [])
+
+    React.useEffect(() => {
+        console.log(congregationInfo)
+    }, [congregationInfo]);
 
     return (
         <div className={className}>
-            <Button label="Flip" onClick={() => setIsFlipped(!isFlipped)}/>
+            <div className="btn-flip-container">
+                <Button icon={<FontAwesomeIcon icon={['fas', "rotate"]} />} fullWidth label={isFlipped? "Flip to front" : "Flip to back"} variant="bordered-btn" color="primary" onClick={() => setIsFlipped(!isFlipped)}/>
+            </div>
             <div className="id-card">
                 <ReactCardFlip isFlipped={isFlipped} flipDirection="horizontal">
                     <div className="front-id">
@@ -136,7 +185,7 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
                         </Stage>
                     </div>
                     <div className="back-id">
-                        <Stage width={standardWidth} height={standardHeight} ref={frontIdRef}>
+                        <Stage width={standardWidth} height={standardHeight} ref={backIdRef}>
                             <Layer>
                                 {
                                     bgImage? 
@@ -152,15 +201,15 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
                                     qrCode? 
                                     <Image
                                     cornerRadius={5}
-                                    x={((standardWidth - (standardWidth - 70)) / 2)}
+                                    x={((standardWidth - (standardWidth - 80)) / 2)}
                                     y={20}
-                                    width={standardWidth - 70}
-                                    height={standardWidth - 70}  
+                                    width={standardWidth - 80}
+                                    height={standardWidth - 80}  
                                     image={qrCode} /> : ""
                                 }
                                 <Text
                                 x={10}
-                                y={160}
+                                y={150}
                                 width={standardWidth - 20}
                                 text={memberUID}
                                 fontSize={11}
@@ -170,7 +219,28 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
                                 />
                                 <Text
                                 x={10}
-                                y={200}
+                                y={180}
+                                width={standardWidth - 20}
+                                text="Congregation"
+                                fontSize={10}
+                                lineHeight={1.3}
+                                align="center"
+                                fontFamily="AssistantBold"
+                                fill="rgb(27, 27, 27)"
+                                />
+                                <Text
+                                x={10}
+                                y={195}
+                                width={standardWidth - 20}
+                                text={"Roxas Church of Christ"}
+                                fontSize={9}
+                                lineHeight={1.3}
+                                align="center"
+                                fill="rgb(27, 27, 27)"
+                                />
+                                <Text
+                                x={10}
+                                y={230}
                                 width={standardWidth - 20}
                                 text="Church Address"
                                 fontSize={10}
@@ -181,7 +251,7 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
                                 />
                                 <Text
                                 x={10}
-                                y={215}
+                                y={245}
                                 width={standardWidth - 20}
                                 text={"Brgy. Vira, Roxas Isabela"}
                                 fontSize={9}
@@ -191,10 +261,10 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
                                 />
                                 <Text
                                 x={30}
-                                y={255}
+                                y={280}
                                 width={standardWidth - 60}
-                                text={`This card is the property of Mark Niño Q. Baylon. Please return it if found.`}
-                                fontSize={11}
+                                text={`This ID card is property of Mark Niño Q. Baylon. Please return it if found.`}
+                                fontSize={9}
                                 lineHeight={1.3}
                                 align="center"
                                 fill="rgb(27, 27, 27)"
@@ -203,6 +273,12 @@ const IDGeneratorFC: React.FC<IIDGeneratorProps> = ({className, name, memberUID,
                         </Stage>
                     </div>
                 </ReactCardFlip>
+            </div>
+            <div className="btn-flip-container">
+                <Button icon={<FontAwesomeIcon icon={['fas', "rotate"]} />} fullWidth label="Download" variant="hidden-bg-btn" color="primary" onClick={() => {
+                    handleFrontIdExport();
+                    handleBackIdExport();
+                }}/>
             </div>
         </div>
     )
@@ -266,6 +342,7 @@ function useLogoImage() {
 
     useEffect(() => {
         const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
         img.src = '/faith-buddy.png';
 
         img.onload = () => {
@@ -282,8 +359,8 @@ function useDisplayPicture(url: string | null) {
     useEffect(() => {
         if(url) {
             const img = new window.Image();
+            img.crossOrigin = 'Anonymous';
             img.src = `${AVATAR_BASE_URL}/${url}`;
-    
             img.onload = () => {
                 setImage(img);
             };
@@ -316,7 +393,10 @@ function useGenerateQrcode(memberUID: string) {
 
 const IDGenerator = styled(IDGeneratorFC)`
     display: flex;
-    width: fit-content;
+    flex: 0 0 fit-content;
+    flex-direction: column;
+    flex-wrap: wrap;
+    padding: 15px 0;
     gap: 10px;
 
     && > .id-card {
@@ -338,6 +418,11 @@ const IDGenerator = styled(IDGeneratorFC)`
             box-shadow: 2px 3px 0px 1px rgba(233,233,233,1), 
                         6px 8px 0px 0px rgba(210,210,210,1);
         }
+    }
+
+    && > .btn-flip-container {
+        display: flex;
+        justify-content: center;
     }
     
 `
